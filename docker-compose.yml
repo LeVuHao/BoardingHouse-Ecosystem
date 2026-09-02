@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+
+  # ─────────────────────────────────────────────
+  # MySQL – chạy 4 database trên 1 instance duy nhất
+  # Tiết kiệm RAM khi dev local
+  # ─────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: phongtro_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Tự động chạy các file SQL khi container khởi tạo lần đầu
+      - ./database/db_auth.sql:/docker-entrypoint-initdb.d/01_db_auth.sql
+      - ./database/db_property_rental.sql:/docker-entrypoint-initdb.d/02_db_property_rental.sql
+      - ./database/db_billing_payment.sql:/docker-entrypoint-initdb.d/03_db_billing_payment.sql
+      - ./database/db_notification.sql:/docker-entrypoint-initdb.d/04_db_notification.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Redis – Distributed Lock (Redisson)
+  # ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: phongtro_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # RabbitMQ – Event Broker
+  # UI Management: http://localhost:15672 (guest/guest)
+  # ─────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: phongtro_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:

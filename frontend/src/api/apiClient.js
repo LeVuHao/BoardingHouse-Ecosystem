@@ -1,0 +1,51 @@
+import api from './axiosInstance';
+
+export const authApi = {
+  login: (data) => api.post('/auth/login', data),
+  register: (data) => api.post('/auth/register', data),
+  registerLandlord: (data) => api.post('/auth/landlord/register', data),
+  getProfile: () => api.get('/auth/profile'),
+};
+
+export const propertyApi = {
+  searchRooms: (params) => api.get('/rooms/search', { params }),
+  getRoomDetail: (id) => api.get(`/rooms/${id}`),
+  createProperty: (data) => api.post('/properties', data),
+  getMyProperties: () => api.get('/properties/my-properties'),
+  createRoom: (data) => api.post('/rooms', data),
+  getPropertyRooms: (id) => api.get(`/properties/${id}/rooms`),
+};
+
+export const rentalApi = {
+  createRentalRequest: (data) => api.post('/rental/requests', data),
+  getMyRentalRequests: () => api.get('/rental/requests/my-requests'),
+  getRequestsByRoom: (roomId) => api.get(`/rental/requests/room/${roomId}`),
+  approveRentalRequest: (id) => api.put(`/rental/requests/${id}/approve`),
+  rejectRentalRequest: (id) => api.put(`/rental/requests/${id}/reject`),
+  // Roommate
+  getRoommatePosts: (params) => api.get('/rental/posts', { params }),
+  getPostDetail: (id) => api.get(`/rental/posts/${id}`),
+  createRoommatePost: (data) => api.post('/rental/posts', data),
+  sendJoinRequest: (postId, data) => api.post(`/rental/posts/${postId}/join`, data),
+  getJoinRequests: (postId) => api.get(`/rental/posts/${postId}/requests`),
+  approveJoinRequest: (id) => api.post(`/rental/posts/requests/${id}/approve`),
+};
+
+export const billingApi = {
+  getMyBills: () => api.get('/bills/my-bills'),
+  getLandlordBills: () => api.get('/bills/landlord-bills'),
+  createBill: (data) => api.post('/bills', data),
+  createActivationUrl: () => api.post('/payments/create-activation-url'),
+  createBillPaymentUrl: (billId, amount) => api.post(`/payments/create-bill-payment-url/${billId}?amount=${amount}`),
+};
+
+export const notificationApi = {
+  getMyNotifications: () => api.get('/notifications'),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+};
+
+export const adminApi = {
+  getStats: () => api.get('/admin/dashboard/stats'),
+  getUsers: (params) => api.get('/admin/users', { params }),
+  updateStatus: (id, status) => api.put(`/admin/users/${id}/status?status=${status}`),
+};

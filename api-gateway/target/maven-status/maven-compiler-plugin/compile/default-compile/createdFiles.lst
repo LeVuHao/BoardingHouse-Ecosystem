@@ -1,0 +1,2 @@
+com\roomily\gateway\ApiGatewayApplication.class
+com\roomily\gateway\filter\AuthenticationFilter.class

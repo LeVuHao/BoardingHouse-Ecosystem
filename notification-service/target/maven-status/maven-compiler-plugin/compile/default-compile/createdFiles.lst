@@ -1,0 +1,6 @@
+com\roomily\notification\entity\Notification$NotificationBuilder.class
+com\roomily\notification\controller\NotificationController.class
+com\roomily\notification\entity\Notification.class
+com\roomily\notification\NotificationServiceApplication.class
+com\roomily\notification\consumer\NotificationConsumer.class
+com\roomily\notification\repository\NotificationRepository.class
