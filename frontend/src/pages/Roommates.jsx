@@ -19,12 +19,17 @@ const Roommates = () => {
   const [joinRequests, setJoinRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
 
+  const [loadingPosts, setLoadingPosts] = useState(true);
+
   const fetchPosts = async () => {
+    setLoadingPosts(true);
     try {
       const res = await rentalApi.getRoommatePosts();
       setPosts(res.data.content || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingPosts(false);
     }
   };
 
@@ -112,36 +117,58 @@ const Roommates = () => {
         )}
       </div>
 
-      <div className="rooms-grid">
-        {posts.map((post) => (
-          <div key={post.id} className="room-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span className={`badge ${post.status === 'OPEN' ? 'badge-success' : 'badge-danger'}`}>
-                {post.status}
-              </span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-              </span>
+      {loadingPosts ? (
+        <div className="rooms-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="room-card" style={{ padding: '1.5rem', height: '240px' }}>
+              <div style={{ height: '20px', width: '30%', marginBottom: '1rem' }} className="skeleton" />
+              <div style={{ height: '24px', width: '80%', marginBottom: '0.8rem' }} className="skeleton" />
+              <div style={{ height: '40px', width: '100%', marginBottom: '1rem' }} className="skeleton" />
+              <div style={{ height: '36px', width: '100%', marginTop: 'auto' }} className="skeleton" />
             </div>
+          ))}
+        </div>
+      ) : posts.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', background: 'white', borderRadius: '16px', border: '1px solid var(--border)' }}>
+          <h3>Chưa có bài đăng tìm người ở ghép nào</h3>
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Hãy là người đầu tiên đăng bài để tìm bạn cùng chia sẻ tiền phòng!</p>
+          {user && (
+            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+              <Plus size={18} /> Đăng bài ngay
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="rooms-grid">
+          {posts.map((post) => (
+            <div key={post.id} className="room-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span className={`badge ${post.status === 'OPEN' ? 'badge-success' : 'badge-danger'}`}>
+                  {post.status}
+                </span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {new Date(post.createdAt).toLocaleDateString('vi-VN')}
+                </span>
+              </div>
 
-            <h3 style={{ fontSize: '1.2rem', margin: '0.5rem 0' }}>{post.title}</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1rem', flex: 1 }}>
-              {post.description}
-            </p>
+              <h3 style={{ fontSize: '1.2rem', margin: '0.5rem 0' }}>{post.title}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1rem', flex: 1 }}>
+                {post.description}
+              </p>
 
-            <div className="room-price" style={{ fontSize: '1.15rem' }}>
-              Chia sẻ: {Number(post.priceShare).toLocaleString('vi-VN')} đ/người
-            </div>
+              <div className="room-price" style={{ fontSize: '1.15rem' }}>
+                Chia sẻ: {Number(post.priceShare).toLocaleString('vi-VN')} đ/người
+              </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button
-                onClick={() => setSelectedPost(post)}
-                disabled={post.status !== 'OPEN'}
-                className="btn btn-primary"
-                style={{ flex: 1 }}
-              >
-                <UserPlus size={16} /> Xin ở ghép
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <button
+                  onClick={() => setSelectedPost(post)}
+                  disabled={post.status !== 'OPEN'}
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
+                >
+                  <UserPlus size={16} /> Xin ở ghép
+                </button>
 
               {(user?.role === 'ROLE_LANDLORD' || user?.id === post.creatorId) && (
                 <button

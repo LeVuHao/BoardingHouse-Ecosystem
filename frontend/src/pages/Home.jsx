@@ -91,23 +91,39 @@ const Home = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>Đang tải danh sách phòng...</div>
+        <div className="rooms-grid">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="room-card" style={{ height: '380px' }}>
+              <div style={{ height: '220px' }} className="skeleton" />
+              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', flex: 1 }}>
+                <div style={{ height: '24px', width: '70%' }} className="skeleton" />
+                <div style={{ height: '28px', width: '50%' }} className="skeleton" />
+                <div style={{ height: '18px', width: '90%' }} className="skeleton" />
+                <div style={{ height: '40px', marginTop: 'auto' }} className="skeleton" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="rooms-grid">
           {rooms.map((room) => (
             <div key={room.id} className="room-card">
-              <img
-                src={room.images && room.images.length > 0 ? room.images[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600'}
-                alt={room.roomNumber}
-                className="room-img"
-              />
+              <div style={{ position: 'relative', overflow: 'hidden' }}>
+                <img
+                  src={room.images && room.images.length > 0 ? room.images[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600'}
+                  alt={room.roomNumber}
+                  className="room-img"
+                />
+                <span
+                  className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-danger'}`}
+                  style={{ position: 'absolute', top: '12px', right: '12px' }}
+                >
+                  {room.status === 'AVAILABLE' ? 'Còn trống' : 'Đã đầy'}
+                </span>
+              </div>
+
               <div className="room-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h3 style={{ fontSize: '1.2rem' }}>Phòng {room.roomNumber} - {room.propertyTitle}</h3>
-                  <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-danger'}`}>
-                    {room.status === 'AVAILABLE' ? 'Còn trống' : 'Đã đầy'}
-                  </span>
-                </div>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Phòng {room.roomNumber} - {room.propertyTitle}</h3>
 
                 <div className="room-price">
                   {Number(room.price).toLocaleString('vi-VN')} đ/tháng
@@ -119,14 +135,23 @@ const Home = () => {
                   <span><Users size={15} style={{ display: 'inline' }} /> {room.currentOccupants}/{room.capacity}</span>
                 </div>
 
-                <button
-                  onClick={() => setSelectedRoom(room)}
-                  disabled={room.status !== 'AVAILABLE'}
-                  className="btn btn-primary"
-                  style={{ marginTop: 'auto', width: '100%' }}
-                >
-                  <Send size={16} /> Thuê phòng này
-                </button>
+                <div style={{ display: 'flex', gap: '0.6rem', marginTop: 'auto' }}>
+                  <a
+                    href={`/rooms/${room.id}`}
+                    className="btn btn-outline"
+                    style={{ flex: 1, padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
+                  >
+                    Xem chi tiết
+                  </a>
+                  <button
+                    onClick={() => setSelectedRoom(room)}
+                    disabled={room.status !== 'AVAILABLE'}
+                    className="btn btn-primary"
+                    style={{ flex: 1, padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
+                  >
+                    <Send size={15} /> Thuê ngay
+                  </button>
+                </div>
               </div>
             </div>
           ))}

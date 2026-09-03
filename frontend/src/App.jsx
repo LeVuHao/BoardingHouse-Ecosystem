@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import Home from './pages/Home';
+import RoomDetail from './pages/RoomDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RegisterLandlord from './pages/RegisterLandlord';
@@ -24,6 +25,7 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/rooms/:id" element={<RoomDetail />} />
               <Route path="/roommates" element={<Roommates />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

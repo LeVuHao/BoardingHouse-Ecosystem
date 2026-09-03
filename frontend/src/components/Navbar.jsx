@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, PlusCircle, User, LogOut, ShieldCheck, FileText, Bell } from 'lucide-react';
+import { Home, Users, PlusCircle, User, LogOut, ShieldCheck, FileText } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -43,9 +44,7 @@ const Navbar = () => {
       <div className="nav-links">
         {user ? (
           <>
-            <Link to="/notifications" className="nav-item" title="Thông báo">
-              <Bell size={20} />
-            </Link>
+            <NotificationBell />
             <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>
               Xin chào, {user.fullName} ({user.role})
             </span>
