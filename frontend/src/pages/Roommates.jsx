@@ -170,19 +170,20 @@ const Roommates = () => {
                   <UserPlus size={16} /> Xin ở ghép
                 </button>
 
-              {(user?.role === 'ROLE_LANDLORD' || user?.id === post.creatorId) && (
-                <button
-                  onClick={() => handleViewJoinRequests(post)}
-                  className="btn btn-outline"
-                  title="Xem & Duyệt danh sách xin ở ghép"
-                >
-                  <Eye size={16} />
-                </button>
-              )}
+                {(user?.role === 'ROLE_LANDLORD' || user?.id === post.creatorId) && (
+                  <button
+                    onClick={() => handleViewJoinRequests(post)}
+                    className="btn btn-outline"
+                    title="Xem & Duyệt danh sách xin ở ghép"
+                  >
+                    <Eye size={16} />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Join Request Modal */}
       {selectedPost && (
