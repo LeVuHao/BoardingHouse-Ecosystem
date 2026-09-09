@@ -1,7 +1,9 @@
 package com.roomily.property.controller;
 
 import com.roomily.common.dto.ApiResponse;
+import com.roomily.property.dto.request.AddRoomImagesRequest;
 import com.roomily.property.dto.request.CreateRoomRequest;
+import com.roomily.property.dto.request.UpdateRoomRequest;
 import com.roomily.property.dto.response.RoomResponse;
 import com.roomily.property.service.PropertyService;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
@@ -28,6 +31,26 @@ public class RoomController {
         RoomResponse res = propertyService.createRoom(landlordId, req);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Tạo phòng trọ mới thành công", res));
+    }
+
+    // [HUY] Cập nhật thông tin phòng
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<RoomResponse>> updateRoom(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @PathVariable Long id,
+            @RequestBody UpdateRoomRequest req) {
+        RoomResponse res = propertyService.updateRoom(landlordId, id, req);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật phòng thành công", res));
+    }
+
+    // [HUY] Thêm ảnh cho phòng
+    @PostMapping("/{id}/images")
+    public ResponseEntity<ApiResponse<List<String>>> addRoomImages(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @PathVariable Long id,
+            @RequestBody AddRoomImagesRequest req) {
+        List<String> images = propertyService.addRoomImages(landlordId, id, req.getImageUrls());
+        return ResponseEntity.ok(ApiResponse.success("Thêm ảnh phòng thành công", images));
     }
 
     @GetMapping("/search")

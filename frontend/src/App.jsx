@@ -13,6 +13,10 @@ import MyBills from './pages/MyBills';
 import Notifications from './pages/Notifications';
 import LandlordProperties from './pages/LandlordProperties';
 import AdminDashboard from './pages/AdminDashboard';
+// [HUY] Các trang mới
+import SearchRooms from './pages/SearchRooms';
+import RoomDetail from './pages/RoomDetail';
+import MyContracts from './pages/MyContracts';
 
 function App() {
   return (
@@ -24,6 +28,8 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/search" element={<SearchRooms />} />
+              <Route path="/rooms/:id" element={<RoomDetail />} />
               <Route path="/roommates" element={<Roommates />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -32,6 +38,7 @@ function App() {
               {/* Authenticated Routes */}
               <Route element={<ProtectedRoute allowedRoles={['USER', 'LANDLORD', 'ADMIN']} />}>
                 <Route path="/notifications" element={<Notifications />} />
+                <Route path="/my-contracts" element={<MyContracts />} />
               </Route>
 
               {/* User Only */}

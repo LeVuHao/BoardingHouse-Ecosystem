@@ -3,18 +3,16 @@ package com.roomily.property.controller;
 import com.roomily.common.dto.ApiResponse;
 import com.roomily.property.dto.request.CreatePropertyRequest;
 import com.roomily.property.dto.request.CreateRoomRequest;
+import com.roomily.property.dto.request.UpdatePropertyRequest;
 import com.roomily.property.dto.response.PropertyResponse;
 import com.roomily.property.dto.response.RoomResponse;
 import com.roomily.property.service.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -44,6 +42,16 @@ public class PropertyController {
     public ResponseEntity<ApiResponse<PropertyResponse>> getPropertyDetail(@PathVariable Long id) {
         PropertyResponse res = propertyService.getPropertyDetail(id);
         return ResponseEntity.ok(ApiResponse.success(res));
+    }
+
+    // [HUY] Cập nhật thông tin khu trọ
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @PathVariable Long id,
+            @RequestBody UpdatePropertyRequest req) {
+        PropertyResponse res = propertyService.updateProperty(landlordId, id, req);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật khu trọ thành công", res));
     }
 
     @GetMapping("/{id}/rooms")
