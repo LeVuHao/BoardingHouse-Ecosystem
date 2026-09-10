@@ -1,10 +1,7 @@
-version: '3.8'
-
 services:
 
   # ─────────────────────────────────────────────
-  # MySQL – chạy 4 database trên 1 instance duy nhất
-  # Tiết kiệm RAM khi dev local
+  # INFRASTRUCTURE
   # ─────────────────────────────────────────────
   mysql:
     image: mysql:8.0
@@ -17,7 +14,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      # Tự động chạy các file SQL khi container khởi tạo lần đầu
       - ./database/db_auth.sql:/docker-entrypoint-initdb.d/01_db_auth.sql
       - ./database/db_property_rental.sql:/docker-entrypoint-initdb.d/02_db_property_rental.sql
       - ./database/db_billing_payment.sql:/docker-entrypoint-initdb.d/03_db_billing_payment.sql
@@ -27,11 +23,10 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+    networks:
+      - phongtro_net
 
-  # ─────────────────────────────────────────────
-  # Redis – Distributed Lock (Redisson)
-  # ─────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: phongtro_redis
@@ -45,18 +40,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - phongtro_net
 
-  # ─────────────────────────────────────────────
-  # RabbitMQ – Event Broker
-  # UI Management: http://localhost:15672 (guest/guest)
-  # ─────────────────────────────────────────────
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: phongtro_rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"    # AMQP port
-      - "15672:15672"  # Management UI
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -67,6 +60,168 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
+    networks:
+      - phongtro_net
+
+  # ─────────────────────────────────────────────
+  # SPRING BOOT SERVICES
+  # ─────────────────────────────────────────────
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    container_name: phongtro_eureka
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - phongtro_net
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: phongtro_auth
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_auth?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - phongtro_net
+
+  property-rental-service:
+    build:
+      context: .
+      dockerfile: property-rental-service/Dockerfile
+    container_name: phongtro_property
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_property_rental?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq
+      REDIS_ADDRESS: redis://redis:6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - phongtro_net
+
+  billing-payment-service:
+    build:
+      context: .
+      dockerfile: billing-payment-service/Dockerfile
+    container_name: phongtro_billing
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_billing_payment?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - phongtro_net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: phongtro_notification
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_notification?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - phongtro_net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: phongtro_gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      property-rental-service:
+        condition: service_started
+    networks:
+      - phongtro_net
+
+  # ─────────────────────────────────────────────
+  # FRONTEND
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: phongtro_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - phongtro_net
+
+networks:
+  phongtro_net:
+    driver: bridge
 
 volumes:
   mysql_data:

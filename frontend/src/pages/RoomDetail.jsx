@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { propertyApi, rentalApi } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
-import { MapPin, Maximize2, Users, CheckCircle2, ShieldCheck, ArrowLeft, Send, Sparkles } from 'lucide-react';
+import {
+  MapPin, Maximize2, Users, CheckCircle2, ShieldCheck,
+  ArrowLeft, Send, Sparkles, ChevronLeft, ChevronRight, Home
+} from 'lucide-react';
 
 const RoomDetail = () => {
   const { id } = useParams();
@@ -61,11 +64,11 @@ const RoomDetail = () => {
 
   if (loading) {
     return (
-      <div className="container" style={{ maxWidth: '1000px' }}>
-        <div style={{ height: '350px', marginBottom: '2rem' }} className="skeleton" />
-        <div style={{ height: '40px', width: '60%', marginBottom: '1rem' }} className="skeleton" />
-        <div style={{ height: '20px', width: '40%', marginBottom: '2rem' }} className="skeleton" />
-        <div style={{ height: '120px' }} className="skeleton" />
+      <div className="container" style={{ maxWidth: '1000px', padding: '2rem 1rem' }}>
+        <div style={{ height: '350px', marginBottom: '2rem', borderRadius: '16px', background: '#f3f4f6' }} />
+        <div style={{ height: '32px', width: '50%', marginBottom: '1rem', background: '#f3f4f6' }} />
+        <div style={{ height: '20px', width: '30%', marginBottom: '2rem', background: '#f3f4f6' }} />
+        <div style={{ height: '100px', background: '#f3f4f6' }} />
       </div>
     );
   }
@@ -73,9 +76,10 @@ const RoomDetail = () => {
   if (!room) {
     return (
       <div className="container" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+        <Home size={48} style={{ marginBottom: '1rem', opacity: 0.3 }} />
         <h3>Không tìm thấy thông tin phòng trọ này</h3>
-        <button onClick={() => navigate('/')} className="btn btn-outline" style={{ marginTop: '1rem' }}>
-          <ArrowLeft size={16} /> Quay lại trang chủ
+        <button onClick={() => navigate('/search')} className="btn btn-outline" style={{ marginTop: '1rem' }}>
+          <ArrowLeft size={16} /> Quay lại tìm kiếm
         </button>
       </div>
     );
@@ -87,45 +91,83 @@ const RoomDetail = () => {
     'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1000',
   ];
 
-  const utilitiesList = room.utilities ? room.utilities.split(',') : ['Wifi tốc độ cao', 'Điều hòa', 'Bình nóng lạnh', 'Bãi giữ xe máy', 'Camera an ninh 24/7', 'Giờ giấc tự do'];
+  const utilitiesList = room.utilities
+    ? room.utilities.split(',')
+    : ['Wifi tốc độ cao', 'Điều hòa', 'Bình nóng lạnh', 'Bãi giữ xe máy', 'Camera an ninh 24/7', 'Giờ giấc tự do'];
+
+  const prevImage = () => setActiveImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const nextImage = () => setActiveImg((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   return (
-    <div className="container" style={{ maxWidth: '1050px' }}>
-      <button onClick={() => navigate('/')} className="btn btn-outline" style={{ marginBottom: '1.5rem', padding: '0.4rem 0.8rem' }}>
-        <ArrowLeft size={16} /> Quay lại danh sách
+    <div className="container" style={{ maxWidth: '1050px', padding: '1.5rem 1rem' }}>
+      <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ marginBottom: '1.5rem', padding: '0.4rem 0.8rem' }}>
+        <ArrowLeft size={16} /> Quay lại
       </button>
 
       {/* Gallery Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{ height: '400px', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
-          <img src={images[activeImg]} alt="Room Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: images.length > 1 ? '2fr 1fr' : '1fr', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ position: 'relative', height: '400px', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow)', background: '#111' }}>
+          <img
+            src={images[activeImg]}
+            alt="Room Preview"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                style={{
+                  position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%',
+                  width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={nextImage}
+                style={{
+                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%',
+                  width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-          {images.map((img, idx) => (
-            <div
-              key={idx}
-              onClick={() => setActiveImg(idx)}
-              style={{
-                height: '124px',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: activeImg === idx ? '3px solid var(--primary)' : '1px solid var(--border)',
-                opacity: activeImg === idx ? 1 : 0.75,
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <img src={img} alt="Thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-          ))}
-        </div>
+
+        {images.length > 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {images.slice(0, 3).map((img, idx) => (
+              <div
+                key={idx}
+                onClick={() => setActiveImg(idx)}
+                style={{
+                  height: '124px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: activeImg === idx ? '3px solid var(--primary)' : '1px solid var(--border)',
+                  opacity: activeImg === idx ? 1 : 0.75,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <img src={img} alt="Thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Main Info */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2.5rem' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>Phòng {room.roomNumber} - {room.propertyTitle || 'Khu trọ cao cấp'}</h1>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>
+              Phòng {room.roomNumber} - {room.propertyTitle || 'Khu trọ cao cấp'}
+            </h1>
             <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.85rem' }}>
               {room.status === 'AVAILABLE' ? 'Đang còn chỗ' : 'Đã kín'}
             </span>
@@ -133,7 +175,7 @@ const RoomDetail = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
             <MapPin size={18} color="var(--primary)" />
-            <span>{room.address || `${room.district}, ${room.city}`}</span>
+            <span>{room.address || `${room.district || ''}, ${room.city || ''}`}</span>
           </div>
 
           {/* Quick Stats */}
@@ -147,11 +189,11 @@ const RoomDetail = () => {
             <div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sức chứa</div>
               <div style={{ fontSize: '1.1rem', fontWeight: '700', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Users size={16} color="var(--primary)" /> {room.currentOccupants}/{room.capacity} người
+                <Users size={16} color="var(--primary)" /> {room.currentOccupants || 0}/{room.capacity} người
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Giá thuê gốc</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Giá thuê</div>
               <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--primary)', marginTop: '4px' }}>
                 {Number(room.price).toLocaleString('vi-VN')} đ/th
               </div>
@@ -196,7 +238,7 @@ const RoomDetail = () => {
               onClick={() => setShowModal(true)}
               disabled={room.status !== 'AVAILABLE'}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '0.85rem' }}
+              style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             >
               <Send size={18} /> Gửi yêu cầu thuê phòng
             </button>
