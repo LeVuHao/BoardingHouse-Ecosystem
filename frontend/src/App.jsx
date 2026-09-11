@@ -13,6 +13,7 @@ import Roommates from './pages/Roommates';
 import MyBills from './pages/MyBills';
 import Notifications from './pages/Notifications';
 import LandlordProperties from './pages/LandlordProperties';
+import LandlordCreateBill from './pages/LandlordCreateBill';
 import AdminDashboard from './pages/AdminDashboard';
 // [HUY] Các trang mới
 import SearchRooms from './pages/SearchRooms';
@@ -49,6 +50,7 @@ function App() {
               {/* Landlord Only */}
               <Route element={<ProtectedRoute allowedRoles={['LANDLORD']} />}>
                 <Route path="/landlord/properties" element={<LandlordProperties />} />
+                <Route path="/landlord/create-bill" element={<LandlordCreateBill />} />
               </Route>
 
               {/* Admin Only */}
