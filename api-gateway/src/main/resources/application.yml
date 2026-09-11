@@ -30,12 +30,12 @@ spring:
         - id: property-rental-service
           uri: lb://PROPERTY-RENTAL-SERVICE
           predicates:
-            - Path=/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**
+            - Path=/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**, /api/v1/contracts/**
 
         - id: billing-payment-service
           uri: lb://BILLING-PAYMENT-SERVICE
           predicates:
-            - Path=/api/v1/bills/**, /api/v1/payments/**, /api/v1/contracts/**, /ws/**
+            - Path=/api/v1/bills/**, /api/v1/payments/**, /ws/**
 
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
