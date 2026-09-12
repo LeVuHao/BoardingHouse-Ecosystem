@@ -20,6 +20,7 @@ export const rentalApi = {
   createRentalRequest: (data) => api.post('/rental/requests', data),
   getMyRentalRequests: () => api.get('/rental/requests/my-requests'),
   getRequestsByRoom: (roomId) => api.get(`/rental/requests/room/${roomId}`),
+  getLandlordRequests: (params) => api.get('/rental/requests/landlord', { params }),
   approveRentalRequest: (id) => api.put(`/rental/requests/${id}/approve`),
   rejectRentalRequest: (id) => api.put(`/rental/requests/${id}/reject`),
   // Roommate
@@ -45,7 +46,8 @@ export const notificationApi = {
 };
 
 export const adminApi = {
-  getStats: () => api.get('/admin/dashboard/stats'),
-  getUsers: (params) => api.get('/admin/users', { params }),
-  updateStatus: (id, status) => api.put(`/admin/users/${id}/status?status=${status}`),
+  getStats: () => api.get('/auth/admin/stats'),
+  getUsers: (params) => api.get('/auth/admin/users', { params }),
+  lockUser: (id) => api.put(`/auth/admin/users/${id}/lock`),
+  unlockUser: (id) => api.put(`/auth/admin/users/${id}/unlock`),
 };

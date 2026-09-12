@@ -1,6 +1,3 @@
-com\roomily\notification\entity\Notification$NotificationBuilder.class
-com\roomily\notification\controller\NotificationController.class
-com\roomily\notification\entity\Notification.class
-com\roomily\notification\NotificationServiceApplication.class
-com\roomily\notification\consumer\NotificationConsumer.class
-com\roomily\notification\repository\NotificationRepository.class
+com/roomily/notification/config/RabbitMQConfig.class
+com/roomily/notification/service/NotificationService.class
+com/roomily/notification/listener/EventListener.class

@@ -1,7 +1,7 @@
 package com.roomily.auth.controller;
 
 import com.roomily.auth.dto.response.UserResponse;
-import com.roomily.auth.service.AuthService;
+import com.roomily.auth.service.AdminService;
 import com.roomily.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,31 +12,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v1/auth/admin")
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AuthService authService;
+    private final AdminService adminService;
 
-    @GetMapping("/dashboard/stats")
+    @GetMapping("/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardStats() {
-        Map<String, Object> stats = authService.getAdminStats();
+        Map<String, Object> stats = adminService.getStats();
         return ResponseEntity.ok(ApiResponse.success(stats));
     }
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> listUsers(
             @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
-        Page<UserResponse> users = authService.listUsersByRole(role, pageable);
+        Page<UserResponse> users = adminService.listUsers(role, status, pageable);
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 
-    @PutMapping("/users/{id}/status")
-    public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(
-            @PathVariable Long id,
-            @RequestParam String status) {
-        UserResponse user = authService.toggleUserStatus(id, status);
-        return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái thành công", user));
+    @PutMapping("/users/{id}/lock")
+    public ResponseEntity<ApiResponse<UserResponse>> lockUser(@PathVariable Long id) {
+        UserResponse user = adminService.lockUser(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã khóa tài khoản thành công", user));
+    }
+
+    @PutMapping("/users/{id}/unlock")
+    public ResponseEntity<ApiResponse<UserResponse>> unlockUser(@PathVariable Long id) {
+        UserResponse user = adminService.unlockUser(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã mở khóa tài khoản thành công", user));
     }
 }
