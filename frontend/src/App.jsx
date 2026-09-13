@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -13,6 +14,7 @@ import Roommates from './pages/Roommates';
 import MyBills from './pages/MyBills';
 import Notifications from './pages/Notifications';
 import LandlordProperties from './pages/LandlordProperties';
+import LandlordRequests from './pages/LandlordRequests';
 import LandlordCreateBill from './pages/LandlordCreateBill';
 import AdminDashboard from './pages/AdminDashboard';
 // [HUY] Các trang mới
@@ -22,6 +24,7 @@ import MyContracts from './pages/MyContracts';
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Navbar />
@@ -50,6 +53,7 @@ function App() {
               {/* Landlord Only */}
               <Route element={<ProtectedRoute allowedRoles={['LANDLORD']} />}>
                 <Route path="/landlord/properties" element={<LandlordProperties />} />
+                <Route path="/landlord/requests" element={<LandlordRequests />} />
                 <Route path="/landlord/create-bill" element={<LandlordCreateBill />} />
               </Route>
 

@@ -6,6 +6,8 @@ import com.roomily.property.dto.request.CreateRoomRequest;
 import com.roomily.property.dto.request.UpdatePropertyRequest;
 import com.roomily.property.dto.response.PropertyResponse;
 import com.roomily.property.dto.response.RoomResponse;
+import com.roomily.property.repository.PropertyRepository;
+import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.service.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/properties")
@@ -21,6 +25,8 @@ import java.util.List;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final PropertyRepository propertyRepository;
+    private final RoomRepository roomRepository;
 
     @PostMapping
     public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(
@@ -58,5 +64,13 @@ public class PropertyController {
     public ResponseEntity<ApiResponse<List<RoomResponse>>> getRoomsByProperty(@PathVariable Long id) {
         List<RoomResponse> list = propertyService.getRoomsByProperty(id);
         return ResponseEntity.ok(ApiResponse.success(list));
+    }
+
+    @GetMapping("/admin/count")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getAdminCount() {
+        Map<String, Long> result = new HashMap<>();
+        result.put("totalProperties", propertyRepository.count());
+        result.put("totalRooms", roomRepository.count());
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

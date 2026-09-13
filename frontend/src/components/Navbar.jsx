@@ -26,6 +26,7 @@ const Navbar = () => {
         {user && user.role === 'LANDLORD' && (
           <>
             <Link to="/landlord/properties" className="nav-item">Quản lý khu trọ</Link>
+            <Link to="/landlord/requests" className="nav-item">Yêu cầu thuê</Link>
             <Link to="/my-contracts" className="nav-item">Quản lý hợp đồng</Link>
             <Link to="/landlord/create-bill" className="nav-item">Tạo hóa đơn</Link>
           </>

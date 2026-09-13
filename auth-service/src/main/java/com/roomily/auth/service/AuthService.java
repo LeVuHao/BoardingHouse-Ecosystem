@@ -11,14 +11,9 @@ import com.roomily.auth.security.JwtUtil;
 import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +74,10 @@ public class AuthService {
             throw new BadRequestException("Tài khoản của bạn đã bị khóa do vi phạm quy định");
         }
 
+        if ("LANDLORD".equalsIgnoreCase(user.getRole()) && "PENDING_PAYMENT".equalsIgnoreCase(user.getStatus())) {
+            throw new BadRequestException("Vui lòng thanh toán phí kích hoạt tài khoản chủ trọ trước khi đăng nhập");
+        }
+
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole(), user.getFullName());
 
         return AuthResponse.builder()
@@ -98,32 +97,6 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chủ trọ"));
         user.setStatus("ACTIVE");
-        return UserResponse.fromEntity(userRepository.save(user));
-    }
-
-    // Admin Features
-    public Map<String, Object> getAdminStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalUsers", userRepository.countByRole("USER"));
-        stats.put("totalLandlords", userRepository.countByRole("LANDLORD"));
-        stats.put("activeLandlords", userRepository.findAll().stream().filter(u -> "LANDLORD".equals(u.getRole()) && "ACTIVE".equals(u.getStatus())).count());
-        stats.put("pendingLandlords", userRepository.findAll().stream().filter(u -> "LANDLORD".equals(u.getRole()) && "PENDING_PAYMENT".equals(u.getStatus())).count());
-        stats.put("suspendedAccounts", userRepository.countByStatus("SUSPENDED"));
-        return stats;
-    }
-
-    public Page<UserResponse> listUsersByRole(String role, Pageable pageable) {
-        if (role == null || role.isBlank()) {
-            return userRepository.findAll(pageable).map(UserResponse::fromEntity);
-        }
-        return userRepository.findByRole(role.toUpperCase(), pageable).map(UserResponse::fromEntity);
-    }
-
-    @Transactional
-    public UserResponse toggleUserStatus(Long userId, String newStatus) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
-        user.setStatus(newStatus);
         return UserResponse.fromEntity(userRepository.save(user));
     }
 }
