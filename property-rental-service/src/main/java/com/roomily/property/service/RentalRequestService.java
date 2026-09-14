@@ -14,7 +14,12 @@ import com.roomily.property.repository.RentalRequestRepository;
 import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +27,10 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RentalRequestService {
@@ -33,6 +40,7 @@ public class RentalRequestService {
     private final TenantRepository tenantRepository;
     private final ContractRepository contractRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final RedissonClient redissonClient;
 
     @Transactional
     public RentalRequestResponse createRentalRequest(Long userId, CreateRentalRequestDto req) {
@@ -75,6 +83,34 @@ public class RentalRequestService {
         RentalRequest req = rentalRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu thuê"));
 
+        Long roomId = req.getRoomId();
+        String lockKey = "lock:room:" + roomId;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean isLocked = false;
+        try {
+            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new BadRequestException("Hệ thống đang bận xử lý yêu cầu khác cho phòng này. Vui lòng thử lại sau.");
+            }
+            return executeRentalApprovalUnderLock(requestId, landlordUserId);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BadRequestException("Quá trình xử lý bị gián đoạn");
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("Released rental approval lock for key: {}", lockKey);
+            }
+        }
+    }
+
+    @Transactional
+    protected Map<String, Object> executeRentalApprovalUnderLock(Long requestId, Long landlordUserId) {
+        RentalRequest req = rentalRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu thuê"));
+
         Room room = roomRepository.findById(req.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin phòng"));
 
@@ -88,18 +124,15 @@ public class RentalRequestService {
             throw new BadRequestException("Phòng đã hết chỗ trống");
         }
 
-        // Cập nhật trạng thái yêu cầu
         req.setStatus("APPROVED");
         rentalRequestRepository.save(req);
 
-        // Tăng số lượng người đang ở
         room.setCurrentOccupants(room.getCurrentOccupants() + 1);
         if (room.getCurrentOccupants() >= room.getCapacity()) {
             room.setStatus("FULL");
         }
         roomRepository.save(room);
 
-        // Thêm Tenant
         Tenant tenant = Tenant.builder()
                 .userId(req.getUserId())
                 .roomId(room.getId())
@@ -107,7 +140,6 @@ public class RentalRequestService {
                 .build();
         tenantRepository.save(tenant);
 
-        // Tạo Contract
         Contract contract = Contract.builder()
                 .roomId(room.getId())
                 .userId(req.getUserId())
@@ -118,7 +150,6 @@ public class RentalRequestService {
                 .build();
         Contract savedContract = contractRepository.save(contract);
 
-        // Gửi Notification qua RabbitMQ
         Map<String, Object> event = new HashMap<>();
         event.put("userId", req.getUserId());
         event.put("title", "Yêu cầu thuê phòng đã được duyệt");
@@ -128,7 +159,6 @@ public class RentalRequestService {
         try {
             rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "rental.approved", event);
         } catch (Exception ignored) {
-            // Không làm gián đoạn transaction nếu message broker offline tạm thời
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -155,5 +185,25 @@ public class RentalRequestService {
         req.setStatus("REJECTED");
         RentalRequest saved = rentalRequestRepository.save(req);
         return RentalRequestResponse.fromEntity(saved);
+    }
+
+    public Page<RentalRequestResponse> listForLandlord(Long landlordUserId, String status, Pageable pageable) {
+        List<Long> landlordRoomIds = roomRepository.findByProperty_LandlordId(landlordUserId)
+                .stream()
+                .map(Room::getId)
+                .toList();
+
+        if (landlordRoomIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        Page<RentalRequest> page;
+        if (status != null && !status.isBlank()) {
+            page = rentalRequestRepository.findByRoomIdInAndStatus(landlordRoomIds, status, pageable);
+        } else {
+            page = rentalRequestRepository.findByRoomIdIn(landlordRoomIds, pageable);
+        }
+
+        return page.map(RentalRequestResponse::fromEntity);
     }
 }

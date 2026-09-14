@@ -1,16 +1,18 @@
 package com.roomily.billing.service;
 
 import com.roomily.billing.client.AuthClient;
+import com.roomily.billing.config.RabbitMQConfig;
 import com.roomily.billing.dto.request.CreateBillRequest;
 import com.roomily.billing.dto.response.BillResponse;
 import com.roomily.billing.entity.Bill;
 import com.roomily.billing.entity.PaymentTransaction;
 import com.roomily.billing.repository.BillRepository;
 import com.roomily.billing.repository.PaymentTransactionRepository;
-import com.roomily.common.exception.BadRequestException;
+import com.roomily.billing.util.VNPayUtil;
 import com.roomily.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 @Slf4j
 @Service
@@ -32,6 +32,7 @@ public class BillingService {
     private final BillRepository billRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final AuthClient authClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${vnpay.tmnCode:DEMO1234}")
     private String vnpTmnCode;
@@ -68,6 +69,12 @@ public class BillingService {
                 .build();
 
         Bill saved = billRepository.save(bill);
+
+        publishEvent("invoice.created", saved.getTenantId(),
+                "Hoa don thang " + saved.getMonthYear() + " da duoc tao",
+                "Tong tien: " + saved.getTotalAmount() + " d. Han thanh toan: " + saved.getDueDate(),
+                saved.getId());
+
         return BillResponse.fromEntity(saved);
     }
 
@@ -83,14 +90,10 @@ public class BillingService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * TẠO URL THANH TOÁN VNPAY SANDBOX (CHO KÍCH HOẠT CHỦ TRỌ HOẶC THANH TOÁN HÓA ĐƠN)
-     */
     @Transactional
     public String createVNPayPaymentUrl(Long userId, String type, Long billId, BigDecimal amount) {
         String vnpTxnRef = "TXN_" + System.currentTimeMillis() + "_" + userId;
 
-        // Lưu transaction PENDING vào database
         PaymentTransaction txn = PaymentTransaction.builder()
                 .userId(userId)
                 .billId(billId)
@@ -117,58 +120,56 @@ public class BillingService {
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnpCreateDate = formatter.format(cld.getTime());
-        vnpParams.put("vnp_CreateDate", vnpCreateDate);
-
+        vnpParams.put("vnp_CreateDate", formatter.format(cld.getTime()));
         cld.add(Calendar.MINUTE, 15);
-        String vnpExpireDate = formatter.format(cld.getTime());
-        vnpParams.put("vnp_ExpireDate", vnpExpireDate);
+        vnpParams.put("vnp_ExpireDate", formatter.format(cld.getTime()));
+
+        String hashData = VNPayUtil.buildHashData(vnpParams);
+        String vnpSecureHash = VNPayUtil.hmacSHA512(vnpHashSecret, hashData);
 
         List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
         Collections.sort(fieldNames);
-        StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-
         for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext(); ) {
             String fieldName = itr.next();
-            String fieldValue = vnpParams.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                hashData.append(fieldName);
-                hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII));
-                query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
-                if (itr.hasNext()) {
-                    query.append('&');
-                    hashData.append('&');
-                }
+            query.append(fieldName).append('=')
+                    .append(URLEncoder.encode(vnpParams.get(fieldName), StandardCharsets.US_ASCII));
+            if (itr.hasNext()) {
+                query.append('&');
             }
         }
+        query.append("&vnp_SecureHash=").append(vnpSecureHash);
 
-        String queryUrl = query.toString();
-        String vnpSecureHash = hmacSHA512(vnpHashSecret, hashData.toString());
-        queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
-
-        return vnpPayUrl + "?" + queryUrl;
+        return vnpPayUrl + "?" + query;
     }
 
-    /**
-     * XỬ LÝ VNPAY CALLBACK / IPN
-     */
     @Transactional
     public Map<String, Object> handleVNPayCallback(Map<String, String> allParams) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (!VNPayUtil.verifySignature(allParams, vnpHashSecret)) {
+            log.warn("VNPay callback CHU KY KHONG HOP LE! params={}", allParams);
+            result.put("success", false);
+            result.put("message", "Chu ky khong hop le, giao dich bi tu choi");
+            return result;
+        }
+
         String vnpTxnRef = allParams.get("vnp_TxnRef");
         String vnpResponseCode = allParams.get("vnp_ResponseCode");
         String vnpTransactionNo = allParams.get("vnp_TransactionNo");
 
         PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(vnpTxnRef)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giao dịch: " + vnpTxnRef));
+                .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay giao dich: " + vnpTxnRef));
+
+        if ("SUCCESS".equals(txn.getStatus()) || "FAILED".equals(txn.getStatus())) {
+            result.put("success", "SUCCESS".equals(txn.getStatus()));
+            result.put("message", "Giao dich da duoc xu ly truoc do");
+            result.put("transaction", txn);
+            return result;
+        }
 
         txn.setVnpResponseCode(vnpResponseCode);
         txn.setVnpTransactionNo(vnpTransactionNo);
-
-        Map<String, Object> result = new HashMap<>();
 
         if ("00".equals(vnpResponseCode)) {
             txn.setStatus("SUCCESS");
@@ -177,43 +178,49 @@ public class BillingService {
             if ("LANDLORD_ACTIVATION".equals(txn.getTransactionType())) {
                 try {
                     authClient.activateLandlord(txn.getUserId());
-                    result.put("message", "Kích hoạt tài khoản chủ trọ thành công!");
                 } catch (Exception ex) {
                     log.error("Failed to activate landlord via Feign: {}", ex.getMessage());
                 }
+                publishEvent("landlord.payment.success", txn.getUserId(),
+                        "Kich hoat tai khoan thanh cong",
+                        "Chuc mung! Tai khoan chu tro cua ban da duoc kich hoat.",
+                        txn.getId());
+                result.put("message", "Kich hoat tai khoan chu tro thanh cong!");
+
             } else if ("BILL_PAYMENT".equals(txn.getTransactionType()) && txn.getBillId() != null) {
                 billRepository.findById(txn.getBillId()).ifPresent(bill -> {
                     bill.setStatus("PAID");
                     billRepository.save(bill);
+                    publishEvent("bill.paid", bill.getLandlordId(),
+                            "Hoa don da duoc thanh toan",
+                            "Tenant da thanh toan hoa don thang " + bill.getMonthYear() + ".",
+                            bill.getId());
                 });
-                result.put("message", "Thanh toán hóa đơn thành công!");
+                result.put("message", "Thanh toan hoa don thanh cong!");
             }
-
             result.put("success", true);
         } else {
             txn.setStatus("FAILED");
             paymentTransactionRepository.save(txn);
             result.put("success", false);
-            result.put("message", "Giao dịch thanh toán thất bại hoặc đã bị hủy.");
+            result.put("message", "Giao dich thanh toan that bai hoac da bi huy.");
         }
 
         result.put("transaction", txn);
         return result;
     }
 
-    private String hmacSHA512(String key, String data) {
+    private void publishEvent(String routingKey, Long userId, String title, String content, Long referenceId) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("userId", userId);
+        event.put("title", title);
+        event.put("content", content);
+        event.put("type", routingKey);
+        event.put("referenceId", referenceId);
         try {
-            Mac sha512Hmac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-            sha512Hmac.init(secretKey);
-            byte[] hash = sha512Hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder result = new StringBuilder();
-            for (byte b : hash) {
-                result.append(String.format("%02x", b));
-            }
-            return result.toString();
-        } catch (Exception e) {
-            return "";
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, routingKey, event);
+        } catch (Exception ex) {
+            log.error("Failed to publish event [{}]: {}", routingKey, ex.getMessage());
         }
     }
 }

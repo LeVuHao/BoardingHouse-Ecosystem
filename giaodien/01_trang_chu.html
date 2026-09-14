@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trọ Chuẩn — Trang chủ (Đề xuất giao diện)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF9F4;
+  --surface:#FFFFFF;
+  --ink:#16332B;
+  --ink-2:#1F4438;
+  --ink-3:#26543F;
+  --accent:#D97F2E;
+  --accent-2:#B8651C;
+  --text:#20241E;
+  --text-muted:#666F63;
+  --border:#E4E0D2;
+  --success:#2F7D52;
+  --success-bg:#EAF3EB;
+  --pending:#B8651C;
+  --pending-bg:#FBEFE2;
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:14px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  line-height:1.5;
+}
+h1,h2,h3,.brand{font-family:'Manrope',sans-serif;}
+a{color:inherit; text-decoration:none;}
+.wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+img{display:block; width:100%; height:100%; object-fit:cover;}
+
+/* HEADER */
+header{
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  position:sticky; top:0; z-index:50;
+}
+.nav{display:flex; align-items:center; justify-content:space-between; height:72px;}
+.brand{font-size:20px; font-weight:800; color:var(--ink); letter-spacing:-0.01em;}
+.brand span{color:var(--accent);}
+.nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500; color:var(--text);}
+.nav-links a:hover{color:var(--ink-2);}
+.nav-right{display:flex; align-items:center; gap:16px;}
+.link-muted{font-size:14.5px; font-weight:500; color:var(--text-muted);}
+.btn{
+  font-family:'Inter',sans-serif;
+  font-weight:600; font-size:14.5px;
+  padding:10px 20px; border-radius:var(--radius-sm);
+  border:1px solid transparent; cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn-primary{background:var(--ink); color:#fff;}
+.btn-primary:hover{background:var(--ink-2);}
+.btn-outline{background:transparent; border-color:var(--border); color:var(--text);}
+
+/* HERO */
+.hero{padding:72px 0 64px; }
+.hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
+.hero h1{
+  font-size:44px; line-height:1.14; font-weight:800; color:var(--ink);
+  letter-spacing:-0.015em;
+  max-width:520px;
+}
+.hero p.sub{
+  margin-top:18px; font-size:17px; color:var(--text-muted); max-width:460px;
+}
+.search-box{
+  margin-top:32px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); padding:8px; display:flex; gap:6px;
+  box-shadow:0 1px 2px rgba(22,51,43,0.04);
+}
+.search-field{
+  flex:1; padding:12px 14px; border-right:1px solid var(--border);
+}
+.search-field:last-of-type{border-right:none;}
+.search-field label{display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:3px;}
+.search-field select, .search-field input{
+  border:none; font-family:'Inter',sans-serif; font-size:14.5px; color:var(--text); width:100%; background:transparent;
+}
+.search-field select:focus, .search-field input:focus{outline:none;}
+.btn-search{background:var(--accent); color:#fff; padding:0 26px; border-radius:var(--radius-sm); font-weight:700; font-size:14.5px; border:none; cursor:pointer;}
+.btn-search:hover{background:var(--accent-2);}
+
+.stat-row{display:flex; gap:40px; margin-top:36px;}
+.stat b{display:block; font-size:26px; font-weight:800; color:var(--ink); font-family:'Manrope',sans-serif;}
+.stat span{font-size:13.5px; color:var(--text-muted);}
+
+/* HERO VISUAL */
+.hero-visual{position:relative; height:440px;}
+.card-main{
+  position:absolute; top:0; right:0; width:78%; height:340px;
+  background:var(--surface); border-radius:var(--radius-lg); overflow:hidden;
+  border:1px solid var(--border); box-shadow:0 12px 32px rgba(22,51,43,0.10);
+}
+.card-main .photo{height:62%; position:relative;}
+.badge-verified{
+  position:absolute; top:12px; left:12px; background:rgba(255,255,255,0.95);
+  padding:5px 10px; border-radius:20px; font-size:12px; font-weight:700; color:var(--success);
+  display:flex; align-items:center; gap:5px;
+}
+.badge-verified::before{content:"✓"; display:inline-block; width:14px; height:14px; background:var(--success); color:#fff; border-radius:50%; font-size:9px; text-align:center; line-height:14px;}
+.card-price{position:absolute; bottom:38%; right:12px; background:var(--ink); color:#fff; padding:6px 12px; border-radius:6px; font-weight:700; font-size:14px; transform:translateY(50%);}
+.card-body{padding:14px 16px 16px;}
+.card-body .addr{font-size:12.5px; color:var(--text-muted); margin-bottom:4px;}
+.card-body .title{font-size:15px; font-weight:700; color:var(--text); margin-bottom:8px;}
+.tags{display:flex; gap:6px;}
+.tag{font-size:11.5px; background:var(--bg); border:1px solid var(--border); color:var(--text-muted); padding:3px 8px; border-radius:20px;}
+
+.card-float{
+  position:absolute; bottom:0; left:0; width:230px; background:var(--ink); color:#fff;
+  border-radius:var(--radius-md); padding:16px; box-shadow:0 14px 30px rgba(22,51,43,0.25);
+}
+.card-float .icon{width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; margin-bottom:10px; font-size:16px;}
+.card-float p{font-size:13px; line-height:1.45; color:rgba(255,255,255,0.88);}
+.card-float b{display:block; font-size:14.5px; margin-bottom:4px;}
+
+/* SECTION HEADERS */
+.section{padding:56px 0;}
+.section-head{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px;}
+.section-head h2{font-size:26px; font-weight:800; color:var(--ink); letter-spacing:-0.01em;}
+.section-head p{color:var(--text-muted); font-size:14.5px; margin-top:6px;}
+.section-link{font-size:14px; font-weight:600; color:var(--ink-2); border-bottom:1px solid var(--ink-2); padding-bottom:2px;}
+
+/* FILTER PILLS */
+.pills{display:flex; gap:10px; margin-bottom:36px; flex-wrap:wrap;}
+.pill{padding:9px 18px; border-radius:20px; border:1px solid var(--border); font-size:14px; font-weight:600; color:var(--text); background:var(--surface);}
+.pill.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+/* ROOM GRID */
+.room-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:22px;}
+.room-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;}
+.room-card .photo{height:170px; position:relative;}
+.room-card .photo .badge-verified{transform:scale(0.92); transform-origin:top left;}
+.room-card .price-tag{position:absolute; bottom:10px; left:10px; background:rgba(22,51,43,0.92); color:#fff; padding:5px 10px; border-radius:6px; font-weight:700; font-size:13.5px;}
+.room-card .body{padding:14px 16px 16px;}
+.room-card .addr{font-size:12.5px; color:var(--text-muted); margin-bottom:5px;}
+.room-card .title{font-size:15px; font-weight:700; margin-bottom:8px; line-height:1.35;}
+.room-card .meta{display:flex; gap:14px; font-size:12.5px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:10px; margin-top:10px;}
+
+/* ROOMMATE SPLIT */
+.roommate{background:var(--ink); border-radius:var(--radius-lg); padding:48px; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; color:#fff;}
+.roommate h2{color:#fff; font-size:26px; margin-bottom:14px;}
+.roommate p{color:rgba(255,255,255,0.82); font-size:15px; max-width:420px; margin-bottom:20px;}
+.roommate .btn-light{background:var(--accent); color:#fff; border:none;}
+.split-example{background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:var(--radius-md); padding:22px;}
+.split-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.12); font-size:14px;}
+.split-row:last-child{border-bottom:none;}
+.split-row b{font-family:'Manrope',sans-serif;}
+.split-row.total{color:var(--accent); font-weight:700; padding-top:14px;}
+
+/* PROCESS */
+.process{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+.process .step{padding:24px 0; border-top:2px solid var(--ink);}
+.process .num{font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px;}
+.process h3{font-size:17px; margin-bottom:8px;}
+.process p{font-size:14px; color:var(--text-muted); max-width:280px;}
+
+/* TRUST */
+.trust-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;}
+.trust-item{background:var(--surface); padding:26px 22px;}
+.trust-item b{display:block; font-size:24px; font-weight:800; color:var(--ink); font-family:'Manrope',sans-serif;}
+.trust-item span{font-size:13px; color:var(--text-muted);}
+
+footer{border-top:1px solid var(--border); padding:40px 0; margin-top:40px;}
+.footer-grid{display:flex; justify-content:space-between; font-size:13.5px; color:var(--text-muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">Trọ<span>Chuẩn</span></div>
+    <nav class="nav-links">
+      <a href="02_tim_phong.html">Tìm phòng</a>
+      <a href="#">Ở ghép</a>
+      <a href="#">Dành cho chủ trọ</a>
+      <a href="#">Hướng dẫn thuê</a>
+    </nav>
+    <div class="nav-right">
+      <a href="#" class="link-muted">Đăng nhập</a>
+      <a href="#" class="btn btn-primary">Đăng tin cho thuê</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Thuê phòng trọ đúng giá, đúng người thật.</h1>
+      <p class="sub">Mọi chủ trọ trên hệ thống đều xác thực qua thanh toán, mọi yêu cầu thuê đều có hợp đồng số đi kèm — không cần dò hỏi qua hội nhóm.</p>
+
+      <div class="search-box">
+        <div class="search-field">
+          <label>Khu vực</label>
+          <select><option>TP. Hồ Chí Minh — Bình Thạnh</option></select>
+        </div>
+        <div class="search-field">
+          <label>Khoảng giá</label>
+          <select><option>2 – 4 triệu / tháng</option></select>
+        </div>
+        <div class="search-field">
+          <label>Loại phòng</label>
+          <select><option>Phòng đơn</option></select>
+        </div>
+        <button class="btn-search" onclick="location.href='02_tim_phong.html'">Tìm phòng</button>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><b>3.240</b><span>phòng đang cho thuê</span></div>
+        <div class="stat"><b>480</b><span>chủ trọ đã xác thực</span></div>
+        <div class="stat"><b>1.150</b><span>yêu cầu ở ghép đã duyệt</span></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="card-main">
+        <div class="photo">
+          <img src="https://picsum.photos/seed/tro-main/640/420" alt="Phòng trọ">
+          <div class="badge-verified">Chủ trọ đã xác thực</div>
+        </div>
+        <div class="card-price">2.800.000₫/tháng</div>
+        <div class="card-body">
+          <div class="addr">Đường Nguyễn Gia Trí, P.25, Bình Thạnh</div>
+          <div class="title">Phòng trọ 20m² có gác, cửa sổ thoáng</div>
+          <div class="tags"><span class="tag">Wifi</span><span class="tag">Máy giặt chung</span><span class="tag">Giờ giấc tự do</span></div>
+        </div>
+      </div>
+      <div class="card-float">
+        <div class="icon">✓</div>
+        <b>Thanh toán kích hoạt qua VNPay</b>
+        <p>Chủ trọ phải xác minh danh tính và thanh toán để đăng tin — giảm tài khoản ảo, tin rác.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="pills">
+      <div class="pill active">Tất cả</div>
+      <div class="pill">Phòng đơn</div>
+      <div class="pill">Phòng có gác</div>
+      <div class="pill">Chung cư mini</div>
+      <div class="pill">Còn chỗ ở ghép</div>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <h2>Phòng mới đăng trong tuần</h2>
+        <p>Cập nhật trực tiếp từ chủ trọ đã xác thực</p>
+      </div>
+      <a href="02_tim_phong.html" class="section-link">Xem tất cả 3.240 phòng</a>
+    </div>
+
+    <div class="room-grid">
+      <div class="room-card" style="cursor:pointer" onclick="location.href='03_chi_tiet_phong.html?id=2'">
+        <div class="photo"><img src="https://picsum.photos/seed/tro-r2/400/300" alt=""><div class="badge-verified">Đã xác thực</div><div class="price-tag">1.900.000₫</div></div>
+        <div class="body">
+          <div class="addr">Đường Lê Văn Sỹ, Q.3</div>
+          <div class="title">Phòng 16m² gần Đại học Kinh tế</div>
+          <div class="meta"><span>16m²</span><span>1 người</span><span>Còn 1 chỗ ở ghép</span></div>
+        </div>
+      </div>
+      <div class="room-card" style="cursor:pointer" onclick="location.href='03_chi_tiet_phong.html?id=3'">
+        <div class="photo"><img src="https://picsum.photos/seed/tro-r3/400/300" alt=""><div class="badge-verified">Đã xác thực</div><div class="price-tag">3.200.000₫</div></div>
+        <div class="body">
+          <div class="addr">Đường Phan Văn Trị, Gò Vấp</div>
+          <div class="title">Phòng studio đầy đủ nội thất</div>
+          <div class="meta"><span>24m²</span><span>2 người</span><span>Còn trống</span></div>
+        </div>
+      </div>
+      <div class="room-card" style="cursor:pointer" onclick="location.href='03_chi_tiet_phong.html?id=4'">
+        <div class="photo"><img src="https://picsum.photos/seed/tro-r4/400/300" alt=""><div class="badge-verified">Đã xác thực</div><div class="price-tag">2.450.000₫</div></div>
+        <div class="body">
+          <div class="addr">Đường Tô Hiến Thành, Q.10</div>
+          <div class="title">Phòng có gác lửng, an ninh camera</div>
+          <div class="meta"><span>18m²</span><span>1-2 người</span><span>Còn trống</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="roommate">
+      <div>
+        <h2>Đang thuê một mình? Tìm người ở ghép để chia tiền phòng.</h2>
+        <p>Đăng bài tìm bạn ở ghép ngay trên phòng bạn đang thuê. Chủ trọ vẫn là người duyệt cuối cùng, nên bạn không cần lo về người lạ vào ở mà không kiểm chứng.</p>
+        <a href="#" class="btn btn-light">Đăng bài tìm ở ghép</a>
+      </div>
+      <div class="split-example">
+        <div class="split-row"><span>Tiền phòng / tháng</span><b>3.200.000₫</b></div>
+        <div class="split-row"><span>Điện, nước, wifi</span><b>~500.000₫</b></div>
+        <div class="split-row"><span>Chia cho 2 người</span><b>÷ 2</b></div>
+        <div class="split-row total"><span>Mỗi người chỉ còn</span><b>1.850.000₫/tháng</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:8px;">
+      <div><h2>Thuê phòng chỉ qua 3 bước</h2></div>
+    </div>
+    <div class="process">
+      <div class="step">
+        <div class="num">Bước 1</div>
+        <h3>Tìm và xem chi tiết phòng</h3>
+        <p>Lọc theo khu vực, giá, diện tích và tiện ích — xem ảnh thật, thông tin chủ trọ trước khi liên hệ.</p>
+      </div>
+      <div class="step">
+        <div class="num">Bước 2</div>
+        <h3>Gửi yêu cầu thuê</h3>
+        <p>Gửi lời nhắn kèm yêu cầu thuê trực tiếp đến chủ trọ, theo dõi trạng thái duyệt trong tài khoản.</p>
+      </div>
+      <div class="step">
+        <div class="num">Bước 3</div>
+        <h3>Nhận hợp đồng và dọn vào</h3>
+        <p>Khi được duyệt, hợp đồng được tạo tự động trong hệ thống — có hóa đơn hàng tháng rõ ràng.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="trust-grid">
+      <div class="trust-item"><b>100%</b><span>chủ trọ xác thực qua thanh toán</span></div>
+      <div class="trust-item"><b>0đ</b><span>phí cho người thuê phòng</span></div>
+      <div class="trust-item"><b>24h</b><span>thời gian duyệt yêu cầu trung bình</span></div>
+      <div class="trust-item"><b>60+</b><span>quận / khu vực đang hoạt động</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-grid">
+    <div>© 2026 TrọChuẩn. Nền tảng kết nối chủ trọ & người thuê.</div>
+    <div>Tìm phòng · Đăng tin · Hướng dẫn · Liên hệ</div>
+  </div>
+</footer>
+
+</body>
+</html>

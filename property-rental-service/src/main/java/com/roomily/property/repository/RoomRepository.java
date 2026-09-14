@@ -15,7 +15,8 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificationExecutor<Room> {
     List<Room> findByPropertyId(Long propertyId);
-    
+    List<Room> findByProperty_LandlordId(Long landlordId);
+
     @Query("SELECT r FROM Room r JOIN r.property p WHERE " +
            "(:city IS NULL OR LOWER(p.city) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
            "(:district IS NULL OR LOWER(p.district) LIKE LOWER(CONCAT('%', :district, '%'))) AND " +

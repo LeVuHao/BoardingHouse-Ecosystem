@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trọ Chuẩn — Chi tiết phòng</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!--
+============================================================================
+ HƯỚNG DẪN CHO AI CODING AGENT
+============================================================================
+1) NGUỒN DỮ LIỆU PHÒNG
+   Trang đọc `id` từ query string (?id=1) rồi tìm trong mảng ROOMS cục bộ.
+   Khi tích hợp thật: gọi GET /api/v1/rooms/{id} (property-service), map
+   response vào đúng các field đang dùng trong hàm `renderRoom()`.
+
+2) NÚT "Gửi yêu cầu thuê"
+   Hiện tại mở modal tĩnh, bấm "Gửi" chỉ hiện thông báo giả (alert).
+   Khi tích hợp: gọi
+     POST /api/v1/rental-requests   body: { roomId, message }
+   Backend (RentalRequestService) tạo bản ghi trạng thái PENDING; khi
+   Landlord duyệt sẽ tự sinh Tenant + Contract (đã mô tả trong tài liệu
+   kiến trúc, mục USER hành trình bước 3–4). Sau khi submit thành công,
+   đổi nút thành trạng thái "Đã gửi yêu cầu — chờ duyệt" (disabled),
+   tương ứng trạng thái PENDING phía FE.
+
+3) NÚT "Xin tham gia ở ghép" (chỉ hiển thị khi status === ROOMMATE_OPEN)
+   Đây là nơi PHỨC TẠP NHẤT về mặt nghiệp vụ — không thể/không nên giả lập
+   đầy đủ ở FE tĩnh vì đúng bản chất là một race condition cần xử lý ở BE:
+     - Nhiều User có thể bấm nút này gần như cùng lúc cho cùng 1 chỗ trống.
+     - BE phải dùng Redisson Distributed Lock quanh critical section:
+         lock theo key `room:{roomId}:join`
+         -> kiểm tra currentOccupants < capacity (dùng @Version optimistic lock)
+         -> nếu còn chỗ: tạo JoinRequest trạng thái PENDING, KHÔNG tự tăng
+            occupants ở bước này (occupants chỉ tăng khi Landlord bấm Duyệt)
+         -> nếu hết chỗ: trả lỗi 409 CONFLICT, FE hiện "Rất tiếc, phòng vừa
+            đủ người, vui lòng tìm phòng khác".
+     - FE chỉ cần: gọi POST /api/v1/join-requests { roomId, message },
+       xử lý 2 nhánh kết quả (200 -> hiện "Đã gửi yêu cầu ở ghép, chờ
+       chủ trọ/người thuê hiện tại duyệt" | 409 -> hiện thông báo hết chỗ
+       ở trên). KHÔNG tự suy luận còn chỗ hay không ở FE bằng cách đếm
+       occupants < capacity, vì dữ liệu FE luôn có thể trễ hơn BE.
+   Phần mô phỏng trong file này (hàm `submitJoinRequest`) chỉ show đúng
+   2 nhánh giao diện kết quả để bạn hình dung, KHÔNG có lock thật.
+
+4) TAB "Ở ghép" chỉ nên hiển thị khi phòng có RoommatePost đang mở — lấy
+   từ GET /api/v1/roommate-posts?roomId={id}, không phải suy từ status
+   phòng một cách cứng.
+============================================================================
+-->
+
+<style>
+:root{
+  --bg:#FAF9F4; --surface:#FFFFFF; --ink:#16332B; --ink-2:#1F4438;
+  --accent:#D97F2E; --accent-2:#B8651C; --text:#20241E; --text-muted:#666F63;
+  --border:#E4E0D2; --success:#2F7D52; --success-bg:#EAF3EB;
+  --pending:#B8651C; --pending-bg:#FBEFE2; --danger:#C0472E; --danger-bg:#FBEAE6;
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; color:var(--text); background:var(--bg);}
+h1,h2,h3,.brand{font-family:'Manrope',sans-serif;}
+a{color:inherit; text-decoration:none;}
+img{display:block; width:100%; height:100%; object-fit:cover;}
+.wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+
+header{border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:50;}
+.nav{display:flex; align-items:center; justify-content:space-between; height:68px;}
+.brand{font-size:19px; font-weight:800; color:var(--ink);}
+.brand span{color:var(--accent);}
+.btn{font-weight:600; font-size:14px; padding:9px 18px; border-radius:var(--radius-sm); border:1px solid var(--border); cursor:pointer; background:var(--surface);}
+.btn-primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+.breadcrumb{padding:18px 0 0; font-size:13px; color:var(--text-muted);}
+.breadcrumb a{color:var(--ink-2); font-weight:600;}
+
+.layout{display:grid; grid-template-columns:1fr 340px; gap:36px; padding:20px 0 60px;}
+
+/* GALLERY */
+.gallery{margin-bottom:28px;}
+.gallery-main{height:400px; border-radius:var(--radius-lg); overflow:hidden; position:relative; margin-bottom:8px;}
+.gallery-main .badge-verified{position:absolute; top:14px; left:14px; background:rgba(255,255,255,0.95); padding:5px 11px; border-radius:20px; font-size:12px; font-weight:700; color:var(--success);}
+.gallery-thumbs{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
+.gallery-thumbs img{height:70px; border-radius:6px; cursor:pointer; border:2px solid transparent; opacity:0.75;}
+.gallery-thumbs img.active{border-color:var(--ink); opacity:1;}
+
+/* TITLE BLOCK */
+.title-block{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;}
+.title-block h1{font-size:24px; font-weight:800; color:var(--ink); margin-bottom:6px; max-width:520px;}
+.title-block .addr{font-size:14px; color:var(--text-muted);}
+.price-block{text-align:right; white-space:nowrap;}
+.price-block b{font-size:24px; font-weight:800; color:var(--ink); font-family:'Manrope',sans-serif;}
+.price-block span{font-size:13px; color:var(--text-muted);}
+
+.meta-strip{display:flex; gap:28px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:24px;}
+.meta-strip .item b{display:block; font-size:16px; font-weight:800; font-family:'Manrope',sans-serif; color:var(--ink);}
+.meta-strip .item span{font-size:12.5px; color:var(--text-muted);}
+
+/* TABS */
+.tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:22px;}
+.tab-btn{padding:11px 4px; margin-right:24px; font-size:14.5px; font-weight:600; color:var(--text-muted); border-bottom:2px solid transparent; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none;}
+.tab-btn.active{color:var(--ink); border-bottom-color:var(--ink);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-title{font-size:16px; font-weight:700; margin-bottom:10px; color:var(--text);}
+.desc{font-size:14.5px; line-height:1.7; color:var(--text); margin-bottom:24px;}
+.amenity-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;}
+.amenity-item{font-size:14px; padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface);}
+
+.roommate-box{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:22px;}
+.roommate-box .split-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:14px;}
+.roommate-box .split-row:last-child{border-bottom:none;}
+.roommate-box .split-row.total{font-weight:700; color:var(--accent-2); padding-top:14px;}
+.roommate-note{font-size:13.5px; color:var(--text-muted); margin-top:14px; line-height:1.6;}
+
+/* SIDEBAR */
+.side-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:22px; position:sticky; top:96px;}
+.landlord{display:flex; gap:12px; align-items:center; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border);}
+.landlord .avatar{width:46px; height:46px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-family:'Manrope',sans-serif;}
+.landlord .name{font-size:14.5px; font-weight:700;}
+.landlord .verified{font-size:12px; color:var(--success); font-weight:600;}
+.btn-block{width:100%; padding:13px; border-radius:8px; font-weight:700; font-size:14.5px; border:none; cursor:pointer; margin-bottom:10px;}
+.btn-block.primary{background:var(--ink); color:#fff;}
+.btn-block.primary:hover{background:var(--ink-2);}
+.btn-block.accent{background:var(--accent); color:#fff;}
+.btn-block.accent:hover{background:var(--accent-2);}
+.btn-block[disabled]{background:var(--border); color:var(--text-muted); cursor:not-allowed;}
+.trust-line{font-size:12.5px; color:var(--text-muted); text-align:center; margin-top:8px; line-height:1.5;}
+
+/* MODAL */
+.modal-overlay{position:fixed; inset:0; background:rgba(22,51,43,0.45); display:none; align-items:center; justify-content:center; z-index:100;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface); border-radius:var(--radius-md); padding:28px; width:420px; max-width:90vw;}
+.modal h3{font-size:18px; margin-bottom:6px;}
+.modal p.sub{font-size:13.5px; color:var(--text-muted); margin-bottom:16px;}
+.modal textarea{width:100%; height:100px; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:'Inter',sans-serif; font-size:14px; resize:none; margin-bottom:16px;}
+.modal-actions{display:flex; gap:10px;}
+.modal-actions button{flex:1; padding:11px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; border:none;}
+.modal-actions .cancel{background:var(--bg); border:1px solid var(--border); color:var(--text);}
+.modal-actions .submit{background:var(--ink); color:#fff;}
+.result-banner{padding:12px 14px; border-radius:8px; font-size:13.5px; margin-top:12px; display:none;}
+.result-banner.success{background:var(--success-bg); color:var(--success); display:block;}
+.result-banner.error{background:var(--danger-bg); color:var(--danger); display:block;}
+
+@media (max-width:880px){ .layout{grid-template-columns:1fr;} .amenity-grid{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">Trọ<span>Chuẩn</span></div>
+    <a href="#" class="btn btn-primary">Đăng tin cho thuê</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="02_tim_phong.html">Tìm phòng</a> / <span id="crumb-title">Chi tiết phòng</span></div>
+</div>
+
+<div class="wrap layout">
+  <main>
+    <div class="gallery">
+      <div class="gallery-main">
+        <img id="main-photo" src="" alt="">
+        <div class="badge-verified">Chủ trọ đã xác thực</div>
+      </div>
+      <div class="gallery-thumbs" id="thumbs"></div>
+    </div>
+
+    <div class="title-block">
+      <div>
+        <h1 id="room-title"></h1>
+        <div class="addr" id="room-addr"></div>
+      </div>
+      <div class="price-block">
+        <b id="room-price"></b>
+        <span>/tháng</span>
+      </div>
+    </div>
+
+    <div class="meta-strip">
+      <div class="item"><b id="meta-area"></b><span>Diện tích</span></div>
+      <div class="item"><b id="meta-occupants"></b><span>Đang ở / sức chứa</span></div>
+      <div class="item"><b id="meta-status"></b><span>Trạng thái</span></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="info" onclick="switchTab('info')">Thông tin phòng</button>
+      <button class="tab-btn" data-tab="roommate" onclick="switchTab('roommate')" id="tab-roommate-btn">Ở ghép</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-info">
+      <div class="section-title">Mô tả</div>
+      <p class="desc" id="room-desc"></p>
+      <div class="section-title">Tiện ích đi kèm</div>
+      <div class="amenity-grid" id="amenity-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="panel-roommate">
+      <div class="section-title">Đang tìm người ở ghép</div>
+      <div class="roommate-box">
+        <div class="split-row"><span>Tiền phòng / tháng</span><b id="rm-price"></b></div>
+        <div class="split-row"><span>Điện, nước, wifi ước tính</span><b>~450.000₫</b></div>
+        <div class="split-row"><span>Chia cho</span><b id="rm-capacity"></b></div>
+        <div class="split-row total"><span>Mỗi người còn lại</span><b id="rm-share"></b></div>
+        <p class="roommate-note">Người đang ở phòng đã đăng bài tìm bạn ở ghép. Khi bạn gửi yêu cầu, cả người thuê hiện tại lẫn chủ trọ sẽ nhận được thông báo để duyệt.</p>
+      </div>
+    </div>
+  </main>
+
+  <aside>
+    <div class="side-card">
+      <div class="landlord">
+        <div class="avatar" id="landlord-initial">C</div>
+        <div>
+          <div class="name" id="landlord-name">Chủ trọ</div>
+          <div class="verified">✓ Đã xác thực qua VNPay</div>
+        </div>
+      </div>
+
+      <button class="btn-block primary" id="btn-rental-request" onclick="openModal('rental')">Gửi yêu cầu thuê</button>
+      <button class="btn-block accent" id="btn-join-request" onclick="openModal('join')" style="display:none;">Xin tham gia ở ghép</button>
+
+      <div id="request-result"></div>
+
+      <div class="trust-line">Miễn phí cho người thuê · Hợp đồng số tự động khi được duyệt</div>
+    </div>
+  </aside>
+</div>
+
+<!-- MODAL DÙNG CHUNG CHO CẢ 2 LOẠI YÊU CẦU -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Gửi yêu cầu thuê</h3>
+    <p class="sub" id="modal-sub">Lời nhắn của bạn sẽ được gửi kèm tới chủ trọ.</p>
+    <textarea id="modal-message" placeholder="VD: Em muốn dọn vào từ đầu tháng sau, có thể xem phòng trước không ạ?"></textarea>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Hủy</button>
+      <button class="submit" id="modal-submit-btn">Gửi yêu cầu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Dữ liệu mẫu — trùng id với 02_tim_phong.html để demo liên kết được.
+   AI AGENT: thay bằng GET /api/v1/rooms/{id}, xem hướng dẫn đầu file. */
+const ROOMS = {
+  1:{title:"Phòng 20m² có gác, cửa sổ thoáng", addr:"Đường Nguyễn Gia Trí, P.25, Bình Thạnh", price:2800000, area:20, capacity:2, occupants:1, status:"ROOMMATE_OPEN", amenities:["Wifi","Máy giặt chung","Chỗ để xe","Giờ giấc tự do"], landlord:"Anh Minh", imgs:["tro-r1","tro-r1b","tro-r1c"], desc:"Phòng nằm trong khu trọ an ninh, gần chợ và trạm xe buýt. Có gác lửng để đồ, cửa sổ lớn thoáng mát, phù hợp cho 1-2 người ở ghép."},
+  2:{title:"Phòng 16m² gần Đại học Kinh tế", addr:"Đường Lê Văn Sỹ, Q.3", price:1900000, area:16, capacity:2, occupants:1, status:"ROOMMATE_OPEN", amenities:["Wifi","An ninh 24/24"], landlord:"Chị Hoa", imgs:["tro-r2","tro-r2b","tro-r2c"], desc:"Phòng nhỏ gọn, đi bộ 5 phút tới trường, khu vực nhiều quán ăn sinh viên. Đang có 1 bạn nữ ở, tìm thêm 1 người ở ghép."},
+  3:{title:"Phòng studio đầy đủ nội thất", addr:"Đường Phan Văn Trị, Gò Vấp", price:3200000, area:24, capacity:2, occupants:0, status:"AVAILABLE", amenities:["Wifi","Máy lạnh","Chỗ để xe"], landlord:"Anh Tuấn", imgs:["tro-r3","tro-r3b","tro-r3c"], desc:"Phòng studio mới sửa, có sẵn giường, tủ, máy lạnh. Phù hợp người đi làm muốn ở một mình hoặc ở ghép với bạn thân."},
+  4:{title:"Phòng có gác lửng, an ninh camera", addr:"Đường Tô Hiến Thành, Q.10", price:2450000, area:18, capacity:2, occupants:0, status:"AVAILABLE", amenities:["Wifi","Camera an ninh"], landlord:"Cô Lan", imgs:["tro-r4","tro-r4b","tro-r4c"], desc:"Khu trọ có camera toàn bộ hành lang, chủ trọ ở gần nên xử lý sự cố nhanh. Phòng có gác lửng riêng biệt khu ngủ và khu sinh hoạt."},
+};
+
+const params = new URLSearchParams(window.location.search);
+const roomId = Number(params.get("id")) || 1;
+const room = ROOMS[roomId] || ROOMS[1];
+
+function formatVND(n){ return new Intl.NumberFormat("vi-VN").format(n) + "₫"; }
+const STATUS_LABEL = {AVAILABLE:"Còn trống", ROOMMATE_OPEN:"Còn ở ghép", FULL:"Đã đủ người"};
+
+function renderRoom(){
+  document.getElementById("crumb-title").textContent = room.title;
+  document.getElementById("room-title").textContent = room.title;
+  document.getElementById("room-addr").textContent = room.addr;
+  document.getElementById("room-price").textContent = formatVND(room.price);
+  document.getElementById("meta-area").textContent = room.area + "m²";
+  document.getElementById("meta-occupants").textContent = room.occupants + "/" + room.capacity;
+  document.getElementById("meta-status").textContent = STATUS_LABEL[room.status];
+  document.getElementById("room-desc").textContent = room.desc;
+  document.getElementById("landlord-name").textContent = room.landlord;
+  document.getElementById("landlord-initial").textContent = room.landlord.trim().slice(-2,-1).toUpperCase();
+
+  document.getElementById("amenity-grid").innerHTML =
+    room.amenities.map(a => `<div class="amenity-item">${a}</div>`).join("");
+
+  document.getElementById("main-photo").src = `https://picsum.photos/seed/${room.imgs[0]}/800/500`;
+  document.getElementById("thumbs").innerHTML = room.imgs.map((seed, i) =>
+    `<img src="https://picsum.photos/seed/${seed}/160/100" class="${i===0?'active':''}" onclick="setMainPhoto('${seed}', this)">`
+  ).join("");
+
+  // Tab & nút "Xin ở ghép" chỉ hiện khi phòng đang mở ở ghép
+  if (room.status === "ROOMMATE_OPEN"){
+    document.getElementById("tab-roommate-btn").style.display = "inline-block";
+    document.getElementById("btn-join-request").style.display = "block";
+    const util = Math.round(450000);
+    const share = Math.round((room.price + util) / room.capacity);
+    document.getElementById("rm-price").textContent = formatVND(room.price);
+    document.getElementById("rm-capacity").textContent = room.capacity + " người";
+    document.getElementById("rm-share").textContent = formatVND(share) + "/tháng";
+  } else {
+    document.getElementById("tab-roommate-btn").style.display = "none";
+  }
+
+  // Phòng đã FULL -> không cho gửi yêu cầu thuê nữa
+  if (room.status === "FULL"){
+    const btn = document.getElementById("btn-rental-request");
+    btn.textContent = "Phòng đã đủ người";
+    btn.disabled = true;
+  }
+}
+
+function setMainPhoto(seed, el){
+  document.getElementById("main-photo").src = `https://picsum.photos/seed/${seed}/800/500`;
+  document.querySelectorAll(".gallery-thumbs img").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+}
+
+function switchTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("panel-" + tab).classList.add("active");
+}
+
+let currentModalType = null;
+
+function openModal(type){
+  currentModalType = type;
+  document.getElementById("modal-title").textContent =
+    type === "rental" ? "Gửi yêu cầu thuê" : "Xin tham gia ở ghép";
+  document.getElementById("modal-sub").textContent =
+    type === "rental"
+      ? "Lời nhắn của bạn sẽ được gửi kèm tới chủ trọ."
+      : "Lời nhắn sẽ gửi tới người đang thuê phòng và chủ trọ để duyệt.";
+  document.getElementById("modal-message").value = "";
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function closeModal(){
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+/* ------------------------------------------------------------------------
+   AI AGENT — thay thân hàm dưới đây bằng gọi API thật:
+     rental -> POST /api/v1/rental-requests { roomId, message }
+     join   -> POST /api/v1/join-requests   { roomId, message }
+   Xử lý 2xx / 409 CONFLICT như mô tả ở comment đầu file (đặc biệt với
+   join-request, vì đó là nơi Redisson Lock hoạt động ở BE thật).
+------------------------------------------------------------------------ */
+document.getElementById("modal-submit-btn").addEventListener("click", () => {
+  closeModal();
+  const resultEl = document.getElementById("request-result");
+
+  if (currentModalType === "rental"){
+    resultEl.innerHTML = `<div class="result-banner success">Đã gửi yêu cầu thuê — bạn sẽ nhận thông báo khi chủ trọ duyệt.</div>`;
+    const btn = document.getElementById("btn-rental-request");
+    btn.textContent = "Đã gửi yêu cầu — chờ duyệt";
+    btn.disabled = true;
+  } else {
+    // Demo 2 nhánh kết quả để hình dung hành vi khi có Redisson Lock thật ở BE.
+    const stillHasSlot = room.occupants < room.capacity;
+    if (stillHasSlot){
+      resultEl.innerHTML = `<div class="result-banner success">Đã gửi yêu cầu ở ghép — chờ người thuê hiện tại và chủ trọ duyệt.</div>`;
+      document.getElementById("btn-join-request").disabled = true;
+      document.getElementById("btn-join-request").textContent = "Đã gửi yêu cầu";
+    } else {
+      resultEl.innerHTML = `<div class="result-banner error">Rất tiếc, phòng vừa đủ người ngay trước khi hệ thống xử lý yêu cầu của bạn. Vui lòng tìm phòng khác.</div>`;
+    }
+  }
+});
+
+renderRoom();
+</script>
+
+</body>
+</html>

@@ -67,7 +67,14 @@ public class JoinRequestService {
         return JoinRequestResponse.fromEntity(saved);
     }
 
-    public List<JoinRequestResponse> getRequestsByPost(Long postId) {
+    public List<JoinRequestResponse> getRequestsByPost(Long postId, Long landlordUserId) {
+        RoommatePost post = roommatePostRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng ở ghép"));
+        Room room = roomRepository.findById(post.getRoomId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin phòng"));
+        if (!room.getProperty().getLandlordId().equals(landlordUserId)) {
+            throw new BadRequestException("Bạn không có quyền xem yêu cầu của phòng này");
+        }
         return joinRequestRepository.findByPostId(postId).stream()
                 .map(JoinRequestResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -77,6 +84,7 @@ public class JoinRequestService {
      * PHÊ DUYỆT YÊU CẦU Ở GHÉP - REDIS DISTRIBUTED LOCK (REDISSON)
      * Đảm bảo tính nhất quán và chống Race Condition khi nhiều request duyệt đồng thời.
      */
+    @Transactional
     public Map<String, Object> approveJoinRequestWithLock(Long requestId, Long landlordUserId) {
         JoinRequest joinRequest = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu ở ghép"));
