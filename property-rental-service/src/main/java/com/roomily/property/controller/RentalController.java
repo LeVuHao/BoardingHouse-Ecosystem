@@ -117,8 +117,9 @@ public class RentalController {
 
     @GetMapping("/posts/{postId}/requests")
     public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getRequestsByPost(
-            @PathVariable Long postId) {
-        List<JoinRequestResponse> list = joinRequestService.getRequestsByPost(postId);
+            @PathVariable Long postId,
+            @RequestHeader("X-User-Id") Long landlordId) {
+        List<JoinRequestResponse> list = joinRequestService.getRequestsByPost(postId, landlordId);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 

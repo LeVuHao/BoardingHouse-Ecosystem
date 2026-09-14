@@ -78,6 +78,7 @@ public class RentalRequestService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public Map<String, Object> approveRentalRequest(Long requestId, Long landlordUserId) {
         RentalRequest req = rentalRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu thuê"));
