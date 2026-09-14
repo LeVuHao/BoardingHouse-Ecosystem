@@ -1,196 +1,288 @@
-import React, { useState, useEffect } from 'react';
-import { propertyApi, rentalApi } from '../api/apiClient';
-import { useAuth } from '../context/AuthContext';
-import { Search, MapPin, Maximize2, Users, Send } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { propertyApi } from "../api/apiClient";
+
+const fallbackImage =
+  "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900";
+const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+const roomImage = (room) =>
+  room.images?.[0] || room.thumbnailUrl || fallbackImage;
+
+const RoomCard = ({ room }) => (
+  <Link to={`/rooms/${room.id}`} className="room-card">
+    <div className="room-photo">
+      <img
+        src={roomImage(room)}
+        alt={room.propertyTitle || `Phòng ${room.roomNumber}`}
+      />
+      <span className="verified">Đã xác thực</span>
+      <span className="price-tag">{formatVnd(room.price)}</span>
+    </div>
+    <div className="room-body">
+      <div className="room-address">
+        {room.address || `${room.district || ""}, ${room.city || ""}`}
+      </div>
+      <div className="room-title">
+        Phòng {room.roomNumber || ""}{" "}
+        {room.propertyTitle ? `- ${room.propertyTitle}` : ""}
+      </div>
+      <div className="room-meta">
+        <span>{room.area || "--"}m²</span>
+        <span>
+          {room.currentOccupants || 0}/{room.capacity || "--"} người
+        </span>
+        <span>
+          {room.status === "ROOMMATE_OPEN" ? "Còn chỗ ở ghép" : "Còn trống"}
+        </span>
+      </div>
+    </div>
+  </Link>
+);
 
 const Home = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
-  const [city, setCity] = useState('');
-  const [district, setDistrict] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  // Modal Request
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [note, setNote] = useState('');
-  const [requestMsg, setRequestMsg] = useState('');
-
-  const fetchRooms = async () => {
-    setLoading(true);
-    try {
-      const res = await propertyApi.searchRooms({
-        city: city || undefined,
-        district: district || undefined,
-        maxPrice: maxPrice || undefined,
-      });
-      setRooms(res.data.content || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [city, setCity] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
-    fetchRooms();
+    propertyApi
+      .searchRooms({ page: 0, size: 3, sort: "newest" })
+      .then((res) => setRooms(res.data?.content || res.data || []))
+      .catch(() => setRooms([]));
   }, []);
 
-  const handleSendRentalRequest = async () => {
-    if (!user) {
-      alert('Vui lòng đăng nhập để gửi yêu cầu thuê phòng!');
-      return;
-    }
-    try {
-      await rentalApi.createRentalRequest({
-        roomId: selectedRoom.id,
-        note: note,
-      });
-      setRequestMsg('Gửi yêu cầu thuê thành công! Chủ trọ sẽ sớm phản hồi.');
-      setTimeout(() => {
-        setSelectedRoom(null);
-        setRequestMsg('');
-        setNote('');
-      }, 2000);
-    } catch (err) {
-      alert(err.message || 'Lỗi gửi yêu cầu');
-    }
+  const goSearch = (event) => {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    if (city) params.set("city", city);
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    navigate(`/rooms?${params.toString()}`);
   };
 
   return (
-    <div className="container">
-      <div className="hero-banner">
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.8rem' }}>Tìm Phòng Trọ & Bạn Ở Ghép Lý Tưởng</h1>
-        <p style={{ opacity: 0.9, fontSize: '1.1rem' }}>
-          Hàng ngàn phòng trọ giá tốt, kiểm duyệt minh bạch, kết nối trực tiếp với chủ trọ
-        </p>
-      </div>
-
-      <div className="filter-bar">
-        <input
-          type="text"
-          placeholder="Thành phố (VD: Hà Nội, Hồ Chí Minh)..."
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Quận / Huyện..."
-          value={district}
-          onChange={(e) => setDistrict(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Giá tối đa (VNĐ)..."
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-        />
-        <button onClick={fetchRooms} className="btn btn-primary">
-          <Search size={18} /> Tìm kiếm
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="rooms-grid">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="room-card" style={{ height: '380px' }}>
-              <div style={{ height: '220px' }} className="skeleton" />
-              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', flex: 1 }}>
-                <div style={{ height: '24px', width: '70%' }} className="skeleton" />
-                <div style={{ height: '28px', width: '50%' }} className="skeleton" />
-                <div style={{ height: '18px', width: '90%' }} className="skeleton" />
-                <div style={{ height: '40px', marginTop: 'auto' }} className="skeleton" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rooms-grid">
-          {rooms.map((room) => (
-            <div key={room.id} className="room-card">
-              <div style={{ position: 'relative', overflow: 'hidden' }}>
-                <img
-                  src={room.images && room.images.length > 0 ? room.images[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600'}
-                  alt={room.roomNumber}
-                  className="room-img"
-                />
-                <span
-                  className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-danger'}`}
-                  style={{ position: 'absolute', top: '12px', right: '12px' }}
-                >
-                  {room.status === 'AVAILABLE' ? 'Còn trống' : 'Đã đầy'}
-                </span>
-              </div>
-
-              <div className="room-body">
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Phòng {room.roomNumber} - {room.propertyTitle}</h3>
-
-                <div className="room-price">
-                  {Number(room.price).toLocaleString('vi-VN')} đ/tháng
-                </div>
-
-                <div className="room-meta">
-                  <span><MapPin size={15} style={{ display: 'inline' }} /> {room.district}, {room.city}</span>
-                  <span><Maximize2 size={15} style={{ display: 'inline' }} /> {room.area} m²</span>
-                  <span><Users size={15} style={{ display: 'inline' }} /> {room.currentOccupants}/{room.capacity}</span>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.6rem', marginTop: 'auto' }}>
-                  <a
-                    href={`/rooms/${room.id}`}
-                    className="btn btn-outline"
-                    style={{ flex: 1, padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
-                  >
-                    Xem chi tiết
-                  </a>
-                  <button
-                    onClick={() => setSelectedRoom(room)}
-                    disabled={room.status !== 'AVAILABLE'}
-                    className="btn btn-primary"
-                    style={{ flex: 1, padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
-                  >
-                    <Send size={15} /> Thuê ngay
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {selectedRoom && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Gửi yêu cầu thuê phòng {selectedRoom.roomNumber}</h3>
-            <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem' }}>
-              {selectedRoom.propertyTitle} - {Number(selectedRoom.price).toLocaleString('vi-VN')} đ/tháng
+    <div className="page-shell">
+      <section className="hero">
+        <div className="wrap hero-grid">
+          <div>
+            <h1>Thuê phòng trọ đúng giá, đúng người thật.</h1>
+            <p className="hero-sub">
+              Mọi chủ trọ trên hệ thống đều xác thực qua thanh toán, mọi yêu cầu
+              thuê đều có hợp đồng số đi kèm.
             </p>
-
-            {requestMsg ? (
-              <div style={{ color: 'var(--success)', fontWeight: 'bold', textAlign: 'center', padding: '1rem' }}>
-                {requestMsg}
+            <form className="search-box" onSubmit={goSearch}>
+              <div className="search-field">
+                <label>Khu vực</label>
+                <input
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                  placeholder="Ví dụ: Bình Thạnh"
+                />
               </div>
-            ) : (
-              <>
-                <div className="form-group">
-                  <label>Lời nhắn tới chủ trọ</label>
-                  <textarea
-                    rows={4}
-                    placeholder="Giới thiệu bản thân, thời gian dự kiến chuyển đến..."
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                  />
+              <div className="search-field">
+                <label>Khoảng giá</label>
+                <select
+                  value={maxPrice}
+                  onChange={(event) => setMaxPrice(event.target.value)}
+                >
+                  <option value="">Tất cả mức giá</option>
+                  <option value="2000000">Dưới 2 triệu</option>
+                  <option value="4000000">Dưới 4 triệu</option>
+                  <option value="7000000">Dưới 7 triệu</option>
+                </select>
+              </div>
+              <div className="search-field">
+                <label>Loại phòng</label>
+                <span className="muted">Tất cả loại phòng</span>
+              </div>
+              <button className="btn btn-accent" type="submit">
+                Tìm phòng
+              </button>
+            </form>
+            <div className="stat-row">
+              <div className="stat">
+                <b>{rooms.length || "--"}</b>
+                <span>phòng mới hiển thị</span>
+              </div>
+              <div className="stat">
+                <b>100%</b>
+                <span>chủ trọ xác thực</span>
+              </div>
+              <div className="stat">
+                <b>0đ</b>
+                <span>phí người thuê</span>
+              </div>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="hero-room-card">
+              <div className="hero-room-photo">
+                <img src={roomImage(rooms[0] || {})} alt="Phòng trọ nổi bật" />
+                <span className="verified">Chủ trọ đã xác thực</span>
+              </div>
+              <span className="hero-room-price">
+                {formatVnd(rooms[0]?.price || 2800000)}/tháng
+              </span>
+              <div className="hero-room-body">
+                <div className="room-address">
+                  {rooms[0]?.address || "Khu trọ đã xác thực trên TrọChuẩn"}
                 </div>
+                <div className="room-title">
+                  {rooms[0]?.propertyTitle ||
+                    "Phòng trọ sáng thoáng, đầy đủ tiện ích"}
+                </div>
+                <div className="tag-list">
+                  <span className="tag">Wifi</span>
+                  <span className="tag">Chỗ để xe</span>
+                  <span className="tag">An ninh</span>
+                </div>
+              </div>
+            </div>
+            <div className="hero-note">
+              <b>Thanh toán kích hoạt qua VNPay</b>
+              <p>
+                Giảm tài khoản ảo và tin rác bằng quy trình xác thực chủ trọ.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                  <button onClick={() => setSelectedRoom(null)} className="btn btn-outline">Hủy</button>
-                  <button onClick={handleSendRentalRequest} className="btn btn-primary">Xác nhận gửi</button>
-                </div>
-              </>
+      <section className="section">
+        <div className="wrap">
+          <div className="pills">
+            <Link to="/rooms" className="pill active">
+              Tất cả
+            </Link>
+            <Link to="/rooms?roomType=SINGLE" className="pill">
+              Phòng đơn
+            </Link>
+            <Link to="/rooms?roomType=LOFT" className="pill">
+              Phòng có gác
+            </Link>
+            <Link to="/rooms?roomType=MINI_APARTMENT" className="pill">
+              Chung cư mini
+            </Link>
+            <Link to="/rooms?roommateOnly=true" className="pill">
+              Còn chỗ ở ghép
+            </Link>
+          </div>
+          <div className="section-head">
+            <div>
+              <h2>Phòng mới đăng trong tuần</h2>
+              <p>Cập nhật trực tiếp từ chủ trọ đã xác thực</p>
+            </div>
+            <Link to="/rooms" className="section-link">
+              Xem tất cả phòng
+            </Link>
+          </div>
+          <div className="room-grid">
+            {rooms.length ? (
+              rooms.map((room) => <RoomCard key={room.id} room={room} />)
+            ) : (
+              <div className="empty-state">
+                <b>Chưa có dữ liệu phòng</b>Hãy thử tìm kiếm để tải danh sách
+                phòng mới nhất.
+              </div>
             )}
           </div>
         </div>
-      )}
+      </section>
+
+      <section className="section">
+        <div className="wrap">
+          <div className="roommate-band">
+            <div>
+              <h2>Đang thuê một mình? Tìm người ở ghép để chia tiền phòng.</h2>
+              <p>
+                Chủ trọ vẫn là người duyệt cuối cùng, nên bạn có thể kết nối
+                minh bạch với người ở cùng.
+              </p>
+              <Link to="/roommates" className="btn btn-accent">
+                Tìm bạn ở ghép
+              </Link>
+            </div>
+            <div className="split-box">
+              <div className="split-row">
+                <span>Tiền phòng / tháng</span>
+                <b>3.200.000đ</b>
+              </div>
+              <div className="split-row">
+                <span>Điện, nước, wifi</span>
+                <b>~500.000đ</b>
+              </div>
+              <div className="split-row">
+                <span>Chia cho 2 người</span>
+                <b>÷ 2</b>
+              </div>
+              <div className="split-row total">
+                <span>Mỗi người chỉ còn</span>
+                <b>1.850.000đ/tháng</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section">
+        <div className="wrap">
+          <div className="section-head">
+            <div>
+              <h2>Thuê phòng chỉ qua 3 bước</h2>
+            </div>
+          </div>
+          <div className="process">
+            <div className="process-step">
+              <div className="num">Bước 1</div>
+              <h3>Tìm và xem chi tiết phòng</h3>
+              <p>
+                Lọc theo khu vực, giá, diện tích và tiện ích với thông tin chủ
+                trọ rõ ràng.
+              </p>
+            </div>
+            <div className="process-step">
+              <div className="num">Bước 2</div>
+              <h3>Gửi yêu cầu thuê</h3>
+              <p>
+                Gửi lời nhắn trực tiếp và theo dõi trạng thái duyệt trong tài
+                khoản.
+              </p>
+            </div>
+            <div className="process-step">
+              <div className="num">Bước 3</div>
+              <h3>Nhận hợp đồng và dọn vào</h3>
+              <p>Hợp đồng số và hóa đơn hàng tháng được quản lý minh bạch.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section">
+        <div className="wrap">
+          <div className="trust-grid">
+            <div className="trust-item">
+              <b>100%</b>
+              <span>chủ trọ xác thực qua thanh toán</span>
+            </div>
+            <div className="trust-item">
+              <b>0đ</b>
+              <span>phí cho người thuê phòng</span>
+            </div>
+            <div className="trust-item">
+              <b>24h</b>
+              <span>thời gian duyệt yêu cầu trung bình</span>
+            </div>
+            <div className="trust-item">
+              <b>60+</b>
+              <span>quận / khu vực đang hoạt động</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer className="site-footer">
+        <div className="wrap footer-line">
+          <span>© 2026 TrọChuẩn. Nền tảng kết nối chủ trọ và người thuê.</span>
+          <span>Tìm phòng · Đăng tin · Hướng dẫn · Liên hệ</span>
+        </div>
+      </footer>
     </div>
   );
 };
