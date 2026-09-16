@@ -32,9 +32,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/landlord/register",
+            "/api/v1/auth/landlord/status",
             "/api/v1/rooms/search",
             "/api/v1/properties/search",
             "/api/v1/payments/vnpay-callback",
+            "/api/v1/payments/create-activation-url",
             "/ws",
             "/ws/"
     );

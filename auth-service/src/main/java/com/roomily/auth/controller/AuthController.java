@@ -51,4 +51,12 @@ public class AuthController {
         UserResponse res = authService.activateLandlord(userId);
         return ResponseEntity.ok(ApiResponse.success("Kích hoạt chủ trọ thành công", res));
     }
+
+    // Endpoint public: dùng để trang "kích hoạt tài khoản" trên frontend kiểm tra
+    // trạng thái (PENDING_PAYMENT / ACTIVE) của chủ trọ vừa đăng ký, trước khi họ có JWT.
+    @GetMapping("/landlord/status/{userId}")
+    public ResponseEntity<ApiResponse<UserResponse>> getLandlordStatus(@PathVariable Long userId) {
+        UserResponse res = authService.getUserProfile(userId);
+        return ResponseEntity.ok(ApiResponse.success(res));
+    }
 }
