@@ -1,5 +1,6 @@
 package com.roomily.billing.controller;
 
+import com.roomily.billing.dto.request.CreateActivationUrlRequest;
 import com.roomily.billing.dto.request.CreateBillRequest;
 import com.roomily.billing.dto.response.BillResponse;
 import com.roomily.billing.service.BillingService;
@@ -46,11 +47,13 @@ public class BillingController {
     }
 
     // --- PAYMENTS & VNPAY ---
+    // Endpoint public: chủ trọ vừa đăng ký (trạng thái PENDING_PAYMENT) chưa có JWT
+    // nên không thể đăng nhập để lấy X-User-Id, vì vậy userId được truyền thẳng trong body.
     @PostMapping("/payments/create-activation-url")
     public ResponseEntity<ApiResponse<Map<String, String>>> createActivationUrl(
-            @RequestHeader("X-User-Id") Long userId) {
+            @Valid @RequestBody CreateActivationUrlRequest req) {
         // Phí kích hoạt cố định 100,000 VNĐ
-        String paymentUrl = billingService.createVNPayPaymentUrl(userId, "LANDLORD_ACTIVATION", null, BigDecimal.valueOf(100000));
+        String paymentUrl = billingService.createVNPayPaymentUrl(req.getUserId(), "LANDLORD_ACTIVATION", null, BigDecimal.valueOf(100000));
         return ResponseEntity.ok(ApiResponse.success(Map.of("paymentUrl", paymentUrl)));
     }
 
