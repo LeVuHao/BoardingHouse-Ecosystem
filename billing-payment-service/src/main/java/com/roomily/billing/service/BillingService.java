@@ -1,6 +1,7 @@
 package com.roomily.billing.service;
 
 import com.roomily.billing.client.AuthClient;
+import com.roomily.billing.client.dto.LandlordStatusDto;
 import com.roomily.billing.config.RabbitMQConfig;
 import com.roomily.billing.dto.request.CreateBillRequest;
 import com.roomily.billing.dto.response.BillResponse;
@@ -9,6 +10,7 @@ import com.roomily.billing.entity.PaymentTransaction;
 import com.roomily.billing.repository.BillRepository;
 import com.roomily.billing.repository.PaymentTransactionRepository;
 import com.roomily.billing.util.VNPayUtil;
+import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -92,6 +96,28 @@ public class BillingService {
 
     @Transactional
     public String createVNPayPaymentUrl(Long userId, String type, Long billId, BigDecimal amount) {
+        if ("LANDLORD_ACTIVATION".equals(type)) {
+            LandlordStatusDto status;
+            try {
+                status = authClient.getLandlordStatus(userId).getData();
+            } catch (Exception ex) {
+                log.error("Failed to fetch landlord status via Feign: {}", ex.getMessage());
+                throw new ResourceNotFoundException("Không tìm thấy tài khoản chủ trọ");
+            }
+            if (status == null) {
+                throw new ResourceNotFoundException("Không tìm thấy tài khoản chủ trọ");
+            }
+            if (!"LANDLORD".equalsIgnoreCase(status.getRole())) {
+                throw new BadRequestException("Tài khoản không phải chủ trọ");
+            }
+            if ("ACTIVE".equalsIgnoreCase(status.getStatus())) {
+                throw new BadRequestException("Tài khoản đã được kích hoạt trước đó");
+            }
+            if (!"PENDING_PAYMENT".equalsIgnoreCase(status.getStatus())) {
+                throw new BadRequestException("Tài khoản không ở trạng thái chờ thanh toán");
+            }
+        }
+
         String vnpTxnRef = "TXN_" + System.currentTimeMillis() + "_" + userId;
 
         PaymentTransaction txn = PaymentTransaction.builder()
@@ -118,11 +144,17 @@ public class BillingService {
         vnpParams.put("vnp_ReturnUrl", vnpReturnUrl);
         vnpParams.put("vnp_IpAddr", "127.0.0.1");
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        vnpParams.put("vnp_CreateDate", formatter.format(cld.getTime()));
-        cld.add(Calendar.MINUTE, 15);
-        vnpParams.put("vnp_ExpireDate", formatter.format(cld.getTime()));
+        // KHÔNG dùng Calendar/TimeZone theo tên ("Asia/Ho_Chi_Minh", "Etc/GMT+7"...):
+        // trên một số JRE rút gọn (vd Alpine), việc tra timezone theo ID có thể âm thầm
+        // KHÔNG áp dụng offset nào cả (coi như GMT+0) mà không hề báo lỗi, khiến
+        // vnp_CreateDate/vnp_ExpireDate sai lệch và VNPay báo "quá thời gian chờ
+        // thanh toán" (code=15) dù thanh toán ngay lập tức.
+        // Dùng ZoneOffset.ofHours(7) (tính toán số học thuần túy, không phụ thuộc
+        // dữ liệu tzdata) để chắc chắn luôn ra đúng giờ Việt Nam (UTC+7, không DST).
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        OffsetDateTime nowVN = OffsetDateTime.now(ZoneOffset.ofHours(7));
+        vnpParams.put("vnp_CreateDate", nowVN.format(formatter));
+        vnpParams.put("vnp_ExpireDate", nowVN.plusMinutes(15).format(formatter));
 
         String hashData = VNPayUtil.buildHashData(vnpParams);
         String vnpSecureHash = VNPayUtil.hmacSHA512(vnpHashSecret, hashData);
