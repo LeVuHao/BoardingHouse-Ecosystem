@@ -5,6 +5,7 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
   registerLandlord: (data) => api.post('/auth/landlord/register', data),
   getProfile: () => api.get('/auth/profile'),
+  getLandlordStatus: (userId) => api.get(`/auth/landlord/status/${userId}`),
 };
 
 export const propertyApi = {
@@ -52,8 +53,11 @@ export const billingApi = {
   getMyBills: () => api.get('/bills/my-bills'),
   getLandlordBills: () => api.get('/bills/landlord-bills'),
   createBill: (data) => api.post('/bills', data),
-  createActivationUrl: () => api.post('/payments/create-activation-url'),
+  // Public: chủ trọ vừa đăng ký (PENDING_PAYMENT) chưa có JWT nên userId được truyền thẳng
+  createActivationUrl: (userId) => api.post('/payments/create-activation-url', { userId }),
   createBillPaymentUrl: (billId, amount) => api.post(`/payments/create-bill-payment-url/${billId}?amount=${amount}`),
+  // Public: xác nhận kết quả thanh toán VNPay trả về (dùng ở trang callback)
+  confirmVnpayCallback: (queryString) => api.get(`/payments/vnpay-callback${queryString}`),
 };
 
 export const notificationApi = {

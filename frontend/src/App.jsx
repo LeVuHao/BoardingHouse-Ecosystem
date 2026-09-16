@@ -11,6 +11,8 @@ import RoomDetail from "./pages/RoomDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RegisterLandlord from "./pages/RegisterLandlord";
+import ActivateAccount from "./pages/ActivateAccount";
+import ActivateAccountCallback from "./pages/ActivateAccountCallback";
 import Roommates from "./pages/Roommates";
 import MyBills from "./pages/MyBills";
 import Notifications from "./pages/Notifications";
@@ -43,6 +45,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/register-landlord" element={<RegisterLandlord />} />
+              <Route path="/activate-account" element={<ActivateAccount />} />
+              <Route path="/activate-account/callback" element={<ActivateAccountCallback />} />
 
               <Route
                 element={
