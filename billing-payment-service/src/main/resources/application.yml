@@ -5,9 +5,9 @@ spring:
   application:
     name: BILLING-PAYMENT-SERVICE
   datasource:
-    url: jdbc:mysql://localhost:3306/db_billing_payment?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3307/db_billing_payment?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root
-    password: root
+    password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -25,7 +25,7 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 
 vnpay:
-  tmnCode: "DEMO1234"
-  hashSecret: "DEMOSECRETKEYFORVNPAYSANDBOX123456"
+  tmnCode: "VBJ6BRBS"
+  hashSecret: "ZPVUFQTTVBZHOSACWNQTIVDDYZLSAEFE"
   url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-  returnUrl: "http://localhost:8080/api/v1/payments/vnpay-callback"
+  returnUrl: "http://localhost:5173/activate-account/callback"

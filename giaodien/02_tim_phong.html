@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trọ Chuẩn — Tìm phòng</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!--
+============================================================================
+ HƯỚNG DẪN CHO AI CODING AGENT (đọc trước khi chuyển file này vào project)
+============================================================================
+File này là 1 file HTML/CSS/JS tĩnh, KHÔNG dùng framework, để làm mẫu thiết kế
+và mẫu hành vi UI. Mục tiêu: giữ nguyên 100% class CSS, biến màu (:root),
+cấu trúc DOM và tên hàm JS khi chuyển sang React/Vue của project thật —
+chỉ thay phần LẤY DỮ LIỆU (mảng ROOMS) bằng gọi API thật, phần còn lại
+(lọc, sắp xếp, phân trang, hiển thị) giữ nguyên logic.
+
+1) NGUỒN DỮ LIỆU — thay mảng `ROOMS` (khai báo cứng ở cuối file, phần JS)
+   bằng response thật từ:
+      GET /api/v1/rooms?city=&minPrice=&maxPrice=&minArea=&maxArea=
+                        &roomType=&status=&sort=&page=&size=
+   Response backend dùng JPA Specification (RoomSpecification) nên tên
+   field trong query string PHẢI khớp: city, minPrice, maxPrice, minArea,
+   maxArea, roomType (SINGLE|LOFT|MINI_APARTMENT), status (AVAILABLE|
+   ROOMMATE_OPEN|FULL), sort (newest|priceAsc|priceDesc), page, size.
+   Response được bọc trong ApiResponse chuẩn của Gateway -> lấy field "data".
+
+2) DEBOUNCE 500ms — hàm `scheduleSearch()` ở cuối file hiện dùng
+   setTimeout(..., 500) để MÔ PHỎNG độ trễ mạng cho bạn thấy cảm giác thật.
+   Khi nối API thật: đổi thân hàm `runSearch()` từ lọc mảng JS cục bộ
+   sang `await fetch(...)`, giữ nguyên cơ chế debounce (clearTimeout +
+   setTimeout 500ms) đã có sẵn, đây là yêu cầu đã chốt trong tài liệu
+   kiến trúc (Task 3.6 FE).
+
+3) PHÂN TRANG — hiện đang cắt mảng JS bằng `PAGE_SIZE`. Khi có API thật,
+   dùng thẳng `totalElements` / `totalPages` mà backend trả về, không tính
+   lại ở FE.
+
+4) NÚT "Xem chi tiết" — hiện điều hướng sang `03_chi_tiet_phong.html?id=...`
+   (demo tĩnh). Khi có router thật, đổi thành `navigate('/rooms/' + id)`.
+
+5) TRẠNG THÁI PHÒNG (status-pill) — 3 trạng thái AVAILABLE / ROOMMATE_OPEN /
+   FULL lấy trực tiếp từ field `status` của Room entity, KHÔNG tự suy ra
+   ở FE (tránh sai lệch khi Redisson Lock vừa duyệt xong ở BE mà FE chưa
+   kịp cập nhật).
+============================================================================
+-->
+
+<style>
+:root{
+  --bg:#FAF9F4; --surface:#FFFFFF; --ink:#16332B; --ink-2:#1F4438;
+  --accent:#D97F2E; --accent-2:#B8651C; --text:#20241E; --text-muted:#666F63;
+  --border:#E4E0D2; --success:#2F7D52; --success-bg:#EAF3EB;
+  --pending:#B8651C; --pending-bg:#FBEFE2; --full:#8A8D80; --full-bg:#F1F0EC;
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; color:var(--text); background:var(--bg);}
+h1,h2,h3,.brand{font-family:'Manrope',sans-serif;}
+a{color:inherit; text-decoration:none;}
+img{display:block; width:100%; height:100%; object-fit:cover;}
+.wrap{max-width:1240px; margin:0 auto; padding:0 32px;}
+
+header{border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:50;}
+.nav{display:flex; align-items:center; justify-content:space-between; height:68px;}
+.brand{font-size:19px; font-weight:800; color:var(--ink);}
+.brand span{color:var(--accent);}
+.nav-links{display:flex; gap:28px; font-size:14px; font-weight:500;}
+.nav-right{display:flex; align-items:center; gap:14px;}
+.btn{font-weight:600; font-size:14px; padding:9px 18px; border-radius:var(--radius-sm); border:1px solid var(--border); cursor:pointer; background:var(--surface);}
+.btn-primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+.search-strip{background:var(--ink); padding:20px 0;}
+.search-strip .box{background:var(--surface); border-radius:var(--radius-md); padding:8px; display:flex; gap:6px;}
+.search-strip .field{flex:1; padding:10px 14px; border-right:1px solid var(--border);}
+.search-strip .field:last-of-type{border-right:none;}
+.search-strip .field label{display:block; font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px;}
+.search-strip select,.search-strip input{border:none; font-family:'Inter',sans-serif; font-size:14px; width:100%; background:transparent;}
+.search-strip select:focus,.search-strip input:focus{outline:none;}
+.btn-go{background:var(--accent); color:#fff; border:none; padding:0 24px; border-radius:var(--radius-sm); font-weight:700; font-size:14px; cursor:pointer;}
+.btn-go:hover{background:var(--accent-2);}
+
+.results-wrap{display:grid; grid-template-columns:270px 1fr; gap:32px; padding:32px 0 60px;}
+
+.filters{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:22px; align-self:start; position:sticky; top:96px;}
+.filters h4{font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:10px; font-weight:700;}
+.filter-group{margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--border);}
+.filter-group:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
+.price-range{display:flex; align-items:center; gap:8px; margin-top:10px;}
+.price-range input{width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13.5px; font-family:'Inter',sans-serif;}
+.check-row{display:flex; align-items:center; gap:9px; margin-bottom:11px; font-size:14px; cursor:pointer;}
+.check-row input{accent-color:var(--ink); width:16px; height:16px;}
+.area-pills{display:flex; gap:8px; flex-wrap:wrap;}
+.area-pill{padding:7px 13px; border:1px solid var(--border); border-radius:20px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; background:var(--surface);}
+.area-pill.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+.btn-clear{font-size:13px; font-weight:600; color:var(--ink-2); border:none; background:none; border-bottom:1px solid var(--ink-2); display:inline-block; margin-top:4px; cursor:pointer; padding:0;}
+
+.results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+.results-head h1{font-size:20px; font-weight:800; color:var(--ink);}
+.results-head p{font-size:13.5px; color:var(--text-muted); margin-top:3px;}
+.sort{display:flex; align-items:center; gap:10px; font-size:13.5px;}
+.sort select{border:1px solid var(--border); border-radius:6px; padding:7px 10px; font-family:'Inter',sans-serif; background:var(--surface);}
+
+.listing{display:flex; flex-direction:column; gap:16px; min-height:400px; transition:opacity .15s;}
+.list-card{display:grid; grid-template-columns:220px 1fr; gap:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;}
+.list-card .photo{position:relative; height:100%; min-height:150px;}
+.badge-verified{position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.95); padding:4px 9px; border-radius:20px; font-size:11.5px; font-weight:700; color:var(--success); display:flex; align-items:center; gap:5px;}
+.badge-verified::before{content:"✓"; width:13px; height:13px; background:var(--success); color:#fff; border-radius:50%; font-size:8.5px; text-align:center; line-height:13px; display:inline-block;}
+.list-card .info{padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;}
+.info-top{display:flex; justify-content:space-between; gap:10px;}
+.info-top .title{font-size:16.5px; font-weight:700; margin-bottom:5px;}
+.info-top .addr{font-size:13px; color:var(--text-muted);}
+.info-top .price{font-size:18px; font-weight:800; color:var(--ink); font-family:'Manrope',sans-serif; white-space:nowrap;}
+.info-tags{display:flex; gap:8px; margin:12px 0; flex-wrap:wrap;}
+.tag{font-size:12px; background:var(--bg); border:1px solid var(--border); color:var(--text-muted); padding:4px 10px; border-radius:20px;}
+.info-bottom{display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:12px;}
+.meta-line{display:flex; gap:16px; font-size:13px; color:var(--text-muted); align-items:center;}
+.status-pill{font-size:12px; font-weight:700; padding:5px 11px; border-radius:20px;}
+.status-pill.AVAILABLE{background:var(--success-bg); color:var(--success);}
+.status-pill.ROOMMATE_OPEN{background:var(--pending-bg); color:var(--pending);}
+.status-pill.FULL{background:var(--full-bg); color:var(--full);}
+.btn-request{background:var(--ink); color:#fff; font-size:13px; font-weight:600; padding:8px 16px; border-radius:6px; border:none; cursor:pointer;}
+.btn-request:hover{background:var(--ink-2);}
+
+.empty-state{padding:80px 20px; text-align:center; color:var(--text-muted); font-size:14px;}
+.empty-state b{display:block; font-size:16px; color:var(--text); margin-bottom:6px; font-family:'Manrope',sans-serif;}
+
+.pagination{display:flex; justify-content:center; gap:6px; margin-top:32px;}
+.pagination span{width:34px; height:34px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:6px; font-size:13.5px; font-weight:600; cursor:pointer;}
+.pagination span.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+@media (max-width:900px){
+  .results-wrap{grid-template-columns:1fr;}
+  .list-card{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">Trọ<span>Chuẩn</span></div>
+    <nav class="nav-links">
+      <a href="01_trang_chu.html">Tìm phòng</a><a href="#">Ở ghép</a><a href="#">Dành cho chủ trọ</a>
+    </nav>
+    <div class="nav-right">
+      <a href="#" class="btn" style="border:none; font-weight:500; color:var(--text-muted);">Đăng nhập</a>
+      <a href="#" class="btn btn-primary">Đăng tin cho thuê</a>
+    </div>
+  </div>
+</header>
+
+<div class="search-strip">
+  <div class="wrap">
+    <div class="box">
+      <div class="field">
+        <label>Khu vực</label>
+        <select id="f-city">
+          <option value="Bình Thạnh">TP. Hồ Chí Minh — Bình Thạnh</option>
+          <option value="Quận 3">TP. Hồ Chí Minh — Quận 3</option>
+          <option value="Gò Vấp">TP. Hồ Chí Minh — Gò Vấp</option>
+          <option value="Quận 10">TP. Hồ Chí Minh — Quận 10</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Khoảng giá</label>
+        <select id="f-price-preset">
+          <option value="0-999000000">Tất cả mức giá</option>
+          <option value="0-2000000">Dưới 2 triệu</option>
+          <option value="2000000-4000000" selected>2 – 4 triệu / tháng</option>
+          <option value="4000000-7000000">4 – 7 triệu / tháng</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Diện tích</label>
+        <select id="f-area-preset">
+          <option value="0-999">Tất cả diện tích</option>
+          <option value="15-25" selected>15 – 25m²</option>
+          <option value="25-35">25 – 35m²</option>
+        </select>
+      </div>
+      <button class="btn-go" onclick="scheduleSearch()">Tìm phòng</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap results-wrap">
+  <aside class="filters">
+    <div class="filter-group">
+      <h4>Khoảng giá (VNĐ)</h4>
+      <div class="price-range">
+        <input type="text" id="f-min-price" value="1500000">
+        <span>—</span>
+        <input type="text" id="f-max-price" value="5000000">
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Diện tích</h4>
+      <div class="area-pills" id="area-pills">
+        <span class="area-pill" data-min="0" data-max="15">&lt;15m²</span>
+        <span class="area-pill active" data-min="15" data-max="25">15–25m²</span>
+        <span class="area-pill" data-min="25" data-max="35">25–35m²</span>
+        <span class="area-pill" data-min="35" data-max="999">&gt;35m²</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Loại phòng</h4>
+      <label class="check-row"><input type="checkbox" class="f-roomtype" value="SINGLE" checked><span>Phòng đơn</span></label>
+      <label class="check-row"><input type="checkbox" class="f-roomtype" value="LOFT"><span>Phòng có gác</span></label>
+      <label class="check-row"><input type="checkbox" class="f-roomtype" value="MINI_APARTMENT"><span>Chung cư mini</span></label>
+      <label class="check-row"><input type="checkbox" id="f-roommate-only"><span>Còn chỗ ở ghép</span></label>
+    </div>
+    <div class="filter-group">
+      <h4>Tiện ích</h4>
+      <label class="check-row"><input type="checkbox" class="f-amenity" value="Wifi" checked><span>Wifi</span></label>
+      <label class="check-row"><input type="checkbox" class="f-amenity" value="Máy giặt chung"><span>Máy giặt chung</span></label>
+      <label class="check-row"><input type="checkbox" class="f-amenity" value="Chỗ để xe"><span>Chỗ để xe</span></label>
+      <label class="check-row"><input type="checkbox" class="f-amenity" value="Camera an ninh"><span>Camera an ninh</span></label>
+    </div>
+    <button class="btn-clear" onclick="clearFilters()">Xóa tất cả bộ lọc</button>
+  </aside>
+
+  <main>
+    <div class="results-head">
+      <div>
+        <h1 id="result-count">— phòng</h1>
+        <p>Đã lọc theo mức giá và diện tích bạn chọn</p>
+      </div>
+      <div class="sort">
+        <select id="f-sort">
+          <option value="newest">Sắp xếp: Mới nhất</option>
+          <option value="priceAsc">Giá tăng dần</option>
+          <option value="priceDesc">Giá giảm dần</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="listing" id="listing"></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
+
+<script>
+/* ==========================================================================
+   DỮ LIỆU MẪU — thay bằng response API thật khi tích hợp (xem hướng dẫn ở
+   comment đầu file). Ảnh dùng picsum.photos (ảnh thật, luôn tải được) —
+   khi có FileStorageService thật, đổi field `img` sang URL ảnh đã upload.
+   ========================================================================== */
+const ROOMS = [
+  {id:1, title:"Phòng 20m² có gác, cửa sổ thoáng", addr:"Đường Nguyễn Gia Trí, P.25, Bình Thạnh", city:"Bình Thạnh", price:2800000, area:20, capacity:2, occupants:1, status:"ROOMMATE_OPEN", roomType:"LOFT", amenities:["Wifi","Máy giặt chung","Chỗ để xe"], img:"tro-r1"},
+  {id:2, title:"Phòng 16m² gần Đại học Kinh tế", addr:"Đường Lê Văn Sỹ, Q.3", city:"Quận 3", price:1900000, area:16, capacity:2, occupants:1, status:"ROOMMATE_OPEN", roomType:"SINGLE", amenities:["Wifi","Camera an ninh"], img:"tro-r2"},
+  {id:3, title:"Phòng studio đầy đủ nội thất", addr:"Đường Phan Văn Trị, Gò Vấp", city:"Gò Vấp", price:3200000, area:24, capacity:2, occupants:0, status:"AVAILABLE", roomType:"MINI_APARTMENT", amenities:["Wifi","Chỗ để xe"], img:"tro-r3"},
+  {id:4, title:"Phòng có gác lửng, an ninh camera", addr:"Đường Tô Hiến Thành, Q.10", city:"Quận 10", price:2450000, area:18, capacity:2, occupants:0, status:"AVAILABLE", roomType:"LOFT", amenities:["Wifi","Camera an ninh"], img:"tro-r4"},
+  {id:5, title:"Phòng đơn giá rẻ, gần chợ Bà Chiểu", addr:"Đường Bùi Hữu Nghĩa, Bình Thạnh", city:"Bình Thạnh", price:1750000, area:14, capacity:1, occupants:0, status:"AVAILABLE", roomType:"SINGLE", amenities:["Wifi"], img:"tro-r5"},
+  {id:6, title:"Chung cư mini mới xây, có thang máy", addr:"Đường Nguyễn Văn Đậu, Bình Thạnh", city:"Bình Thạnh", price:3800000, area:26, capacity:2, occupants:0, status:"AVAILABLE", roomType:"MINI_APARTMENT", amenities:["Wifi","Máy giặt chung","Camera an ninh"], img:"tro-r6"},
+  {id:7, title:"Phòng có gác, còn 1 chỗ ở ghép", addr:"Đường Điện Biên Phủ, Bình Thạnh", city:"Bình Thạnh", price:2600000, area:19, capacity:2, occupants:1, status:"ROOMMATE_OPEN", roomType:"LOFT", amenities:["Wifi","Chỗ để xe"], img:"tro-r7"},
+  {id:8, title:"Phòng đơn khép kín, khu an ninh", addr:"Đường Nguyễn Thượng Hiền, Q.3", city:"Quận 3", price:2200000, area:17, capacity:1, occupants:0, status:"AVAILABLE", roomType:"SINGLE", amenities:["Wifi","Camera an ninh"], img:"tro-r8"},
+  {id:9, title:"Phòng full nội thất, đã có người ở ghép", addr:"Đường Quang Trung, Gò Vấp", city:"Gò Vấp", price:3000000, area:22, capacity:2, occupants:2, status:"FULL", roomType:"MINI_APARTMENT", amenities:["Wifi","Máy giặt chung"], img:"tro-r9"},
+  {id:10, title:"Phòng trọ giá sinh viên gần trường", addr:"Đường Sư Vạn Hạnh, Q.10", city:"Quận 10", price:1650000, area:13, capacity:1, occupants:0, status:"AVAILABLE", roomType:"SINGLE", amenities:["Wifi"], img:"tro-r10"},
+];
+
+const PAGE_SIZE = 6;
+let currentPage = 1;
+let searchTimer = null;
+
+function formatVND(n){ return new Intl.NumberFormat("vi-VN").format(n) + "₫"; }
+
+function statusLabel(s){
+  return {AVAILABLE:"Còn trống", ROOMMATE_OPEN:"Còn 1 chỗ ở ghép", FULL:"Đã đủ người"}[s];
+}
+
+function readFilters(){
+  return {
+    city: document.getElementById("f-city").value,
+    minPrice: Number(document.getElementById("f-min-price").value) || 0,
+    maxPrice: Number(document.getElementById("f-max-price").value) || 999000000,
+    minArea: Number(document.querySelector(".area-pill.active").dataset.min),
+    maxArea: Number(document.querySelector(".area-pill.active").dataset.max),
+    roomTypes: [...document.querySelectorAll(".f-roomtype:checked")].map(el => el.value),
+    roommateOnly: document.getElementById("f-roommate-only").checked,
+    amenities: [...document.querySelectorAll(".f-amenity:checked")].map(el => el.value),
+    sort: document.getElementById("f-sort").value,
+  };
+}
+
+/* ------------------------------------------------------------------------
+   runSearch(): hiện lọc mảng JS cục bộ để demo. AI AGENT — khi tích hợp,
+   thay TOÀN BỘ thân hàm này bằng:
+     const res = await fetch(`/api/v1/rooms?${new URLSearchParams({...filters, page, size: PAGE_SIZE})}`);
+     const data = (await res.json()).data;
+     renderRooms(data.content);
+     renderPagination(data.totalPages, data.page);
+     document.getElementById('result-count').textContent = data.totalElements + ' phòng tại ' + filters.city;
+   Giữ nguyên chữ ký hàm và nơi gọi (scheduleSearch) để không phải sửa các
+   listener sự kiện bên dưới.
+------------------------------------------------------------------------ */
+function runSearch(){
+  const f = readFilters();
+
+  let result = ROOMS.filter(r =>
+    r.city === f.city &&
+    r.price >= f.minPrice && r.price <= f.maxPrice &&
+    r.area >= f.minArea && r.area <= f.maxArea &&
+    (f.roomTypes.length === 0 || f.roomTypes.includes(r.roomType)) &&
+    (!f.roommateOnly || r.status === "ROOMMATE_OPEN") &&
+    f.amenities.every(a => r.amenities.includes(a))
+  );
+
+  if (f.sort === "priceAsc") result.sort((a,b) => a.price - b.price);
+  if (f.sort === "priceDesc") result.sort((a,b) => b.price - a.price);
+  if (f.sort === "newest") result.sort((a,b) => b.id - a.id);
+
+  document.getElementById("result-count").textContent =
+    result.length + " phòng tại " + f.city;
+
+  const totalPages = Math.max(1, Math.ceil(result.length / PAGE_SIZE));
+  currentPage = Math.min(currentPage, totalPages);
+  const pageItems = result.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  renderRooms(pageItems);
+  renderPagination(totalPages, currentPage);
+}
+
+function renderRooms(list){
+  const el = document.getElementById("listing");
+  if (list.length === 0){
+    el.innerHTML = `<div class="empty-state"><b>Không tìm thấy phòng phù hợp</b>Thử nới rộng khoảng giá hoặc bỏ bớt tiện ích đang lọc.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(r => `
+    <div class="list-card">
+      <div class="photo">
+        <img src="https://picsum.photos/seed/${r.img}/300/220" alt="${r.title}">
+        <div class="badge-verified">Chủ trọ đã xác thực</div>
+      </div>
+      <div class="info">
+        <div class="info-top">
+          <div>
+            <div class="title">${r.title}</div>
+            <div class="addr">${r.addr}</div>
+          </div>
+          <div class="price">${formatVND(r.price)}<span style="font-size:12px; color:var(--text-muted); font-weight:500;">/tháng</span></div>
+        </div>
+        <div class="info-tags">${r.amenities.map(a => `<span class="tag">${a}</span>`).join("")}</div>
+        <div class="info-bottom">
+          <div class="meta-line">
+            <span>${r.area}m²</span>
+            <span>Đang ở ${r.occupants}/${r.capacity} người</span>
+            <span class="status-pill ${r.status}">${statusLabel(r.status)}</span>
+          </div>
+          <button class="btn-request" onclick="location.href='03_chi_tiet_phong.html?id=${r.id}'">Xem chi tiết</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderPagination(totalPages, page){
+  const el = document.getElementById("pagination");
+  let html = "";
+  for (let i = 1; i <= totalPages; i++){
+    html += `<span class="${i === page ? "active" : ""}" onclick="goToPage(${i})">${i}</span>`;
+  }
+  el.innerHTML = html;
+}
+
+function goToPage(p){
+  currentPage = p;
+  runSearch();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* Debounce 500ms — theo đúng spec Task 3.6 FE trong tài liệu kiến trúc.
+   Mọi thay đổi filter đều gọi hàm này thay vì gọi runSearch() trực tiếp. */
+function scheduleSearch(){
+  currentPage = 1;
+  clearTimeout(searchTimer);
+  document.getElementById("listing").style.opacity = "0.4";
+  searchTimer = setTimeout(() => {
+    runSearch();
+    document.getElementById("listing").style.opacity = "1";
+  }, 500);
+}
+
+function clearFilters(){
+  document.getElementById("f-min-price").value = 0;
+  document.getElementById("f-max-price").value = 999000000;
+  document.querySelectorAll(".area-pill").forEach(p => p.classList.remove("active"));
+  document.querySelector(".area-pill").classList.add("active");
+  document.querySelectorAll(".f-roomtype").forEach(c => c.checked = false);
+  document.getElementById("f-roommate-only").checked = false;
+  document.querySelectorAll(".f-amenity").forEach(c => c.checked = false);
+  scheduleSearch();
+}
+
+/* Gắn sự kiện cho toàn bộ input/select filter */
+document.querySelectorAll("#f-min-price, #f-max-price, .f-roomtype, #f-roommate-only, .f-amenity, #f-sort")
+  .forEach(el => el.addEventListener("input", scheduleSearch));
+
+document.querySelectorAll(".area-pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".area-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    scheduleSearch();
+  });
+});
+
+document.getElementById("f-city").addEventListener("change", scheduleSearch);
+document.getElementById("f-price-preset").addEventListener("change", (e) => {
+  const [min, max] = e.target.value.split("-");
+  document.getElementById("f-min-price").value = min;
+  document.getElementById("f-max-price").value = max;
+  scheduleSearch();
+});
+document.getElementById("f-area-preset").addEventListener("change", (e) => {
+  const [min, max] = e.target.value.split("-").map(Number);
+  document.querySelectorAll(".area-pill").forEach(p => {
+    p.classList.toggle("active", Number(p.dataset.min) === min && Number(p.dataset.max) === max);
+  });
+  scheduleSearch();
+});
+
+/* Lần chạy đầu tiên khi tải trang */
+runSearch();
+</script>
+
+</body>
+</html>

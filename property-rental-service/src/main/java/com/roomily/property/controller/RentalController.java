@@ -70,6 +70,15 @@ public class RentalController {
         return ResponseEntity.ok(ApiResponse.success("Từ chối yêu cầu thuê thành công", res));
     }
 
+    @GetMapping("/requests/landlord")
+    public ResponseEntity<ApiResponse<Page<RentalRequestResponse>>> listRequestsForLandlord(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+        Page<RentalRequestResponse> page = rentalRequestService.listForLandlord(landlordId, status, pageable);
+        return ResponseEntity.ok(ApiResponse.success(page));
+    }
+
     // --- BÀI ĐĂNG Ở GHÉP ---
     @PostMapping("/posts")
     public ResponseEntity<ApiResponse<RoommatePostResponse>> createPost(
@@ -108,8 +117,9 @@ public class RentalController {
 
     @GetMapping("/posts/{postId}/requests")
     public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getRequestsByPost(
-            @PathVariable Long postId) {
-        List<JoinRequestResponse> list = joinRequestService.getRequestsByPost(postId);
+            @PathVariable Long postId,
+            @RequestHeader("X-User-Id") Long landlordId) {
+        List<JoinRequestResponse> list = joinRequestService.getRequestsByPost(postId, landlordId);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 

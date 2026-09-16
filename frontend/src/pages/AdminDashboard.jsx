@@ -24,14 +24,21 @@ const AdminDashboard = () => {
   }, [filterRole]);
 
   const handleToggleStatus = async (userId, currentStatus) => {
-    const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    if (!window.confirm(`Bạn có chắc muốn chuyển trạng thái tài khoản thành ${nextStatus}?`)) return;
+    const isActive = currentStatus === 'ACTIVE';
+    const confirmMsg = isActive
+      ? 'Bạn có chắc muốn KHÓA tài khoản này không?'
+      : 'Bạn có chắc muốn MỞ KHÓA tài khoản này không?';
+    if (!window.confirm(confirmMsg)) return;
 
     try {
-      await adminApi.updateStatus(userId, nextStatus);
+      if (isActive) {
+        await adminApi.lockUser(userId);
+      } else {
+        await adminApi.unlockUser(userId);
+      }
       loadData();
     } catch (err) {
-      alert(err.message || 'Lỗi cập nhật');
+      alert(err.response?.data?.message || err.message || 'Lỗi cập nhật');
     }
   };
 

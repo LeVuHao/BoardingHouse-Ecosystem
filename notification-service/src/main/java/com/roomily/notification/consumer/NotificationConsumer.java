@@ -25,7 +25,10 @@ public class NotificationConsumer {
             String title = (String) event.get("title");
             String content = (String) event.get("content");
             String type = (String) event.get("type");
-            Long referenceId = event.get("referenceId") != null ? Long.valueOf(event.get("referenceId").toString()) : null;
+
+            Long referenceId = event.get("referenceId") != null
+                    ? Long.valueOf(event.get("referenceId").toString())
+                    : null;
 
             Notification notification = Notification.builder()
                     .userId(userId)
@@ -37,9 +40,12 @@ public class NotificationConsumer {
                     .build();
 
             notificationRepository.save(notification);
+
             log.info("Saved notification for user: {}", userId);
+
         } catch (Exception ex) {
-            log.error("Failed to process notification event: {}", ex.getMessage(), ex);
+            log.error("Failed to process notification event: {}",
+                    ex.getMessage(), ex);
         }
     }
 }

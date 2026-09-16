@@ -3,19 +3,21 @@ package com.roomily.property.controller;
 import com.roomily.common.dto.ApiResponse;
 import com.roomily.property.dto.request.CreatePropertyRequest;
 import com.roomily.property.dto.request.CreateRoomRequest;
+import com.roomily.property.dto.request.UpdatePropertyRequest;
 import com.roomily.property.dto.response.PropertyResponse;
 import com.roomily.property.dto.response.RoomResponse;
+import com.roomily.property.repository.PropertyRepository;
+import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.service.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/properties")
@@ -23,6 +25,8 @@ import java.util.List;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final PropertyRepository propertyRepository;
+    private final RoomRepository roomRepository;
 
     @PostMapping
     public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(
@@ -46,9 +50,27 @@ public class PropertyController {
         return ResponseEntity.ok(ApiResponse.success(res));
     }
 
+    // [HUY] Cập nhật thông tin khu trọ
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @PathVariable Long id,
+            @RequestBody UpdatePropertyRequest req) {
+        PropertyResponse res = propertyService.updateProperty(landlordId, id, req);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật khu trọ thành công", res));
+    }
+
     @GetMapping("/{id}/rooms")
     public ResponseEntity<ApiResponse<List<RoomResponse>>> getRoomsByProperty(@PathVariable Long id) {
         List<RoomResponse> list = propertyService.getRoomsByProperty(id);
         return ResponseEntity.ok(ApiResponse.success(list));
+    }
+
+    @GetMapping("/admin/count")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getAdminCount() {
+        Map<String, Long> result = new HashMap<>();
+        result.put("totalProperties", propertyRepository.count());
+        result.put("totalRooms", roomRepository.count());
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
