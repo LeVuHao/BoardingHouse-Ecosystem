@@ -178,6 +178,7 @@ const SearchRooms = () => {
                   <img
                     src={room.images?.length > 0 ? room.images[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600'}
                     alt={room.roomNumber}
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600'; }}
                     className="room-img"
                   />
                   <div className="room-body">

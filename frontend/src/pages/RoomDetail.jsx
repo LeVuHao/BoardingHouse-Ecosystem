@@ -1,19 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { propertyApi, rentalApi } from "../api/apiClient";
-import { useAuth } from "../context/AuthContext";
-
-const fallbackImages = [
-  "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1200",
-  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
-  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
-];
-const statusLabel = {
-  AVAILABLE: "Còn trống",
-  ROOMMATE_OPEN: "Còn chỗ ở ghép",
-  FULL: "Đã đủ người",
-};
-const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { propertyApi, rentalApi } from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
+import {
+  MapPin, Maximize2, Users, CheckCircle2, ShieldCheck,
+  ArrowLeft, Send, Sparkles, ChevronLeft, ChevronRight, Home
+} from 'lucide-react';
 
 const RoomDetail = () => {
   const { id } = useParams();
@@ -30,23 +22,18 @@ const RoomDetail = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    setRoom(null);
-    setResult(null);
-    setActiveImage(0);
-    propertyApi
-      .getRoomDetail(id)
-      .then((res) => {
-        const data = res.data || res;
-        setRoom(data);
-        if (data.images?.length) setImages(data.images);
-      })
-      .catch(() => setRoom(undefined));
-    rentalApi
-      .getRoommatePosts({ roomId: id })
-      .then((res) =>
-        setRoommatePost((res.data?.content || res.data || [])[0] || null),
-      )
-      .catch(() => setRoommatePost(null));
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        const res = await propertyApi.getRoomDetail(id);
+        setRoom(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetail();
   }, [id]);
 
   const submitRequest = async () => {
@@ -107,26 +94,82 @@ const RoomDetail = () => {
         </div>
       </div>
     );
+  }
 
-  const utilities = Array.isArray(room.utilities)
-    ? room.utilities
-    : (room.utilities || "Wifi,Chỗ để xe,Camera an ninh,Giờ giấc tự do").split(
-        ",",
-      );
-  const hasRoommate = Boolean(roommatePost) || room.status === "ROOMMATE_OPEN";
-  const landlordName =
-    room.landlordName || room.ownerName || "Chủ trọ TrọChuẩn";
-  const rentalDisabled =
-    room.status === "FULL" ||
-    Boolean(result?.type === "success" && result.text.includes("thuê"));
+  const images = room.images && room.images.length > 0 ? room.images : [
+    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1000',
+    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1000',
+    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1000',
+  ];
+
+  const utilitiesList = room.utilities
+    ? room.utilities.split(',')
+    : ['Wifi tốc độ cao', 'Điều hòa', 'Bình nóng lạnh', 'Bãi giữ xe máy', 'Camera an ninh 24/7', 'Giờ giấc tự do'];
+
+  const prevImage = () => setActiveImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const nextImage = () => setActiveImg((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   return (
-    <div className="page-shell">
-      <div className="wrap">
-        <div className="breadcrumb">
-          <Link to="/rooms">Tìm phòng</Link> /{" "}
-          <span>{room.propertyTitle || `Phòng ${room.roomNumber || id}`}</span>
+    <div className="container" style={{ maxWidth: '1050px', padding: '1.5rem 1rem' }}>
+      <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ marginBottom: '1.5rem', padding: '0.4rem 0.8rem' }}>
+        <ArrowLeft size={16} /> Quay lại
+      </button>
+
+      {/* Gallery Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: images.length > 1 ? '2fr 1fr' : '1fr', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ position: 'relative', height: '400px', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow)', background: '#111' }}>
+          <img
+            src={images[activeImg]}
+            alt="Room Preview"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                style={{
+                  position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%',
+                  width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={nextImage}
+                style={{
+                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '50%',
+                  width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
         </div>
+
+        {images.length > 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {images.slice(0, 3).map((img, idx) => (
+              <div
+                key={idx}
+                onClick={() => setActiveImg(idx)}
+                style={{
+                  height: '124px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: activeImg === idx ? '3px solid var(--primary)' : '1px solid var(--border)',
+                  opacity: activeImg === idx ? 1 : 0.75,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <img src={img} alt="Thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div className="wrap detail-layout">
         <main>
@@ -245,17 +288,11 @@ const RoomDetail = () => {
                 </div>
               </div>
             </div>
-          )}
-        </main>
-        <aside>
-          <div className="side-card">
-            <div className="landlord">
-              <div className="avatar">
-                {landlordName.trim().slice(0, 1).toUpperCase()}
-              </div>
-              <div>
-                <div className="name">{landlordName}</div>
-                <div className="verified-text">✓ Đã xác thực qua VNPay</div>
+
+            <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <ShieldCheck size={18} color="var(--success)" />
+                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--success)' }}>Chủ trọ đã xác thực VNPay</span>
               </div>
             </div>
             <button
