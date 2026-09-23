@@ -1,8 +1,11 @@
 package com.roomily.auth.controller;
 
+import com.roomily.auth.dto.request.ForgotPasswordRequest;
+import com.roomily.auth.dto.request.GoogleLoginRequest;
 import com.roomily.auth.dto.request.LandlordRegisterRequest;
 import com.roomily.auth.dto.request.LoginRequest;
 import com.roomily.auth.dto.request.RegisterRequest;
+import com.roomily.auth.dto.request.ResetPasswordRequest;
 import com.roomily.auth.dto.response.AuthResponse;
 import com.roomily.auth.dto.response.UserResponse;
 import com.roomily.auth.service.AuthService;
@@ -40,6 +43,24 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest req) {
         AuthResponse res = authService.login(req);
         return ResponseEntity.ok(ApiResponse.success("Đăng nhập thành công", res));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest req) {
+        AuthResponse res = authService.loginWithGoogle(req);
+        return ResponseEntity.ok(ApiResponse.success("Đăng nhập bằng Google thành công", res));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        authService.sendPasswordResetCode(req);
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi mã xác thực về email của bạn", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req);
+        return ResponseEntity.ok(ApiResponse.success("Đặt lại mật khẩu thành công", null));
     }
 
     @GetMapping("/profile")

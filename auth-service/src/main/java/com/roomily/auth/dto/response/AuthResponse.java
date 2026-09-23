@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
     private String token;
     private UserResponse user;
+    private boolean needsProfile;
 }

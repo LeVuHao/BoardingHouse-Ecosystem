@@ -11,6 +11,8 @@ import RoomDetail from "./pages/RoomDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RegisterLandlord from "./pages/RegisterLandlord";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Roommates from "./pages/Roommates";
 import MyBills from "./pages/MyBills";
 import Notifications from "./pages/Notifications";
@@ -50,6 +52,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/register-landlord" element={<RegisterLandlord />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 element={
                   <ProtectedRoute

@@ -23,7 +23,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false, length = 255)
+    @Column(length = 255)
     private String password;
 
     @Column(name = "full_name", nullable = false, length = 100)
@@ -31,6 +31,17 @@ public class User {
 
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
+
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String provider = "LOCAL"; // LOCAL | GOOGLE
+
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
+
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private boolean emailVerified = true;
 
     @Column(nullable = false, length = 20)
     @Builder.Default

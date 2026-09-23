@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { authApi } from '../api/apiClient';
+import GoogleButton from '../components/GoogleButton';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -9,7 +11,13 @@ const Register = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = (authData) => {
+    login(authData);
+    navigate('/');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +51,21 @@ const Register = () => {
             {loading ? 'Đang xử lý...' : 'Đăng ký'}
           </button>
         </form>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            margin: '1.25rem 0 0.25rem',
+          }}
+        >
+          <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>HOẶC</span>
+          <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+        </div>
+
+        <GoogleButton defaultRole="USER" onSuccess={handleGoogleSuccess} />
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
           Đã có tài khoản? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Đăng nhập</Link>

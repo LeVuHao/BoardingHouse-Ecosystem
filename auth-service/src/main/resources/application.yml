@@ -16,6 +16,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: YOUR_SMTP_USERNAME@gmail.com
+    password: YOUR_SMTP_APP_PASSWORD
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 eureka:
   client:
@@ -25,3 +36,6 @@ eureka:
 jwt:
   secret: dGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS0yNTYtYml0cy1sb25nLWZvci1yb29taWx5LXNlY3VyZQ==
   expiration: 86400000 # 24 hours
+
+google:
+  client-id: 620582122369-574d5epvj85faf8svrpen9gu7se796vu.apps.googleusercontent.com
