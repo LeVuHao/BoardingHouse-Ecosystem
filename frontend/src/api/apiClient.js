@@ -65,6 +65,7 @@ export const billingApi = {
 
 export const notificationApi = {
   getMyNotifications: () => api.get("/notifications"),
+  getUnreadCount: () => api.get("/notifications/unread-count"),
   markAsRead: (id) => api.put(`/notifications/${id}/read`),
 };
 

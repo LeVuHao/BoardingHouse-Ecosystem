@@ -13,6 +13,10 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [filterRole, setFilterRole] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+  const [pageMeta, setPageMeta] = useState({ number: 0, size: 20 });
 
   const loadData = async () => {
     try {
@@ -21,16 +25,29 @@ const AdminDashboard = () => {
 
       const usersRes = await adminApi.getUsers({
         role: filterRole || undefined,
+        status: filterStatus || undefined,
+        keyword: debouncedKeyword || undefined,
       });
-      setUsers(usersRes.data.content || []);
+      const pageData = usersRes.data || {};
+      setUsers(pageData.content || []);
+      setPageMeta({
+        number: pageData.number || 0,
+        size: pageData.size || users.length || 20,
+      });
     } catch (err) {
       console.error(err);
     }
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(searchKeyword), 400);
+    return () => clearTimeout(timer);
+  }, [searchKeyword]);
+
+  useEffect(() => {
     loadData();
-  }, [filterRole]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterRole, filterStatus, debouncedKeyword]);
 
   const handleToggleStatus = async (userId, currentStatus) => {
     const isActive = currentStatus === "ACTIVE";
@@ -127,6 +144,48 @@ const AdminDashboard = () => {
               boxShadow: "var(--shadow)",
             }}
           >
+            <div style={{ color: "var(--text-muted)" }}>Tổng Khu Trọ</div>
+            <div
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: "bold",
+                color: "#7c3aed",
+                marginTop: "0.5rem",
+              }}
+            >
+              {stats.totalProperties ?? 0}
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "1.5rem",
+              borderRadius: "12px",
+              boxShadow: "var(--shadow)",
+            }}
+          >
+            <div style={{ color: "var(--text-muted)" }}>Tổng Số Phòng</div>
+            <div
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: "bold",
+                color: "#0d9488",
+                marginTop: "0.5rem",
+              }}
+            >
+              {stats.totalRooms ?? 0}
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "1.5rem",
+              borderRadius: "12px",
+              boxShadow: "var(--shadow)",
+            }}
+          >
             <div style={{ color: "var(--text-muted)" }}>Tài Khoản Bị Khóa</div>
             <div
               style={{
@@ -159,16 +218,41 @@ const AdminDashboard = () => {
           }}
         >
           <h3>Danh sách tài khoản hệ thống</h3>
-          <select
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-            style={{ padding: "0.5rem", borderRadius: "8px" }}
-          >
-            <option value="">Tất cả vai trò</option>
-            <option value="USER">USER</option>
-            <option value="LANDLORD">LANDLORD</option>
-            <option value="ADMIN">ADMIN</option>
-          </select>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="Tìm họ tên hoặc email..."
+              style={{
+                padding: "0.5rem",
+                borderRadius: "8px",
+                border: "1px solid var(--border)",
+                minWidth: "220px",
+              }}
+            />
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              style={{ padding: "0.5rem", borderRadius: "8px" }}
+            >
+              <option value="">Tất cả vai trò</option>
+              <option value="USER">USER</option>
+              <option value="LANDLORD">LANDLORD</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ padding: "0.5rem", borderRadius: "8px" }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="SUSPENDED">SUSPENDED</option>
+              <option value="PENDING">PENDING</option>
+              <option value="PENDING_PAYMENT">PENDING_PAYMENT</option>
+            </select>
+          </div>
         </div>
 
         <table
@@ -180,7 +264,7 @@ const AdminDashboard = () => {
         >
           <thead>
             <tr style={{ borderBottom: "2px solid var(--border)" }}>
-              <th style={{ padding: "0.75rem" }}>ID</th>
+              <th style={{ padding: "0.75rem" }}>STT</th>
               <th style={{ padding: "0.75rem" }}>Họ Tên</th>
               <th style={{ padding: "0.75rem" }}>Email</th>
               <th style={{ padding: "0.75rem" }}>Vai Trò</th>
@@ -189,12 +273,14 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {users.map((u, index) => (
               <tr
                 key={u.id}
                 style={{ borderBottom: "1px solid var(--border)" }}
               >
-                <td style={{ padding: "0.75rem" }}>{u.id}</td>
+                <td style={{ padding: "0.75rem" }}>
+                  {pageMeta.number * pageMeta.size + index + 1}
+                </td>
                 <td style={{ padding: "0.75rem", fontWeight: "600" }}>
                   {u.fullName}
                 </td>

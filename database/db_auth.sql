@@ -41,7 +41,7 @@ CREATE TABLE users (
 INSERT INTO users (email, password, full_name, phone_number, role, status)
 VALUES (
     'admin@phongtro.vn',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$10$rTKi7mUcBLliKF/NJg0y9.PIyFcooCKE61x0reIxLV8otd8TvnCUe',
     'Super Admin',
     '0900000000',
     'ADMIN',

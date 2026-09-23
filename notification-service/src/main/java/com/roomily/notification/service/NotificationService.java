@@ -28,6 +28,10 @@ public class NotificationService {
         return notificationRepository.findByUserId(userId, pageable);
     }
 
+    public long countUnread(Long userId) {
+        return notificationRepository.countByUserIdAndIsReadFalse(userId);
+    }
+
     @Transactional
     public Notification markAsRead(Long id, Long userId) {
         Notification notification = notificationRepository.findById(id)

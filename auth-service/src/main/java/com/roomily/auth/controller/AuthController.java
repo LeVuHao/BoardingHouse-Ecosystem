@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -52,5 +54,11 @@ public class AuthController {
             @Valid @RequestBody com.roomily.auth.dto.request.UpdateProfileRequest req) {
         UserResponse res = authService.updateProfile(userId, req);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin thành công", res));
+    }
+
+    @GetMapping("/landlord/status/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getLandlordStatus(@PathVariable Long userId) {
+        Map<String, String> res = authService.getUserStatus(userId);
+        return ResponseEntity.ok(ApiResponse.success(res));
     }
 }

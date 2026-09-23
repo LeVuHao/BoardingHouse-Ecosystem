@@ -12,31 +12,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String INVOICE_CREATED_QUEUE = "invoice.created";
-    public static final String RENTAL_APPROVED_QUEUE = "rental.approved";
-    public static final String JOIN_APPROVED_QUEUE = "join.approved";
-
     public static final String EXCHANGE = "roomily.events";
     public static final String NOTIFICATION_QUEUE = "roomily.notifications.queue";
 
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public Queue invoiceCreatedQueue() {
-        return new Queue(INVOICE_CREATED_QUEUE, true);
-    }
-
-    @Bean
-    public Queue rentalApprovedQueue() {
-        return new Queue(RENTAL_APPROVED_QUEUE, true);
-    }
-
-    @Bean
-    public Queue joinApprovedQueue() {
-        return new Queue(JOIN_APPROVED_QUEUE, true);
     }
 
     @Bean

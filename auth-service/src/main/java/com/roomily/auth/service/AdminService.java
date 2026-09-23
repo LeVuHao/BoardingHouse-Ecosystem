@@ -49,17 +49,12 @@ public class AdminService {
         return stats;
     }
 
-    public Page<UserResponse> listUsers(String role, String status, Pageable pageable) {
-        Page<User> page;
-        if ((role == null || role.isBlank()) && (status == null || status.isBlank())) {
-            page = userRepository.findAll(pageable);
-        } else if (role != null && !role.isBlank() && status != null && !status.isBlank()) {
-            page = userRepository.findByRoleAndStatus(role.toUpperCase(), status.toUpperCase(), pageable);
-        } else if (role != null && !role.isBlank()) {
-            page = userRepository.findByRole(role.toUpperCase(), pageable);
-        } else {
-            page = userRepository.findByStatus(status.toUpperCase(), pageable);
-        }
+    public Page<UserResponse> listUsers(String role, String status, String keyword, Pageable pageable) {
+        String filterRole = (role == null || role.isBlank()) ? null : role.toUpperCase();
+        String filterStatus = (status == null || status.isBlank()) ? null : status.toUpperCase();
+        String filterKeyword = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+
+        Page<User> page = userRepository.searchUsers(filterRole, filterStatus, filterKeyword, pageable);
         return page.map(UserResponse::fromEntity);
     }
 

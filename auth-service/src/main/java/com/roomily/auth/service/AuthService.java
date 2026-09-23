@@ -15,6 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -108,5 +111,14 @@ public class AuthService {
 
         User updated = userRepository.save(user);
         return UserResponse.fromEntity(updated);
+    }
+
+    public Map<String, String> getUserStatus(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+        Map<String, String> result = new HashMap<>();
+        result.put("role", user.getRole());
+        result.put("status", user.getStatus());
+        return result;
     }
 }

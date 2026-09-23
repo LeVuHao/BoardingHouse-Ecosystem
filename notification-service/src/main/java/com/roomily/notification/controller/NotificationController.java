@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -21,6 +23,14 @@ public class NotificationController {
             @RequestHeader("X-User-Id") Long userId) {
         List<Notification> list = notificationService.list(userId);
         return ResponseEntity.ok(ApiResponse.success(list));
+    }
+
+    @GetMapping("/unread-count")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getUnreadCount(
+            @RequestHeader("X-User-Id") Long userId) {
+        Map<String, Long> data = new HashMap<>();
+        data.put("count", notificationService.countUnread(userId));
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
     @PutMapping("/{id}/read")
