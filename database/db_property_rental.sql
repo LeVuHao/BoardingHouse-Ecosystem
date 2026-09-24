@@ -200,19 +200,23 @@ CREATE TABLE join_requests (
 
 
 -- ----------------------------
--- Bảng reviews (Đánh giá User ↔ Landlord)
--- [TÍNH NĂNG MỞ RỘNG – làm sau khi core xong]
+-- Bảng reviews (Đánh giá & Bình luận 5 sao từ người thuê)
 -- ----------------------------
 CREATE TABLE reviews (
     id              BIGINT          NOT NULL AUTO_INCREMENT,
     reviewer_id     BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id – người viết đánh giá',
-    reviewee_id     BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id – người được đánh giá',
-    contract_id     BIGINT          NOT NULL COMMENT 'Ref: hợp đồng liên quan',
+    reviewer_name   VARCHAR(255)    NULL COMMENT 'Tên người đánh giá',
+    reviewee_id     BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id – chủ trọ được đánh giá',
+    contract_id     BIGINT          NULL COMMENT 'Ref: hợp đồng liên quan',
+    post_id         BIGINT          NULL COMMENT 'Ref: bài đăng trọ forum_posts.id',
+    room_id         BIGINT          NULL COMMENT 'Ref: phòng trọ rooms.id',
     rating          TINYINT         NOT NULL COMMENT '1 đến 5 sao',
     comment         TEXT            NULL,
     created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP       NULL ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
-    UNIQUE KEY uq_reviews_contract_reviewer (contract_id, reviewer_id),
+    INDEX idx_reviews_post_id (post_id),
+    INDEX idx_reviews_room_id (room_id),
     INDEX idx_reviews_reviewee_id (reviewee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
