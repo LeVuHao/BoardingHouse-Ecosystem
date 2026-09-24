@@ -1,0 +1,14 @@
+name: Roomily Local
+values:
+  - key: base_gateway
+    value: ''
+  - key: base-auth-direct
+    value: ''
+  - key: jwt_admin
+    secret: true
+  - key: jwt_user
+    secret: true
+  - key: jwt_landlord
+    value: ''
+  - key: base_noti_direct
+    secret: true
