@@ -55,8 +55,8 @@ const Home = () => {
             address: `${p.district ? p.district + ", " : ""}${p.city || p.address || ""}`,
             area: p.roomArea,
             status: p.isRented ? "FULL" : (p.roommateNeeded ? "ROOMMATE_OPEN" : "AVAILABLE"),
-            thumbnailUrl: p.imageUrls?.[0] || fallbackImage,
-            images: p.imageUrls || [],
+            thumbnailUrl: p.images?.[0] || p.imageUrls?.[0] || fallbackImage,
+            images: p.images || p.imageUrls || [],
           }));
           setRooms(mapped);
         } else {

@@ -30,24 +30,33 @@ const timeAgo = (dateStr) => {
 // Carousel ảnh bài đăng
 const PostImageCarousel = ({ images }) => {
   const [idx, setIdx] = useState(0);
-  if (!images || images.length === 0) {
+  const imgList = (images && Array.isArray(images) && images.length > 0) ? images : [];
+
+  if (imgList.length === 0) {
     return (
-      <div className="forum-card-photo forum-card-photo-empty">
-        <span>Chưa có ảnh</span>
+      <div className="forum-card-photo forum-card-photo-empty" style={{ position: "relative", overflow: "hidden" }}>
+        <img 
+          src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600" 
+          alt="Ảnh phòng trọ mặc định" 
+          style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.92)" }}
+        />
+        <span style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(0,0,0,0.65)", color: "#fff", padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
+          Ảnh phòng mẫu
+        </span>
       </div>
     );
   }
   return (
     <div className="forum-card-photo">
-      <img src={images[idx]} alt="Ảnh phòng trọ" />
-      {images.length > 1 && (
+      <img src={imgList[idx]} alt="Ảnh phòng trọ" />
+      {imgList.length > 1 && (
         <>
           <button
             className="forum-carousel-btn forum-carousel-prev"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setIdx((i) => (i === 0 ? images.length - 1 : i - 1));
+              setIdx((i) => (i === 0 ? imgList.length - 1 : i - 1));
             }}
           >
             <ChevronLeft size={18} />
@@ -57,13 +66,13 @@ const PostImageCarousel = ({ images }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setIdx((i) => (i === images.length - 1 ? 0 : i + 1));
+              setIdx((i) => (i === imgList.length - 1 ? 0 : i + 1));
             }}
           >
             <ChevronRight size={18} />
           </button>
           <div className="forum-carousel-dots">
-            {images.map((_, i) => (
+            {imgList.map((_, i) => (
               <span key={i} className={`forum-dot ${i === idx ? "active" : ""}`} />
             ))}
           </div>
@@ -597,7 +606,7 @@ const Rooms = () => {
               {currentItems.map((post) => (
                 <div key={post.id} className="forum-card">
                   {/* Photo Carousel */}
-                  <PostImageCarousel images={post.imageUrls} />
+                  <PostImageCarousel images={post.images || post.imageUrls} />
 
                   {/* Body Content */}
                   <div className="forum-card-body">

@@ -70,11 +70,14 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <nav className="site-nav-links">
-          <Link to="/rooms" className={`site-nav-link ${location.pathname === "/rooms" || location.pathname === "/forum" ? "active" : ""}`}>
+          <Link to="/rooms" className={`site-nav-link ${location.pathname === "/rooms" ? "active" : ""}`}>
             Tìm phòng
           </Link>
           <Link to="/roommates" className={`site-nav-link ${location.pathname === "/roommates" ? "active" : ""}`}>
             Ở ghép
+          </Link>
+          <Link to="/forum" className={`site-nav-link ${location.pathname === "/forum" ? "active" : ""}`}>
+            Diễn đàn
           </Link>
           
           {user?.role === "LANDLORD" && (

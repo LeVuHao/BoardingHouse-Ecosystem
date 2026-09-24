@@ -3,11 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { 
   MapPin, Clock, Phone, Send, MessageCircle, ArrowLeft, 
   User, Maximize2, Home, Sparkles, Users, CheckCircle2, 
-  AlertCircle, Calendar, FileText, Settings, X, Tag 
+  AlertCircle, Calendar, FileText, Settings, X, Tag,
+  Star, Edit3, Trash2, ShieldCheck, ThumbsUp
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import { forumApi, rentalApi } from "../api/apiClient";
+import { forumApi, rentalApi, reviewApi } from "../api/apiClient";
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const timeAgo = (dateStr) => {
@@ -32,6 +33,19 @@ const ForumPostDetail = () => {
   const [msgForm, setMsgForm] = useState({ content: "", senderName: "", senderPhone: "" });
   const [sending, setSending] = useState(false);
   const [selectedImg, setSelectedImg] = useState(0);
+
+  // Đánh giá 5 sao & Bình luận
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [eligibility, setEligibility] = useState({ eligible: false, reason: "", existingReview: null });
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editHoverRating, setEditHoverRating] = useState(0);
+  const [editComment, setEditComment] = useState("");
 
   // Modal Yêu Cầu Thuê Phòng
   const [rentalModalOpen, setRentalModalOpen] = useState(false);
@@ -69,11 +83,41 @@ const ForumPostDetail = () => {
     }
   };
 
+  // Tải danh sách đánh giá
+  const loadReviews = async () => {
+    try {
+      const res = await reviewApi.getReviewsByPost(id);
+      setReviews(res.data?.data || res.data || []);
+    } catch (err) {
+      console.error("Lỗi khi tải đánh giá:", err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // Kiểm tra quyền đánh giá (phải là người đã được duyệt vào ở trọ)
+  const checkReviewEligibility = async () => {
+    if (!user) return;
+    try {
+      const res = await reviewApi.checkEligibility(id);
+      const data = res.data?.data || res.data || {};
+      setEligibility(data);
+      if (data.existingReview) {
+        setEditRating(data.existingReview.rating || 5);
+        setEditComment(data.existingReview.comment || "");
+      }
+    } catch (err) {
+      console.warn("Lỗi kiểm tra quyền đánh giá:", err);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     loadPostDetail();
+    loadReviews();
 
     if (user) {
+      checkReviewEligibility();
       forumApi
         .getMessages(id)
         .then((res) => setMessages(res.data || res || []))
@@ -90,6 +134,61 @@ const ForumPostDetail = () => {
       }));
     }
   }, [user]);
+
+  // Gửi đánh giá mới
+  const handleCreateReview = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để gửi đánh giá");
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await reviewApi.createReview({
+        postId: Number(id),
+        reviewerName: user.fullName || "Người thuê trọ",
+        rating,
+        comment,
+      });
+      toast.success("Cảm ơn bạn đã gửi đánh giá 5 sao cho phòng trọ! ⭐");
+      setComment("");
+      await loadReviews();
+      await checkReviewEligibility();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể gửi đánh giá");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  // Cập nhật đánh giá
+  const handleUpdateReview = async (reviewId) => {
+    try {
+      await reviewApi.updateReview(reviewId, {
+        rating: editRating,
+        comment: editComment,
+      });
+      toast.success("Cập nhật đánh giá thành công! ✨");
+      setEditingReviewId(null);
+      await loadReviews();
+      await checkReviewEligibility();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể cập nhật đánh giá");
+    }
+  };
+
+  // Xóa đánh giá
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bài đánh giá này không?")) return;
+    try {
+      await reviewApi.deleteReview(reviewId);
+      toast.success("Đã xóa đánh giá thành công!");
+      await loadReviews();
+      await checkReviewEligibility();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể xóa đánh giá");
+    }
+  };
 
   // Gửi tin nhắn liên hệ
   const handleSendMessage = async (e) => {
@@ -475,6 +574,220 @@ const ForumPostDetail = () => {
                   <Link to="/login" className="btn btn-primary">
                     Đăng nhập để gửi tin nhắn & yêu cầu thuê
                   </Link>
+                </div>
+              )}
+            </div>
+
+            {/* 6. ĐÁNH GIÁ 5 SAO & BÌNH LUẬN TỪ NGƯỜI THUÊ ĐÃ DUYỆT */}
+            <div className="forum-reviews-section" style={{ background: "white", borderRadius: 16, border: "1px solid var(--border)", padding: "24px", marginTop: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    <Star size={20} color="#f59e0b" fill="#f59e0b" />
+                    Đánh giá & Trải nghiệm thực tế ({reviews.length})
+                  </h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "var(--text-muted)" }}>
+                    Đánh giá khách quan từ những người thuê đã được chủ trọ duyệt hợp đồng vào ở
+                  </p>
+                </div>
+                {reviews.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fffbeb", padding: "6px 14px", borderRadius: 9999, border: "1px solid #fef3c7" }}>
+                    <span style={{ fontSize: 20, fontWeight: 900, color: "#d97706" }}>
+                      {(reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length).toFixed(1)}
+                    </span>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} size={14} color="#f59e0b" fill={s <= Math.round(reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length) ? "#f59e0b" : "transparent"} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: 12, color: "#92400e", fontWeight: 600 }}>/ 5.0</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Form viết đánh giá hoặc Banner quyền hạn */}
+              {user ? (
+                eligibility.eligible ? (
+                  !eligibility.existingReview || editingReviewId ? (
+                    <form onSubmit={(e) => { e.preventDefault(); editingReviewId ? handleUpdateReview(editingReviewId) : handleCreateReview(e); }} style={{ background: "#f8fafc", padding: 20, borderRadius: 12, border: "1px solid #e2e8f0", marginBottom: 24 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+                        <span style={{ fontWeight: 700, fontSize: 14 }}>
+                          {editingReviewId ? "Chỉnh sửa đánh giá của bạn:" : "Chọn số sao đánh giá phòng trọ này:"}
+                        </span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => editingReviewId ? setEditRating(s) : setRating(s)}
+                              onMouseEnter={() => editingReviewId ? setEditHoverRating(s) : setHoverRating(s)}
+                              onMouseLeave={() => editingReviewId ? setEditHoverRating(0) : setHoverRating(0)}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+                            >
+                              <Star
+                                size={26}
+                                color="#f59e0b"
+                                fill={s <= (editingReviewId ? (editHoverRating || editRating) : (hoverRating || rating)) ? "#f59e0b" : "none"}
+                              />
+                            </button>
+                          ))}
+                          <span style={{ marginLeft: 8, fontWeight: 800, color: "#d97706", fontSize: 14 }}>
+                            {editingReviewId 
+                              ? (editRating === 5 ? "⭐⭐⭐⭐⭐ Tuyệt vời" : `${editRating} Sao`) 
+                              : (rating === 5 ? "⭐⭐⭐⭐⭐ Tuyệt vời" : `${rating} Sao`)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <textarea
+                        rows={3}
+                        value={editingReviewId ? editComment : comment}
+                        onChange={(e) => editingReviewId ? setEditComment(e.target.value) : setComment(e.target.value)}
+                        placeholder="Nhập cảm nhận của bạn về phòng trọ (an ninh, độ sạch sẽ, thái độ chủ trọ, điện nước, internet...)"
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #cbd5e1", fontSize: 14, outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                      />
+
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+                        {editingReviewId && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingReviewId(null)}
+                            className="btn btn-outline"
+                            style={{ padding: "8px 16px", fontSize: 13 }}
+                          >
+                            Hủy bỏ
+                          </button>
+                        )}
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={submittingReview}
+                          style={{ padding: "8px 20px", fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}
+                        >
+                          <Star size={15} />
+                          {editingReviewId ? "Lưu thay đổi đánh giá" : "Đăng đánh giá 5 sao"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null
+                ) : (
+                  <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "14px 18px", borderRadius: 12, marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ fontSize: 13.5, color: "#166534" }}>
+                      <strong>Chính sách đánh giá minh bạch:</strong> Chỉ những người thuê đã được chủ trọ duyệt hợp đồng vào ở tại phòng này mới có thể viết đánh giá & chấm sao. Bạn có thể gửi <strong>"Yêu cầu thuê"</strong> hoặc liên hệ chủ trọ để được xét duyệt!
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div style={{ background: "#f8fafc", border: "1px solid var(--border)", padding: "14px 18px", borderRadius: 12, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 13.5, color: "var(--text-muted)" }}>
+                    Đăng nhập bằng tài khoản người thuê để gửi đánh giá phòng.
+                  </span>
+                  <Link to="/login" className="btn btn-outline" style={{ fontSize: 13, padding: "6px 14px" }}>
+                    Đăng nhập ngay
+                  </Link>
+                </div>
+              )}
+
+              {/* Danh sách các review */}
+              {loadingReviews ? (
+                <div style={{ textAlign: "center", padding: "30px 0", color: "var(--text-muted)" }}>
+                  Đang tải đánh giá...
+                </div>
+              ) : reviews.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "32px 16px", background: "#f8fafc", borderRadius: 12, border: "1px dashed var(--border)" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>⭐</div>
+                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Chưa có bài đánh giá nào</h4>
+                  <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "var(--text-muted)" }}>
+                    Người thuê phòng đầu tiên được chủ trọ duyệt vào ở sẽ có thể để lại đánh giá tại đây.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {reviews.map((r) => {
+                    const isMyReview = user && (r.reviewerId === user.id || user.role === "ADMIN");
+                    return (
+                      <div
+                        key={r.id}
+                        style={{
+                          border: isMyReview ? "1.5px solid #60a5fa" : "1px solid var(--border)",
+                          background: isMyReview ? "#f0f9ff" : "#ffffff",
+                          borderRadius: 12,
+                          padding: "16px 20px",
+                          position: "relative",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div className="avatar" style={{ width: 36, height: 36, fontSize: 13, background: isMyReview ? "#2563eb" : "#64748b", color: "#fff", fontWeight: 700 }}>
+                              {(r.reviewerName || "N")[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <strong style={{ fontSize: 14 }}>{r.reviewerName || "Người thuê trọ"}</strong>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#dcfce7", color: "#15803d", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 9999 }}>
+                                  <CheckCircle2 size={11} /> Cư dân đã xác thực
+                                </span>
+                                {isMyReview && (
+                                  <span style={{ background: "#dbeafe", color: "#1e40af", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 9999 }}>
+                                    Đánh giá của bạn
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                                {timeAgo(r.createdAt)} {r.updatedAt && "(Đã chỉnh sửa)"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            {/* Stars */}
+                            <div style={{ display: "flex", gap: 2 }}>
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  size={16}
+                                  color="#f59e0b"
+                                  fill={s <= (r.rating || 5) ? "#f59e0b" : "transparent"}
+                                />
+                              ))}
+                            </div>
+
+                            {/* Actions nếu là chủ bài đánh giá */}
+                            {isMyReview && (
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingReviewId(r.id);
+                                    setEditRating(r.rating || 5);
+                                    setEditComment(r.comment || "");
+                                  }}
+                                  title="Chỉnh sửa đánh giá"
+                                  style={{ background: "#e0f2fe", border: "none", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "#0284c7", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}
+                                >
+                                  <Edit3 size={13} /> Sửa
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteReview(r.id)}
+                                  title="Xóa đánh giá"
+                                  style={{ background: "#fee2e2", border: "none", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "#b91c1c", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}
+                                >
+                                  <Trash2 size={13} /> Xóa
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Review Comment */}
+                        <p style={{ margin: "10px 0 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}>
+                          {r.comment || "Người thuê không để lại bình luận chi tiết."}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

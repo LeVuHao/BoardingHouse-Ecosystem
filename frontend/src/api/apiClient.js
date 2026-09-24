@@ -95,3 +95,11 @@ export const forumApi = {
   updateRoommateStatus: (postId, data) => api.put(`/rental/forum/${postId}/roommate-status`, data),
   updateRentalStatus: (postId, data) => api.put(`/rental/forum/${postId}/rental-status`, data),
 };
+
+export const reviewApi = {
+  getReviewsByPost: (postId) => api.get(`/rental/forum/reviews/post/${postId}`),
+  checkEligibility: (postId) => api.get(`/rental/forum/reviews/post/${postId}/eligibility`),
+  createReview: (data) => api.post("/rental/forum/reviews", data),
+  updateReview: (id, data) => api.put(`/rental/forum/reviews/${id}`, data),
+  deleteReview: (id) => api.delete(`/rental/forum/reviews/${id}`),
+};
