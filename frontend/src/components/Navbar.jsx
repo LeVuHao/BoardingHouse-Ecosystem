@@ -105,8 +105,8 @@ const Navbar = () => {
 
           {user?.role === "USER" && (
             <>
-              <Link to="/my-contracts" className="site-nav-link">
-                Hợp đồng
+              <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" ? "active" : ""}`}>
+                Trọ của tôi
               </Link>
               <Link to="/my-bills" className="site-nav-link">
                 Hóa đơn

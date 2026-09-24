@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -25,6 +26,23 @@ public class ContractResponse {
     private BigDecimal depositAmount;
     private String status;
     private LocalDateTime createdAt;
+
+    // Thông tin chi tiết trọ để phô diễn giao diện "Trọ của tôi"
+    private String roomNumber;
+    private String propertyTitle;
+    private String address;
+    private String city;
+    private String district;
+    private String ward;
+    private BigDecimal roomArea;
+    private Integer capacity;
+    private Integer currentOccupants;
+    private List<String> images;
+    private String landlordName;
+    private String landlordPhone;
+    private String utilities;
+    private Long postId;
+    private List<String> roommates;
 
     public static ContractResponse fromEntity(Contract c) {
         if (c == null) return null;
