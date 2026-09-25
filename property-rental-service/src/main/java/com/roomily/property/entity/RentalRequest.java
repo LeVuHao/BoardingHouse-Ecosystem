@@ -41,6 +41,10 @@ public class RentalRequest {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "duration_months")
+    @Builder.Default
+    private Integer durationMonths = 12;
+
     @Column(nullable = false, length = 20)
     @Builder.Default
     private String status = "PENDING"; // PENDING | APPROVED | REJECTED | CANCELLED

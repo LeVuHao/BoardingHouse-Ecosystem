@@ -49,8 +49,9 @@ public class RentalController {
 
     @GetMapping("/requests/room/{roomId}")
     public ResponseEntity<ApiResponse<List<RentalRequestResponse>>> getRequestsByRoom(
-            @PathVariable Long roomId) {
-        List<RentalRequestResponse> list = rentalRequestService.getRequestsByRoom(roomId);
+            @PathVariable Long roomId,
+            @RequestHeader("X-User-Id") Long landlordId) {
+        List<RentalRequestResponse> list = rentalRequestService.getRequestsByRoom(roomId, landlordId);
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 

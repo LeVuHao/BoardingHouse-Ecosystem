@@ -1,14 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { rentalApi } from '../api/apiClient';
+import { authApi, rentalApi } from '../api/apiClient';
 import toast from 'react-hot-toast';
-import { Check, X, Loader, Clock, User, Home, MessageSquare, Phone, RotateCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Check, X, Loader, Clock, User, Home, MessageSquare, Phone, RotateCw, CheckCircle2, XCircle, CalendarRange } from 'lucide-react';
 
 const LandlordRequests = () => {
   const [requests, setRequests] = useState([]);
+  const [userMap, setUserMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState(null);
   const [activeTab, setActiveTab] = useState('PENDING'); // PENDING | APPROVED | REJECTED | ALL
+
+  const fetchUserInfo = async (userIds) => {
+    const uniqueIds = [...new Set(userIds.filter(Boolean))];
+    const info = {};
+    await Promise.all(
+      uniqueIds.map(async (id) => {
+        try {
+          const res = await authApi.getUserInfo(id);
+          const u = res.data?.data || res.data;
+          if (u) info[id] = u;
+        } catch (err) {
+          console.warn(`Không lấy được thông tin user #${id}`, err);
+        }
+      })
+    );
+    setUserMap(info);
+  };
 
   const fetchRequests = useCallback(async (tab = activeTab, showLoading = true) => {
     try {
@@ -18,7 +36,9 @@ const LandlordRequests = () => {
       const params = tab === 'ALL' ? {} : { status: tab };
       const res = await rentalApi.getLandlordRequests(params);
       const data = res.data?.content || res.data?.data?.content || res.data?.data || res.data || [];
-      setRequests(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setRequests(list);
+      fetchUserInfo(list.map((r) => r.userId));
     } catch (err) {
       console.error(err);
       if (showLoading) toast.error('Không thể tải danh sách yêu cầu thuê');
@@ -186,7 +206,12 @@ const LandlordRequests = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-          {requests.map((req) => (
+          {requests.map((req) => {
+            const requester = userMap[req.userId];
+            const avatarText = requester?.fullName
+              ? requester.fullName.trim().charAt(0).toUpperCase()
+              : `#${String(req.userId).slice(-1)}`;
+            return (
             <div
               key={req.id}
               style={{
@@ -228,14 +253,14 @@ const LandlordRequests = () => {
                     boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)',
                   }}
                 >
-                  {req.senderName ? req.senderName.trim().charAt(0).toUpperCase() : `#${String(req.userId).slice(-1)}`}
+{avatarText}
                 </div>
 
                 {/* Details */}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
                     <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>
-                      {req.senderName || `Khách thuê #${req.userId}`}
+                      {requester?.fullName || req.senderName || `Khách thuê #${req.userId}`}
                     </h3>
                     {renderStatusBadge(req.status)}
                   </div>
@@ -243,7 +268,7 @@ const LandlordRequests = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem 1.5rem', marginBottom: '0.8rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                       <User size={16} />
-                      <span>Mã khách: <strong style={{ color: 'var(--text)' }}>#{req.userId}</strong></span>
+                      <span>{requester?.phoneNumber ? `SĐT: ${requester.phoneNumber}` : `Mã khách: #${req.userId}`}</span>
                     </div>
 
                     {req.senderPhone && (
@@ -261,6 +286,10 @@ const LandlordRequests = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                       <Clock size={16} />
                       <span>Gửi lúc: <strong style={{ color: 'var(--text)' }}>{formatDate(req.createdAt)}</strong></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                      <CalendarRange size={16} />
+                      <span>Thời hạn thuê: <strong style={{ color: 'var(--text)' }}>{req.durationMonths || 12} tháng</strong></span>
                     </div>
                   </div>
 
@@ -310,7 +339,8 @@ const LandlordRequests = () => {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -24,6 +24,7 @@ public class RentalRequestResponse {
     private String senderName;
     private String senderPhone;
     private String note;
+    private Integer durationMonths;
     private String status;
     private LocalDateTime createdAt;
 
@@ -38,6 +39,7 @@ public class RentalRequestResponse {
                 .senderName(r.getSenderName())
                 .senderPhone(r.getSenderPhone())
                 .note(r.getNote())
+                .durationMonths(r.getDurationMonths())
                 .status(r.getStatus())
                 .createdAt(r.getCreatedAt())
                 .build();

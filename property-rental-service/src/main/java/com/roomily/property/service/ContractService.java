@@ -28,7 +28,7 @@ public class ContractService {
      * [HUY] User xem hợp đồng / trọ của mình
      */
     public List<ContractResponse> getMyContracts(Long userId) {
-        return contractRepository.findByUserId(userId).stream()
+        return contractRepository.findByTenantId(userId).stream()
                 .map(this::enrichContractResponse)
                 .collect(Collectors.toList());
     }

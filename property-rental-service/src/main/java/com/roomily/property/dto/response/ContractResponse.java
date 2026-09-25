@@ -18,7 +18,7 @@ import java.util.List;
 public class ContractResponse {
     private Long id;
     private Long roomId;
-    private Long userId;
+    private Long tenantId;
     private Long landlordId;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -49,12 +49,12 @@ public class ContractResponse {
         return ContractResponse.builder()
                 .id(c.getId())
                 .roomId(c.getRoomId())
-                .userId(c.getUserId())
+                .tenantId(c.getTenantId())
                 .landlordId(c.getLandlordId())
                 .startDate(c.getStartDate())
                 .endDate(c.getEndDate())
                 .rentalPrice(c.getRentalPrice())
-                .depositAmount(c.getDepositAmount())
+                .depositAmount(c.getDeposit())
                 .status(c.getStatus())
                 .createdAt(c.getCreatedAt())
                 .build();

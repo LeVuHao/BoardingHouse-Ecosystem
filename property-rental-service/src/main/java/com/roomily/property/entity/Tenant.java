@@ -29,6 +29,9 @@ public class Tenant {
     @Builder.Default
     private Boolean isStaying = true;
 
+    @Transient
+    private String fullName;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

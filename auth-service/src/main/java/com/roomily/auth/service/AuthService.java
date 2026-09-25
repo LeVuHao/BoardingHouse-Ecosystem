@@ -245,6 +245,16 @@ public class AuthService {
         return UserResponse.fromEntity(updated);
     }
 
+    public UserResponse getUserInfo(Long requesterId, Long targetId, String requesterRole) {
+        boolean privileged = "LANDLORD".equalsIgnoreCase(requesterRole) || "ADMIN".equalsIgnoreCase(requesterRole);
+        if (!privileged && !targetId.equals(requesterId)) {
+            throw new BadRequestException("Bạn không có quyền xem thông tin người dùng khác");
+        }
+        User user = userRepository.findById(targetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+        return UserResponse.fromEntity(user);
+    }
+
     public Map<String, String> getUserStatus(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));

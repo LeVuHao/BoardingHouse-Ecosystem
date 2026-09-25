@@ -9,8 +9,16 @@ import java.util.Optional;
 
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, Long> {
-    List<Contract> findByUserId(Long userId);
+    List<Contract> findByTenantId(Long tenantId);
     List<Contract> findByLandlordId(Long landlordId);
     List<Contract> findByRoomId(Long roomId);
-    Optional<Contract> findByRoomIdAndUserIdAndStatus(Long roomId, Long userId, String status);
+    Optional<Contract> findByRoomIdAndTenantIdAndStatus(Long roomId, Long tenantId, String status);
+
+    default List<Contract> findByUserId(Long userId) {
+        return findByTenantId(userId);
+    }
+
+    default Optional<Contract> findByRoomIdAndUserIdAndStatus(Long roomId, Long userId, String status) {
+        return findByRoomIdAndTenantIdAndStatus(roomId, userId, status);
+    }
 }

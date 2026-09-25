@@ -77,6 +77,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin thành công", res));
     }
 
+    @GetMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserInfo(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long requesterId,
+            @RequestHeader("X-User-Role") String requesterRole) {
+        UserResponse res = authService.getUserInfo(requesterId, id, requesterRole);
+        return ResponseEntity.ok(ApiResponse.success(res));
+    }
+
     @GetMapping("/landlord/status/{userId}")
     public ResponseEntity<ApiResponse<Map<String, String>>> getLandlordStatus(@PathVariable Long userId) {
         Map<String, String> res = authService.getUserStatus(userId);

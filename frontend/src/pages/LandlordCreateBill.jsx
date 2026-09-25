@@ -61,7 +61,7 @@ const LandlordCreateBill = () => {
       ...form,
       contractId,
       roomId: c ? String(c.roomId) : '',
-      tenantId: c ? String(c.userId) : '',
+      tenantId: c ? String(c.tenantId) : '',
       roomAmount: c ? String(c.rentalPrice) : form.roomAmount,
     });
   };
@@ -221,7 +221,7 @@ const LandlordCreateBill = () => {
                 <Home size={15} /> Phòng #{selectedContract.roomId}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-dark)' }}>
-                <User size={15} /> Người thuê #{selectedContract.userId}
+                <User size={15} /> Người thuê #{selectedContract.tenantId}
               </div>
             </div>
           )}

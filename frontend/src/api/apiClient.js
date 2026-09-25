@@ -9,6 +9,7 @@ export const authApi = {
   resetPassword: (data) => api.post("/auth/reset-password", data),
   getProfile: () => api.get("/auth/profile"),
   updateProfile: (data) => api.put("/auth/profile", data),
+  getUserInfo: (id) => api.get(`/auth/users/${id}`),
   getLandlordStatus: (userId) => api.get(`/auth/landlord/status/${userId}`),
 };
 

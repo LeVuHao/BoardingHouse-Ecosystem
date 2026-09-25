@@ -25,10 +25,7 @@ public class Contract {
     @Column(name = "room_id", nullable = false)
     private Long roomId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "tenant_id")
+    @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
 
     @Column(name = "landlord_id", nullable = false)
@@ -37,17 +34,20 @@ public class Contract {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
     @Column(name = "rental_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal rentalPrice;
 
-    @Column(name = "deposit", precision = 12, scale = 2)
+    @Column(name = "deposit", nullable = false, precision = 12, scale = 2)
     private BigDecimal deposit;
 
     @Column(name = "deposit_amount", precision = 12, scale = 2)
     private BigDecimal depositAmount;
+
+    @Column(name = "contract_url", length = 500)
+    private String contractUrl;
 
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -60,4 +60,12 @@ public class Contract {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public Long getUserId() {
+        return this.tenantId;
+    }
+
+    public void setUserId(Long userId) {
+        this.tenantId = userId;
+    }
 }

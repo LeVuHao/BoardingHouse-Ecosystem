@@ -76,6 +76,10 @@ public class RentalRequestService {
             throw new BadRequestException("Bạn đã là cư dân trong phòng này rồi");
         }
 
+        if (rentalRequestRepository.existsByUserIdAndRoomIdAndStatus(userId, room.getId(), "PENDING")) {
+            throw new BadRequestException("Bạn đã có yêu cầu thuê phòng này đang chờ duyệt");
+        }
+
         Long landlordId = room.getProperty() != null ? room.getProperty().getLandlordId() : (post != null ? post.getLandlordId() : null);
 
         RentalRequest request = RentalRequest.builder()
@@ -86,6 +90,7 @@ public class RentalRequestService {
                 .senderName(req.getSenderName())
                 .senderPhone(req.getSenderPhone())
                 .note(req.getNote())
+                .durationMonths(req.getDurationMonths() == null ? 12 : req.getDurationMonths())
                 .status("PENDING")
                 .build();
 
@@ -131,12 +136,19 @@ public class RentalRequestService {
                 .collect(Collectors.toList());
     }
 
-    public List<RentalRequestResponse> getRequestsByRoom(Long roomId) {
+    public List<RentalRequestResponse> getRequestsByRoom(Long roomId, Long landlordUserId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng"));
+
+        if (!room.getProperty().getLandlordId().equals(landlordUserId)) {
+            throw new BadRequestException("Bạn không có quyền xem yêu cầu của phòng này");
+        }
+
         return rentalRequestRepository.findByRoomId(roomId).stream()
                 .map(r -> {
                     RentalRequestResponse resp = RentalRequestResponse.fromEntity(r);
-                    Room room = roomRepository.findById(r.getRoomId()).orElse(null);
-                    enrichResponse(resp, room, null);
+                    Room targetRoom = roomRepository.findById(r.getRoomId()).orElse(null);
+                    enrichResponse(resp, targetRoom, null);
                     return resp;
                 })
                 .collect(Collectors.toList());
@@ -199,22 +211,28 @@ public class RentalRequestService {
         }
         roomRepository.save(room);
 
-        Tenant tenant = tenantRepository.findByUserIdAndRoomIdAndIsStayingTrue(req.getUserId(), room.getId())
-                .orElse(Tenant.builder()
+        LocalDate startDate = LocalDate.now();
+        int durationMonths = req.getDurationMonths() == null ? 12 : req.getDurationMonths();
+
+        Tenant tenant = tenantRepository.findByUserIdAndIsStayingTrue(req.getUserId())
+                .stream()
+                .findFirst()
+                .map(existingTenant -> {
+                    existingTenant.setRoomId(room.getId());
+                    return tenantRepository.save(existingTenant);
+                })
+                .orElseGet(() -> tenantRepository.save(Tenant.builder()
                         .userId(req.getUserId())
                         .roomId(room.getId())
                         .isStaying(true)
-                        .build());
-        tenant.setIsStaying(true);
-        tenantRepository.save(tenant);
+                        .build()));
 
         Contract contract = Contract.builder()
                 .roomId(room.getId())
-                .userId(req.getUserId())
                 .tenantId(req.getUserId())
                 .landlordId(landlordUserId)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusMonths(12))
+                .startDate(startDate)
+                .endDate(startDate.plusMonths(durationMonths))
                 .rentalPrice(room.getPrice())
                 .deposit(room.getPrice())
                 .depositAmount(room.getPrice())

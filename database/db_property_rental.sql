@@ -85,6 +85,7 @@ CREATE TABLE rental_requests (
     user_id     BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id',
     room_id     BIGINT          NOT NULL,
     note        TEXT            NULL COMMENT 'Ghi chú của người thuê',
+    duration_months INT         NULL COMMENT 'Số tháng thuê (mặc định 12)',
     status      VARCHAR(20)     NOT NULL DEFAULT 'PENDING'
                 COMMENT 'PENDING | APPROVED | REJECTED | CANCELLED',
     created_at  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
