@@ -12,10 +12,12 @@
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
     "axios": "^1.20.0",
+    "framer-motion": "^13.4.6",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.39.0",
     "react": "^19.2.8",
+    "react-countup": "^6.5.3",
     "react-dom": "^19.2.8",
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^5.0.0",

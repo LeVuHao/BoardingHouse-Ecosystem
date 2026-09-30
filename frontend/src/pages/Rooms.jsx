@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Clock, Plus, ChevronLeft, ChevronRight, 
   MessageCircle, Eye, Sparkles, Users, Zap, CheckCircle2, 
@@ -615,9 +616,10 @@ const Rooms = () => {
 
           {/* Danh sách phòng */}
           {loading ? (
-            <div className="empty-state" style={{ padding: "60px 0" }}>
-              <div className="spinner" style={{ margin: "0 auto 16px" }} />
-              <b>Đang tải danh sách phòng trọ...</b>
+            <div className="forum-posts-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="forum-card skeleton-shimmer" style={{ minHeight: '280px', borderRadius: '16px' }}></div>
+              ))}
             </div>
           ) : currentItems.length === 0 ? (
             <div className="empty-state" style={{ background: "white", borderRadius: 16, padding: "60px 20px", border: "1px solid var(--border)" }}>
@@ -626,7 +628,7 @@ const Rooms = () => {
               <p style={{ color: "var(--text-muted)", margin: "8px 0 16px 0", fontSize: 14 }}>
                 Thử nới rộng khoảng giá, đổi khu vực tìm kiếm hoặc bấm xóa bộ lọc.
               </p>
-              <button onClick={clearAllFilters} className="btn btn-outline">
+              <button onClick={clearAllFilters} className="btn btn-outline btn-ripple">
                 <RotateCcw size={14} style={{ marginRight: 6 }} /> Xóa bộ lọc tìm kiếm
               </button>
             </div>
@@ -635,9 +637,18 @@ const Rooms = () => {
               <MapView rooms={filteredPosts} height="700px" />
             </div>
           ) : (
-            <div className="forum-posts-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {currentItems.map((post) => (
-                <div key={post.id} className="forum-card">
+            <motion.div layout className="forum-posts-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <AnimatePresence>
+                {currentItems.map((post) => (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="forum-card hover-card-effect"
+                  >
                   {/* Photo Carousel */}
                   <PostImageCarousel images={post.images || post.imageUrls} />
 
@@ -788,9 +799,10 @@ const Rooms = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           )}
 
           {/* Phân trang (Chỉ hiện ở LIST view) */}

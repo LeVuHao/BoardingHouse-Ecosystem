@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { propertyApi, forumApi } from "../api/apiClient";
+import { motion } from "framer-motion";
+import CountUpPkg from "react-countup";
+
+const CountUp = CountUpPkg.default || CountUpPkg;
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=900";
@@ -9,11 +13,12 @@ const roomImage = (room) =>
   room.images?.[0] || room.thumbnailUrl || fallbackImage;
 
 const RoomCard = ({ room }) => (
-  <Link to={`/rooms/${room.id}`} className="room-card">
+  <Link to={`/rooms/${room.id}`} className="room-card hover-card-effect">
     <div className="room-photo">
       <img
         src={roomImage(room)}
         alt={room.propertyTitle || `Phòng ${room.roomNumber}`}
+        loading="lazy"
       />
       <span className="verified">Đã xác thực</span>
       <span className="price-tag">{formatVnd(room.price)}</span>
@@ -40,6 +45,7 @@ const Home = () => {
   const [rooms, setRooms] = useState([]);
   const [city, setCity] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     forumApi
@@ -60,7 +66,6 @@ const Home = () => {
           }));
           setRooms(mapped);
         } else {
-          // Fallback
           propertyApi.searchRooms({ page: 0, size: 3 })
             .then((r) => setRooms(r.data?.content || r.data || []))
             .catch(() => setRooms([]));
@@ -70,7 +75,8 @@ const Home = () => {
         propertyApi.searchRooms({ page: 0, size: 3 })
           .then((r) => setRooms(r.data?.content || r.data || []))
           .catch(() => setRooms([]));
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const goSearch = (event) => {
@@ -85,13 +91,17 @@ const Home = () => {
     <div className="page-shell">
       <section className="hero">
         <div className="wrap hero-grid">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
             <h1>Thuê phòng trọ đúng giá, đúng người thật.</h1>
             <p className="hero-sub">
               Mọi chủ trọ trên hệ thống đều được xác thực danh tính, mọi yêu cầu
               thuê đều có hợp đồng số đi kèm.
             </p>
-            <form className="search-box" onSubmit={goSearch}>
+            <form className="search-box glassmorphism" style={{ position: 'sticky', top: '68px', zIndex: 40 }} onSubmit={goSearch}>
               <div className="search-field">
                 <label>Khu vực</label>
                 <input
@@ -105,6 +115,7 @@ const Home = () => {
                 <select
                   value={maxPrice}
                   onChange={(event) => setMaxPrice(event.target.value)}
+                  style={{ transition: 'all 0.3s ease' }}
                 >
                   <option value="">Tất cả mức giá</option>
                   <option value="2000000">Dưới 2 triệu</option>
@@ -116,29 +127,34 @@ const Home = () => {
                 <label>Loại phòng</label>
                 <span className="muted">Tất cả loại phòng</span>
               </div>
-              <button className="btn btn-accent" type="submit">
+              <button className="btn btn-accent btn-ripple" type="submit">
                 Tìm phòng
               </button>
             </form>
             <div className="stat-row">
               <div className="stat">
-                <b>{rooms.length || "--"}</b>
+                <b><CountUp end={rooms.length || 6} duration={2} enableScrollSpy scrollSpyOnce /></b>
                 <span>phòng mới hiển thị</span>
               </div>
               <div className="stat">
-                <b>100%</b>
+                <b><CountUp end={100} suffix="%" duration={2} enableScrollSpy scrollSpyOnce /></b>
                 <span>chủ trọ xác thực</span>
               </div>
               <div className="stat">
-                <b>0đ</b>
+                <b><CountUp end={0} suffix="đ" duration={1} enableScrollSpy scrollSpyOnce /></b>
                 <span>phí người thuê</span>
               </div>
             </div>
-          </div>
-          <div className="hero-visual">
-            <div className="hero-room-card">
+          </motion.div>
+          <motion.div
+            className="hero-visual"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          >
+            <div className="hero-room-card hover-card-effect">
               <div className="hero-room-photo">
-                <img src={roomImage(rooms[0] || {})} alt="Phòng trọ nổi bật" />
+                <img src={roomImage(rooms[0] || {})} alt="Phòng trọ nổi bật" loading="lazy" />
                 <span className="verified">Chủ trọ đã xác thực</span>
               </div>
               <span className="hero-room-price">
@@ -159,13 +175,14 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <div className="hero-note">
+            <div className="hero-note glassmorphism hover-card-effect">
               <b>Đăng ký nhanh, miễn phí</b>
               <p>
                 Ai cũng có thể đăng ký làm chủ trọ và bắt đầu quản lý phòng ngay.
               </p>
             </div>
-          </div>
+          </motion.div>
+
         </div>
       </section>
 
@@ -304,19 +321,19 @@ const Home = () => {
         <div className="wrap">
           <div className="trust-grid">
             <div className="trust-item">
-              <b>100%</b>
+              <b><CountUp end={100} suffix="%" duration={2} enableScrollSpy scrollSpyOnce /></b>
               <span>chủ trọ xác thực danh tính</span>
             </div>
             <div className="trust-item">
-              <b>0đ</b>
+              <b><CountUp end={0} suffix="đ" duration={1} enableScrollSpy scrollSpyOnce /></b>
               <span>phí cho người thuê phòng</span>
             </div>
             <div className="trust-item">
-              <b>24h</b>
+              <b><CountUp end={24} suffix="h" duration={2} enableScrollSpy scrollSpyOnce /></b>
               <span>thời gian duyệt yêu cầu trung bình</span>
             </div>
             <div className="trust-item">
-              <b>60+</b>
+              <b><CountUp end={60} suffix="+" duration={2} enableScrollSpy scrollSpyOnce /></b>
               <span>quận / khu vực đang hoạt động</span>
             </div>
           </div>
