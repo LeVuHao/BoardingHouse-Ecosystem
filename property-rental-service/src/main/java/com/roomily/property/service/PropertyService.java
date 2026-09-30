@@ -41,6 +41,8 @@ public class PropertyService {
                 .district(req.getDistrict())
                 .ward(req.getWard())
                 .utilities(req.getUtilities())
+                .latitude(req.getLatitude())
+                .longitude(req.getLongitude())
                 .build();
 
         Property saved = propertyRepository.save(property);
@@ -76,6 +78,8 @@ public class PropertyService {
         if (req.getDistrict() != null && !req.getDistrict().isBlank()) p.setDistrict(req.getDistrict());
         if (req.getWard() != null && !req.getWard().isBlank()) p.setWard(req.getWard());
         if (req.getUtilities() != null) p.setUtilities(req.getUtilities());
+        if (req.getLatitude() != null) p.setLatitude(req.getLatitude());
+        if (req.getLongitude() != null) p.setLongitude(req.getLongitude());
         return PropertyResponse.fromEntity(propertyRepository.save(p));
     }
 

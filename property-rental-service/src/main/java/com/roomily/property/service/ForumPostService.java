@@ -52,6 +52,8 @@ public class ForumPostService {
                 .district(post.getDistrict() != null ? post.getDistrict() : "Quận 1")
                 .ward(post.getWard() != null ? post.getWard() : "")
                 .utilities(post.getUtilities())
+                .latitude(post.getLatitude())
+                .longitude(post.getLongitude())
                 .build();
         Property savedProp = propertyRepository.save(property);
 
@@ -85,6 +87,8 @@ public class ForumPostService {
                 .district(req.getDistrict())
                 .ward(req.getWard())
                 .utilities(req.getUtilities())
+                .latitude(req.getLatitude())
+                .longitude(req.getLongitude())
                 .build();
         Property savedProp = propertyRepository.save(property);
 
@@ -113,6 +117,8 @@ public class ForumPostService {
                 .roomArea(req.getRoomArea())
                 .roomType(req.getRoomType())
                 .utilities(req.getUtilities())
+                .latitude(req.getLatitude())
+                .longitude(req.getLongitude())
                 .roomId(savedRoom.getId())
                 .status("ACTIVE")
                 .build();

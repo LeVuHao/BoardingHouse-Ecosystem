@@ -107,4 +107,19 @@ export const reviewApi = {
   createReview: (data) => api.post("/rental/forum/reviews", data),
   updateReview: (id, data) => api.put(`/rental/forum/reviews/${id}`, data),
   deleteReview: (id) => api.delete(`/rental/forum/reviews/${id}`),
+  replyToReview: (id, data) => api.put(`/rental/forum/reviews/${id}/reply`, data),
 };
+
+export const maintenanceApi = {
+  // Tenant
+  createTicket: (data) => api.post("/maintenance-tickets", data),
+  getMyTickets: () => api.get("/maintenance-tickets/my-tickets"),
+  getTicketDetail: (id) => api.get(`/maintenance-tickets/${id}`),
+  confirmResolved: (id) => api.put(`/maintenance-tickets/${id}/confirm`),
+  cancelTicket: (id) => api.put(`/maintenance-tickets/${id}/cancel`),
+  // Landlord
+  getLandlordTickets: (params) => api.get("/maintenance-tickets/landlord", { params }),
+  getLandlordStats: () => api.get("/maintenance-tickets/landlord/stats"),
+  updateTicketStatus: (id, data) => api.put(`/maintenance-tickets/${id}/status`, data),
+};
+

@@ -38,6 +38,8 @@ public class ForumPostResponse {
     private Boolean roommateNeeded;
     private Integer roommateCount;
     private String roommateNote;
+    private Double latitude;
+    private Double longitude;
     private String status;
     private List<String> images;
     private LocalDateTime createdAt;
@@ -71,6 +73,8 @@ public class ForumPostResponse {
                 .roommateNeeded(post.getRoommateNeeded())
                 .roommateCount(post.getRoommateCount())
                 .roommateNote(post.getRoommateNote())
+                .latitude(post.getLatitude())
+                .longitude(post.getLongitude())
                 .status(post.getStatus())
                 .images(imgUrls)
                 .createdAt(post.getCreatedAt())

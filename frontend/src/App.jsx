@@ -26,6 +26,8 @@ import CreateForumPost from "./pages/CreateForumPost";
 import ForumPostDetail from "./pages/ForumPostDetail";
 import ForumMessages from "./pages/ForumMessages";
 import Profile from "./pages/Profile";
+import MaintenanceTickets from "./pages/MaintenanceTickets";
+import LandlordTickets from "./pages/LandlordTickets";
 
 function App() {
   return (
@@ -70,6 +72,7 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute allowedRoles={["USER"]} />}>
                 <Route path="/my-bills" element={<MyBills />} />
+                <Route path="/maintenance" element={<MaintenanceTickets />} />
               </Route>
               <Route element={<ProtectedRoute allowedRoles={["LANDLORD"]} />}>
                 <Route path="/forum/create" element={<CreateForumPost />} />
@@ -84,6 +87,10 @@ function App() {
                 <Route
                   path="/landlord/create-bill"
                   element={<LandlordCreateBill />}
+                />
+                <Route
+                  path="/landlord/tickets"
+                  element={<LandlordTickets />}
                 />
               </Route>
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>

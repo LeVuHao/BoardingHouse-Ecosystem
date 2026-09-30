@@ -22,7 +22,12 @@ public class ReviewResponse {
     private Long postId;
     private Long roomId;
     private Integer rating;
+    private Integer securityRating;
+    private Integer cleanlinessRating;
+    private Integer priceRating;
+    private Integer landlordRating;
     private String comment;
+    private String landlordReply;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -37,7 +42,12 @@ public class ReviewResponse {
                 .postId(r.getPostId())
                 .roomId(r.getRoomId())
                 .rating(r.getRating())
+                .securityRating(r.getSecurityRating())
+                .cleanlinessRating(r.getCleanlinessRating())
+                .priceRating(r.getPriceRating())
+                .landlordRating(r.getLandlordRating())
                 .comment(r.getComment())
+                .landlordReply(r.getLandlordReply())
                 .createdAt(r.getCreatedAt())
                 .updatedAt(r.getUpdatedAt())
                 .build();

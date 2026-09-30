@@ -23,4 +23,6 @@ public class CreatePropertyRequest {
     @NotBlank(message = "Ward is required")
     private String ward;
     private String utilities;
+    private Double latitude;
+    private Double longitude;
 }

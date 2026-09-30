@@ -39,10 +39,25 @@ public class Review {
     private Long roomId;
 
     @Column(nullable = false)
-    private Integer rating; // 1 to 5 stars
+    private Integer rating; // Overall (Average) 1 to 5 stars
+
+    @Column(name = "security_rating")
+    private Integer securityRating;
+
+    @Column(name = "cleanliness_rating")
+    private Integer cleanlinessRating;
+
+    @Column(name = "price_rating")
+    private Integer priceRating;
+
+    @Column(name = "landlord_rating")
+    private Integer landlordRating;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    @Column(name = "landlord_reply", columnDefinition = "TEXT")
+    private String landlordReply;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

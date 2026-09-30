@@ -14,10 +14,21 @@ public class CreateReviewRequest {
 
     private String reviewerName;
 
-    @NotNull(message = "Số sao đánh giá không được để trống")
-    @Min(value = 1, message = "Đánh giá tối thiểu 1 sao")
-    @Max(value = 5, message = "Đánh giá tối đa 5 sao")
-    private Integer rating;
+    @NotNull(message = "Đánh giá an ninh không được để trống")
+    @Min(value = 1) @Max(value = 5)
+    private Integer securityRating;
+
+    @NotNull(message = "Đánh giá vệ sinh không được để trống")
+    @Min(value = 1) @Max(value = 5)
+    private Integer cleanlinessRating;
+
+    @NotNull(message = "Đánh giá giá cả không được để trống")
+    @Min(value = 1) @Max(value = 5)
+    private Integer priceRating;
+
+    @NotNull(message = "Đánh giá chủ trọ không được để trống")
+    @Min(value = 1) @Max(value = 5)
+    private Integer landlordRating;
 
     private String comment;
 }

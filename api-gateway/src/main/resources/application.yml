@@ -30,7 +30,7 @@ spring:
         - id: property-rental-service
           uri: lb://PROPERTY-RENTAL-SERVICE
           predicates:
-            - Path=/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**, /api/v1/contracts/**
+            - Path=/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**, /api/v1/contracts/**, /api/v1/maintenance-tickets/**
 
         - id: billing-payment-service
           uri: lb://BILLING-PAYMENT-SERVICE

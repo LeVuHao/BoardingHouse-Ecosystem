@@ -124,6 +124,8 @@ public class ReviewService {
             }
         }
 
+        int avgRating = (int) Math.round((req.getSecurityRating() + req.getCleanlinessRating() + req.getPriceRating() + req.getLandlordRating()) / 4.0);
+
         Review review = Review.builder()
                 .reviewerId(userId)
                 .reviewerName(req.getReviewerName() != null ? req.getReviewerName() : "Người thuê phòng")
@@ -131,7 +133,11 @@ public class ReviewService {
                 .postId(post.getId())
                 .roomId(post.getRoomId())
                 .contractId(contractId)
-                .rating(req.getRating())
+                .rating(avgRating)
+                .securityRating(req.getSecurityRating())
+                .cleanlinessRating(req.getCleanlinessRating())
+                .priceRating(req.getPriceRating())
+                .landlordRating(req.getLandlordRating())
                 .comment(req.getComment())
                 .build();
 
@@ -152,7 +158,13 @@ public class ReviewService {
             throw new BadRequestException("Bạn không có quyền chỉnh sửa đánh giá này!");
         }
 
-        review.setRating(req.getRating());
+        int avgRating = (int) Math.round((req.getSecurityRating() + req.getCleanlinessRating() + req.getPriceRating() + req.getLandlordRating()) / 4.0);
+
+        review.setSecurityRating(req.getSecurityRating());
+        review.setCleanlinessRating(req.getCleanlinessRating());
+        review.setPriceRating(req.getPriceRating());
+        review.setLandlordRating(req.getLandlordRating());
+        review.setRating(avgRating);
         review.setComment(req.getComment());
         review.setUpdatedAt(LocalDateTime.now());
 
@@ -176,5 +188,29 @@ public class ReviewService {
 
         reviewRepository.delete(review);
         log.info("Đã xóa đánh giá #{} bởi người dùng #{} (role: {})", reviewId, userId, role);
+    }
+
+    /**
+     * Chủ trọ phản hồi đánh giá
+     */
+    @Transactional
+    public ReviewResponse replyToReview(Long reviewId, Long landlordId, String replyMessage) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đánh giá"));
+
+        if (!review.getRevieweeId().equals(landlordId)) {
+            throw new BadRequestException("Chỉ chủ trọ của bài đăng này mới có quyền phản hồi đánh giá!");
+        }
+
+        if (replyMessage == null || replyMessage.trim().isEmpty()) {
+            throw new BadRequestException("Nội dung phản hồi không được để trống!");
+        }
+
+        review.setLandlordReply(replyMessage.trim());
+        review.setUpdatedAt(LocalDateTime.now());
+
+        Review updated = reviewRepository.save(review);
+        log.info("Chủ trọ #{} đã phản hồi đánh giá #{}", landlordId, reviewId);
+        return ReviewResponse.fromEntity(updated);
     }
 }

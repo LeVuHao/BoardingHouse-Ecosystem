@@ -46,6 +46,12 @@ public class Property {
     @Column(length = 500)
     private String utilities;
 
+    @Column(precision = 10, scale = 7)
+    private Double latitude;
+
+    @Column(precision = 10, scale = 7)
+    private Double longitude;
+
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Room> rooms = new ArrayList<>();

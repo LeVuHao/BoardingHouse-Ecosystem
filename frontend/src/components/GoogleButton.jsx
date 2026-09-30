@@ -1,13 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { authApi } from "../api/apiClient";
-
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { GoogleLogin } from "@react-oauth/google";
 
 const GoogleButton = ({ defaultRole = "USER", onSuccess }) => {
-  const buttonRef = useRef(null);
-  const handleRef = useRef(null);
-
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,48 +30,6 @@ const GoogleButton = ({ defaultRole = "USER", onSuccess }) => {
       setLoading(false);
     }
   };
-  handleRef.current = handleGoogleToken;
-
-  useEffect(() => {
-    if (!CLIENT_ID) return;
-
-    const render = () => {
-      if (!window.google || !window.google.accounts) return;
-      window.google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: (response) => {
-          if (response && response.credential) handleRef.current(response.credential);
-        },
-      });
-      if (buttonRef.current) {
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: "continue_with",
-          shape: "pill",
-          width: "100%",
-          logo_alignment: "left",
-        });
-      }
-    };
-
-    if (document.getElementById("gsi-script")) {
-      setScriptLoaded(true);
-      render();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.id = "gsi-script";
-    script.onload = () => {
-      setScriptLoaded(true);
-      render();
-    };
-    document.body.appendChild(script);
-  }, []);
 
   const submitProfile = async (e) => {
     e.preventDefault();
@@ -97,26 +50,16 @@ const GoogleButton = ({ defaultRole = "USER", onSuccess }) => {
 
   return (
     <>
-      {CLIENT_ID ? (
-        <div
-          ref={buttonRef}
-          style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+        <GoogleLogin
+          onSuccess={(credentialResponse) => handleGoogleToken(credentialResponse.credential)}
+          onError={() => setError("Đăng nhập Google bị hủy hoặc thất bại")}
+          useOneTap
+          shape="pill"
+          size="large"
+          width="100%"
         />
-      ) : (
-        <div
-          style={{
-            marginTop: "1rem",
-            padding: "0.75rem",
-            borderRadius: "8px",
-            background: "#fff8e1",
-            color: "#8a6d00",
-            textAlign: "center",
-            fontSize: "0.85rem",
-          }}
-        >
-          Google login chưa được cấu hình (VITE_GOOGLE_CLIENT_ID)
-        </div>
-      )}
+      </div>
       {error && (
         <div style={{ color: "var(--danger)", marginTop: "0.75rem", textAlign: "center" }}>{error}</div>
       )}

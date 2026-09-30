@@ -22,6 +22,8 @@ public class PropertyResponse {
     private String district;
     private String ward;
     private String utilities;
+    private Double latitude;
+    private Double longitude;
     private Integer totalRooms;
     private LocalDateTime createdAt;
 
@@ -37,6 +39,8 @@ public class PropertyResponse {
                 .district(p.getDistrict())
                 .ward(p.getWard())
                 .utilities(p.getUtilities())
+                .latitude(p.getLatitude())
+                .longitude(p.getLongitude())
                 .totalRooms(p.getRooms() != null ? p.getRooms().size() : 0)
                 .createdAt(p.getCreatedAt())
                 .build();

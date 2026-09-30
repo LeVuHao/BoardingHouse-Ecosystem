@@ -17,4 +17,6 @@ public class UpdatePropertyRequest {
     private String district;
     private String ward;
     private String utilities;
+    private Double latitude;
+    private Double longitude;
 }

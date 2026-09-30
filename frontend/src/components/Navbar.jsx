@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   LogOut, MessageSquare, User, ChevronDown, Building2, 
-  FileText, CheckCircle2, Shield, Sparkles 
+  FileText, CheckCircle2, Shield, Sparkles, Wrench, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { forumApi } from "../api/apiClient";
+import { forumApi, maintenanceApi } from "../api/apiClient";
 import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
@@ -14,7 +14,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [ticketUrgentCount, setTicketUrgentCount] = useState(0);
   const dropdownRef = useRef(null);
 
   // Lấy số lượng tin nhắn chưa đọc
@@ -29,10 +29,25 @@ const Navbar = () => {
     }
   };
 
+  // Lấy số ticket khẩn cấp cho landlord
+  const fetchTicketStats = async () => {
+    if (!user || user.role !== "LANDLORD") return;
+    try {
+      const res = await maintenanceApi.getLandlordStats();
+      const data = res.data || res;
+      setTicketUrgentCount(data.activeCount || 0);
+    } catch {
+      // ignore
+    }
+  };
+
+  const [profileOpen, setProfileOpen] = useState(false);
+
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 15000); // Polling mỗi 15s
+      fetchTicketStats();
+      const interval = setInterval(() => { fetchUnreadCount(); fetchTicketStats(); }, 15000);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -94,6 +109,18 @@ const Navbar = () => {
               <Link to="/landlord/create-bill" className="site-nav-link">
                 Tạo hóa đơn
               </Link>
+              <Link to="/landlord/tickets" className="site-nav-link" style={{ position: "relative" }}>
+                Sự cố
+                {ticketUrgentCount > 0 && (
+                  <span style={{
+                    position: "absolute", top: -6, right: -12,
+                    background: "#ef4444", color: "#fff",
+                    fontSize: 10, fontWeight: 800, borderRadius: 20,
+                    padding: "1px 5px", minWidth: 16, textAlign: "center",
+                    animation: "pulse 2s ease-in-out infinite"
+                  }}>{ticketUrgentCount}</span>
+                )}
+              </Link>
             </>
           )}
 
@@ -110,6 +137,9 @@ const Navbar = () => {
               </Link>
               <Link to="/my-bills" className="site-nav-link">
                 Hóa đơn
+              </Link>
+              <Link to="/maintenance" className="site-nav-link">
+                Báo hỏng
               </Link>
             </>
           )}
@@ -210,6 +240,15 @@ const Navbar = () => {
                         <Link to="/landlord/properties" className="nav-menu-item">
                           <Building2 size={16} />
                           <span>Quản lý khu trọ</span>
+                        </Link>
+                        <Link to="/landlord/tickets" className="nav-menu-item">
+                          <Wrench size={16} />
+                          <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
+                          {ticketUrgentCount > 0 && (
+                            <span className="nav-menu-pill" style={{ background: "#fef2f2", color: "#ef4444" }}>
+                              {ticketUrgentCount} mới
+                            </span>
+                          )}
                         </Link>
                       </>
                     )}

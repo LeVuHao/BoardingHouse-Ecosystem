@@ -76,4 +76,17 @@ public class ReviewController {
         reviewService.deleteReview(id, userId, role);
         return ResponseEntity.ok(ApiResponse.success("Đã xóa đánh giá thành công!", null));
     }
+
+    /**
+     * LANDLORD: Phản hồi đánh giá
+     */
+    @PutMapping("/{id}/reply")
+    public ResponseEntity<ApiResponse<ReviewResponse>> replyToReview(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody java.util.Map<String, String> payload) {
+        String replyMessage = payload.get("replyMessage");
+        ReviewResponse res = reviewService.replyToReview(id, userId, replyMessage);
+        return ResponseEntity.ok(ApiResponse.success("Đã phản hồi đánh giá!", res));
+    }
 }

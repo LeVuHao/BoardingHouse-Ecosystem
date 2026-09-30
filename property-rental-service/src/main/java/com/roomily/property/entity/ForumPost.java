@@ -79,6 +79,12 @@ public class ForumPost {
     @Column(name = "roommate_note", length = 500)
     private String roommateNote;
 
+    @Column(precision = 10, scale = 7)
+    private Double latitude;
+
+    @Column(precision = 10, scale = 7)
+    private Double longitude;
+
     @Column(nullable = false, length = 20)
     @Builder.Default
     private String status = "ACTIVE"; // ACTIVE | CLOSED

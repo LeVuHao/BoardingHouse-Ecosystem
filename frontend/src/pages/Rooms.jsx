@@ -9,6 +9,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, rentalApi } from "../api/apiClient";
+import MapView from "../components/MapView";
 
 const PAGE_SIZE = 6;
 
@@ -101,6 +102,7 @@ const Rooms = () => {
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [page, setPage] = useState(0);
+  const [viewMode, setViewMode] = useState("LIST"); // LIST | MAP
 
   // Modal Gửi Yêu Cầu Thuê
   const [rentalModalPost, setRentalModalPost] = useState(null);
@@ -558,14 +560,41 @@ const Rooms = () => {
               </p>
             </div>
 
-            <div className="sort">
-              <span>Sắp xếp:</span>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="newest">Mới nhất</option>
-                <option value="price-asc">Giá thấp đến cao</option>
-                <option value="price-desc">Giá cao đến thấp</option>
-                <option value="area-desc">Diện tích lớn nhất</option>
-              </select>
+            <div className="sort" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{ display: "flex", background: "var(--surface)", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                <button
+                  onClick={() => setViewMode("LIST")}
+                  style={{
+                    padding: "6px 12px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
+                    background: viewMode === "LIST" ? "var(--ink)" : "transparent",
+                    color: viewMode === "LIST" ? "#fff" : "var(--text-muted)",
+                    display: "flex", alignItems: "center", gap: 4
+                  }}
+                >
+                  <FileText size={14} /> Danh sách
+                </button>
+                <button
+                  onClick={() => setViewMode("MAP")}
+                  style={{
+                    padding: "6px 12px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
+                    background: viewMode === "MAP" ? "var(--ink)" : "transparent",
+                    color: viewMode === "MAP" ? "#fff" : "var(--text-muted)",
+                    display: "flex", alignItems: "center", gap: 4
+                  }}
+                >
+                  <MapPin size={14} /> Bản đồ
+                </button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span>Sắp xếp:</span>
+                <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                  <option value="newest">Mới nhất</option>
+                  <option value="price-asc">Giá thấp đến cao</option>
+                  <option value="price-desc">Giá cao đến thấp</option>
+                  <option value="area-desc">Diện tích lớn nhất</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -600,6 +629,10 @@ const Rooms = () => {
               <button onClick={clearAllFilters} className="btn btn-outline">
                 <RotateCcw size={14} style={{ marginRight: 6 }} /> Xóa bộ lọc tìm kiếm
               </button>
+            </div>
+          ) : viewMode === "MAP" ? (
+            <div style={{ marginBottom: 20 }}>
+              <MapView rooms={filteredPosts} height="700px" />
             </div>
           ) : (
             <div className="forum-posts-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -760,8 +793,8 @@ const Rooms = () => {
             </div>
           )}
 
-          {/* Phân trang */}
-          {totalPages > 1 && (
+          {/* Phân trang (Chỉ hiện ở LIST view) */}
+          {totalPages > 1 && viewMode === "LIST" && (
             <div className="pagination" style={{ marginTop: 32 }}>
               <button
                 disabled={page === 0}

@@ -46,6 +46,10 @@ public class CreateForumPostRequest {
 
     private String landlordName;
 
+    private Double latitude;
+
+    private Double longitude;
+
     // Base64 data URLs
     private List<String> imageUrls;
 }
