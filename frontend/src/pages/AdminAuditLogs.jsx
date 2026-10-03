@@ -81,7 +81,26 @@ const ActionBadge = ({ action }) => {
 
 const AdminAuditLogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    // Mô phỏng gọi API từ backend (TODO: thay bằng adminApi.getAuditLogs() khi backend sẵn sàng)
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        // Giả lập delay mạng
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setLogs(mockAuditLogs);
+      } catch (err) {
+        console.error("Lỗi khi tải Audit Logs", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleString('vi-VN', { 
@@ -89,6 +108,11 @@ const AdminAuditLogs = () => {
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
   };
+
+  const filteredLogs = logs.filter(log => 
+    log.adminName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.action.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -141,7 +165,20 @@ const AdminAuditLogs = () => {
             </tr>
           </thead>
           <tbody>
-            {mockAuditLogs.map((log) => (
+            {loading ? (
+              <tr>
+                <td colSpan="5" style={{ padding: "40px", textAlign: "center", color: "#64748B" }}>
+                  <Activity size={24} className="spin" style={{ marginBottom: "8px", color: "#8B5CF6" }} />
+                  <div>Đang tải dữ liệu log...</div>
+                </td>
+              </tr>
+            ) : filteredLogs.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ padding: "40px", textAlign: "center", color: "#64748B" }}>
+                  Không tìm thấy log nào phù hợp.
+                </td>
+              </tr>
+            ) : filteredLogs.map((log) => (
               <tr key={log.id} style={{ borderBottom: "1px solid #F1F5F9", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#F8FAFC"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                 <td style={{ padding: "16px 24px", fontSize: "14px", color: "#334155" }}>
                   <div style={{ fontWeight: "500" }}>{formatDate(log.timestamp).split(' ')[1]}</div>

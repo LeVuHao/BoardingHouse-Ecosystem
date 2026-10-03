@@ -62,6 +62,18 @@ const CreateForumPost = () => {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
+    if (parseFloat(form.price) <= 0) {
+      toast.error("Giá thuê phải lớn hơn 0!");
+      return;
+    }
+    if (form.roomArea && parseFloat(form.roomArea) <= 0) {
+      toast.error("Diện tích phải lớn hơn 0!");
+      return;
+    }
+    if (form.roommateNeeded && (parseInt(form.roommateCount) <= 0 || parseInt(form.roommateCount) > 10)) {
+      toast.error("Số lượng người ở ghép không hợp lệ (1-10)!");
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
@@ -76,7 +88,7 @@ const CreateForumPost = () => {
       toast.success("Đăng bài thành công! 🎉");
       navigate("/forum");
     } catch (err) {
-      toast.error(err?.message || "Đăng bài thất bại");
+      toast.error(err?.response?.data?.message || err?.message || "Đăng bài thất bại");
     } finally {
       setLoading(false);
     }

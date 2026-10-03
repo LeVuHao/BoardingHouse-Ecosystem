@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, rentalApi } from "../api/apiClient";
 import MapView from "../components/MapView";
+import WishlistButton from "../components/WishlistButton";
 
 const PAGE_SIZE = 6;
 
@@ -796,6 +797,9 @@ const Rooms = () => {
                           <MessageCircle size={15} />
                           Nhắn tin
                         </Link>
+                        
+                        {/* 5. Yêu thích */}
+                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border)", background: "#fff" }} showText={false} />
                       </div>
                     </div>
                   </div>

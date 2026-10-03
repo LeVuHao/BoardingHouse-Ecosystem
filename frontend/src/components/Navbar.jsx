@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   LogOut, MessageSquare, User, ChevronDown, Building2, 
-  FileText, CheckCircle2, Shield, Sparkles, Wrench, AlertTriangle
+  FileText, CheckCircle2, Shield, Sparkles, Wrench, AlertTriangle, Heart
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, maintenanceApi } from "../api/apiClient";
@@ -221,6 +221,11 @@ const Navbar = () => {
                     <Link to="/profile" className="nav-menu-item">
                       <User size={16} />
                       <span>Hồ sơ cá nhân</span>
+                    </Link>
+
+                    <Link to="/wishlist" className="nav-menu-item">
+                      <Heart size={16} />
+                      <span>Phòng đã lưu</span>
                     </Link>
 
                     <Link to="/forum/messages" className="nav-menu-item">

@@ -142,7 +142,7 @@ public class ReviewService {
                 .build();
 
         Review saved = reviewRepository.save(review);
-        log.info("Người dùng #{} đã đánh giá {} sao cho bài đăng #{}", userId, req.getRating(), post.getId());
+        log.info("Người dùng #{} đã đánh giá {} sao cho bài đăng #{}", userId, avgRating, post.getId());
         return ReviewResponse.fromEntity(saved);
     }
 

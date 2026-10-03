@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, rentalApi, reviewApi } from "../api/apiClient";
 import ReviewSection from "../components/ReviewSection";
+import WishlistButton from "../components/WishlistButton";
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const timeAgo = (dateStr) => {
@@ -443,6 +444,15 @@ const ForumPostDetail = () => {
                 <span className="post-pill-roommate">👥 TÌM Ở GHÉP: {post.roommateCount || 1} BẠN</span>
               )}
             </div>
+            
+            <div style={{ marginTop: "8px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <button 
+                onClick={() => document.getElementById('review-section')?.scrollIntoView({ behavior: 'smooth' })}
+                style={{ background: "none", border: "none", color: "#f59e0b", display: "flex", alignItems: "center", gap: "4px", fontSize: "14px", fontWeight: "600", cursor: "pointer", padding: 0 }}
+              >
+                <Star size={16} fill="#f59e0b" /> Xem đánh giá & nhận xét khu trọ này
+              </button>
+            </div>
 
             {post.description && <p className="forum-detail-desc">{post.description}</p>}
 
@@ -589,7 +599,9 @@ const ForumPostDetail = () => {
             </div>
 
             {/* 6. ĐÁNH GIÁ 5 SAO & BÌNH LUẬN TỪ NGƯỜI THUÊ ĐÃ DUYỆT */}
-            <ReviewSection postId={id} landlordId={post.landlordId} />
+            <div id="review-section">
+              <ReviewSection postId={id} landlordId={post.landlordId} />
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -679,7 +691,12 @@ const ForumPostDetail = () => {
                   👥 Tìm bạn ở ghép / Đồng hành
                 </button>
 
-                {/* Tertiary CTA: Nhắn tin trao đổi */}
+                {/* Tertiary CTA: Yêu thích / Lưu phòng */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#f8fafc", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                  <WishlistButton post={post} style={{ fontSize: "15px", fontWeight: "600", width: "100%", justifyContent: "center" }} showText={true} />
+                </div>
+
+                {/* Quaternary CTA: Nhắn tin trao đổi */}
                 <button
                   className="btn-block btn-outline"
                   onClick={() => {

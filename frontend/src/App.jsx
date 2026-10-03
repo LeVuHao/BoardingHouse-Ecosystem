@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import RegisterLandlord from "./pages/RegisterLandlord";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Wishlist from "./pages/Wishlist";
 import Roommates from "./pages/Roommates";
 import MyBills from "./pages/MyBills";
 import Notifications from "./pages/Notifications";
@@ -75,6 +76,7 @@ const AppContent = () => {
             <Route path="/my-room" element={<MyContracts />} />
             <Route path="/forum/messages" element={<ForumMessages />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/wishlist" element={<Wishlist />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["USER"]} />}>
             <Route path="/my-bills" element={<MyBills />} />
