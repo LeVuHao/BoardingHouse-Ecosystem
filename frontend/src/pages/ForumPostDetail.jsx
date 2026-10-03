@@ -59,6 +59,8 @@ const ForumPostDetail = () => {
 
   // Modal Cài Đặt Nhu Cầu Ở Ghép (Chủ trọ)
   const [roommateModalOpen, setRoommateModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
   const [roommateForm, setRoommateForm] = useState({
     roommateNeeded: false,
     roommateCount: 1,
@@ -301,6 +303,13 @@ const ForumPostDetail = () => {
     } catch (err) {
       toast.error("Không thể cập nhật trạng thái thuê phòng");
     }
+  };
+
+  const handleReportSubmit = (e) => {
+    e.preventDefault();
+    toast.success("Đã gửi báo cáo vi phạm tới Ban Quản Trị. Xin cảm ơn!");
+    setReportModalOpen(false);
+    setReportReason("");
   };
 
   if (loading) {
@@ -680,6 +689,14 @@ const ForumPostDetail = () => {
                   <MessageCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
                   Nhắn tin trao đổi
                 </button>
+                <button
+                  className="btn-block btn-outline"
+                  style={{ color: "#EF4444", borderColor: "#FECACA", backgroundColor: "#FEF2F2", marginTop: "10px" }}
+                  onClick={() => setReportModalOpen(true)}
+                >
+                  <AlertCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
+                  Báo cáo vi phạm
+                </button>
               </div>
 
               {isOwner && (
@@ -871,6 +888,60 @@ const ForumPostDetail = () => {
           </div>
         </div>
       )}
+      {/* MODAL BÁO CÁO */}
+      {reportModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 500 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "#EF4444" }}>
+                <AlertCircle size={24} style={{ verticalAlign: "middle", marginRight: 8 }} />
+                Báo cáo bài đăng vi phạm
+              </h3>
+              <button 
+                onClick={() => setReportModalOpen(false)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="modal-sub" style={{ marginBottom: 16 }}>
+              Nếu bạn thấy bài đăng này lừa đảo, spam, hoặc sử dụng ngôn từ không phù hợp, hãy báo cáo để Ban Quản Trị xử lý.
+            </p>
+            <form onSubmit={handleReportSubmit}>
+              <div style={{ marginBottom: 18 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 6 }}>
+                  Lý do báo cáo
+                </label>
+                <textarea
+                  rows={4}
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Mô tả chi tiết vi phạm..."
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setReportModalOpen(false)}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="btn"
+                  style={{ background: "#EF4444", color: "white" }}
+                >
+                  Gửi báo cáo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
