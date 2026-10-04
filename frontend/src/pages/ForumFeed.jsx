@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { forumApi } from "../api/apiClient";
+import { forumApi, unwrapApiData } from "../api/apiClient";
 import { MessageCircle, Clock, MapPin, Users, Heart, Share2, Sparkles, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -34,7 +34,8 @@ const ForumFeed = () => {
     setLoading(true);
     try {
       const res = await forumApi.getAllPosts({ page: 0, size: 50, sort: "createdAt,desc" });
-      const data = res.data?.content || res.data || [];
+      const payload = unwrapApiData(res);
+      const data = Array.isArray(payload) ? payload : payload?.content || [];
       setPosts(data);
     } catch (err) {
       toast.error("Không thể tải bảng tin diễn đàn");

@@ -119,6 +119,7 @@ public class ForumPostService {
                 .utilities(req.getUtilities())
                 .latitude(req.getLatitude())
                 .longitude(req.getLongitude())
+                .nearbyPlaces(req.getNearbyPlaces())
                 .roomId(savedRoom.getId())
                 .status("ACTIVE")
                 .build();

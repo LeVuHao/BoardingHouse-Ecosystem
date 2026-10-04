@@ -500,6 +500,27 @@ const ForumPostDetail = () => {
               </div>
             )}
 
+            {post.nearbyPlaces?.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 className="section-title">Địa điểm nổi bật gần phòng</h3>
+                <ul style={{ margin: "8px 0 0", paddingLeft: 20, display: "grid", gap: 6 }}>
+                  {post.nearbyPlaces.map((place) => (
+                    <li key={place.id || `${place.name}-${place.category}`}>
+                      <strong>{place.name}</strong>
+                      <span className="muted">
+                        {" "}· {place.category}
+                        {Number.isFinite(place.distanceMeters) && (
+                          <> · {place.distanceMeters >= 1000
+                            ? `${(place.distanceMeters / 1000).toFixed(1)} km`
+                            : `${place.distanceMeters} m`}</>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Gallery */}
             {post.images && post.images.length > 0 && (
               <div className="forum-detail-gallery">
