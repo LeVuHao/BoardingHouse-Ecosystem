@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { propertyApi, rentalApi } from '../api/apiClient';
 import { Plus, Home, Eye, Check, X, Edit2, Image } from 'lucide-react';
+import RoomLocationPicker from '../components/RoomLocationPicker';
 
 const LandlordProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -20,6 +21,8 @@ const LandlordProperties = () => {
   const [district, setDistrict] = useState('');
   const [ward, setWard] = useState('');
   const [utilities, setUtilities] = useState('WiFi,Máy lạnh,Máy giặt,Bãi xe');
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
 
   // Form Room
   const [roomNumber, setRoomNumber] = useState('');
@@ -64,8 +67,13 @@ const LandlordProperties = () => {
 
   const handleAddProperty = async (e) => {
     e.preventDefault();
+    if (latitude == null || longitude == null) {
+      alert('Hãy chọn vị trí khu trọ trên bản đồ trước khi lưu.');
+      return;
+    }
+
     try {
-      await propertyApi.createProperty({ title, description, address, city, district, ward, utilities });
+      await propertyApi.createProperty({ title, description, address, city, district, ward, utilities, latitude, longitude });
       alert('Tạo khu trọ thành công!');
       setShowAddProperty(false);
       resetPropertyForm();
@@ -77,8 +85,13 @@ const LandlordProperties = () => {
 
   const handleEditProperty = async (e) => {
     e.preventDefault();
+    if (latitude == null || longitude == null) {
+      alert('Hãy chọn lại vị trí khu trọ trên bản đồ trước khi cập nhật.');
+      return;
+    }
+
     try {
-      await propertyApi.updateProperty(selectedProperty.id, { title, description, address, city, district, ward, utilities });
+      await propertyApi.updateProperty(selectedProperty.id, { title, description, address, city, district, ward, utilities, latitude, longitude });
       alert('Cập nhật khu trọ thành công!');
       setShowEditProperty(false);
       loadProperties();
@@ -95,7 +108,20 @@ const LandlordProperties = () => {
     setDistrict(selectedProperty.district);
     setWard(selectedProperty.ward);
     setUtilities(selectedProperty.utilities || '');
+    setLatitude(selectedProperty.latitude ?? null);
+    setLongitude(selectedProperty.longitude ?? null);
     setShowEditProperty(true);
+  };
+
+  const handlePropertyLocationChange = ({ latitude: nextLatitude, longitude: nextLongitude }) => {
+    setLatitude(nextLatitude);
+    setLongitude(nextLongitude);
+  };
+
+  const handlePropertyAddressChange = (setter) => (event) => {
+    setter(event.target.value);
+    setLatitude(null);
+    setLongitude(null);
   };
 
   const handleAddRoom = async (e) => {
@@ -185,6 +211,7 @@ const LandlordProperties = () => {
   const resetPropertyForm = () => {
     setTitle(''); setDescription(''); setAddress('');
     setCity(''); setDistrict(''); setWard(''); setUtilities('WiFi,Máy lạnh,Máy giặt,Bãi xe');
+    setLatitude(null); setLongitude(null);
   };
 
   const resetRoomForm = () => {
@@ -343,12 +370,16 @@ const LandlordProperties = () => {
             <form onSubmit={handleAddProperty} style={{ marginTop: '1rem' }}>
               <div className="form-group"><label>Tên khu trọ</label><input required value={title} onChange={(e) => setTitle(e.target.value)} /></div>
               <div className="form-group"><label>Mô tả</label><textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div className="form-group"><label>Địa chỉ cụ thể</label><input required value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+              <div className="form-group"><label>Địa chỉ cụ thể</label><input required value={address} onChange={handlePropertyAddressChange(setAddress)} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Thành phố</label><input required value={city} onChange={(e) => setCity(e.target.value)} /></div>
-                <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={(e) => setDistrict(e.target.value)} /></div>
-                <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={(e) => setWard(e.target.value)} /></div>
+                <div className="form-group"><label>Thành phố</label><input required value={city} onChange={handlePropertyAddressChange(setCity)} /></div>
+                <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={handlePropertyAddressChange(setDistrict)} /></div>
+                <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={handlePropertyAddressChange(setWard)} /></div>
               </div>
+              <RoomLocationPicker
+                addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
+                onChange={handlePropertyLocationChange}
+              />
               <div className="form-group"><label>Tiện ích (phân tách dấu phẩy)</label><input value={utilities} onChange={(e) => setUtilities(e.target.value)} /></div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowAddProperty(false)} className="btn btn-outline">Hủy</button>
@@ -367,12 +398,17 @@ const LandlordProperties = () => {
             <form onSubmit={handleEditProperty} style={{ marginTop: '1rem' }}>
               <div className="form-group"><label>Tên khu trọ</label><input value={title} onChange={(e) => setTitle(e.target.value)} /></div>
               <div className="form-group"><label>Mô tả</label><textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div className="form-group"><label>Địa chỉ cụ thể</label><input value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+              <div className="form-group"><label>Địa chỉ cụ thể</label><input required value={address} onChange={handlePropertyAddressChange(setAddress)} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Thành phố</label><input value={city} onChange={(e) => setCity(e.target.value)} /></div>
-                <div className="form-group"><label>Quận/Huyện</label><input value={district} onChange={(e) => setDistrict(e.target.value)} /></div>
-                <div className="form-group"><label>Phường/Xã</label><input value={ward} onChange={(e) => setWard(e.target.value)} /></div>
+                <div className="form-group"><label>Thành phố</label><input required value={city} onChange={handlePropertyAddressChange(setCity)} /></div>
+                <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={handlePropertyAddressChange(setDistrict)} /></div>
+                <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={handlePropertyAddressChange(setWard)} /></div>
               </div>
+              <RoomLocationPicker
+                addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
+                initialLocation={selectedProperty}
+                onChange={handlePropertyLocationChange}
+              />
               <div className="form-group"><label>Tiện ích</label><input value={utilities} onChange={(e) => setUtilities(e.target.value)} /></div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowEditProperty(false)} className="btn btn-outline">Hủy</button>

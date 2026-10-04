@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { propertyApi, forumApi } from "../api/apiClient";
+import { propertyApi, forumApi, unwrapApiData } from "../api/apiClient";
 import { motion } from "framer-motion";
 import CountUpPkg from "react-countup";
 
@@ -51,7 +51,8 @@ const Home = () => {
     forumApi
       .getAllPosts({ page: 0, size: 6, sort: "createdAt,desc" })
       .then((res) => {
-        const list = res.data?.content || res.data || [];
+        const payload = unwrapApiData(res);
+        const list = Array.isArray(payload) ? payload : payload?.content || [];
         if (list.length > 0) {
           const mapped = list.map((p) => ({
             id: p.id,
@@ -67,7 +68,10 @@ const Home = () => {
           setRooms(mapped);
         } else {
           propertyApi.searchRooms({ page: 0, size: 3 })
-            .then((r) => setRooms(r.data?.content || r.data || []))
+            .then((r) => {
+              const roomPayload = unwrapApiData(r);
+              setRooms(Array.isArray(roomPayload) ? roomPayload : roomPayload?.content || []);
+            })
             .catch(() => setRooms([]));
         }
       })

@@ -1,9 +1,12 @@
 package com.roomily.property.entity;
 
+import com.roomily.property.dto.NearbyPlace;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -79,11 +82,15 @@ public class ForumPost {
     @Column(name = "roommate_note", length = 500)
     private String roommateNote;
 
-    @Column(precision = 10, scale = 7)
+    @Column
     private Double latitude;
 
-    @Column(precision = 10, scale = 7)
+    @Column
     private Double longitude;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "nearby_places", columnDefinition = "json")
+    private List<NearbyPlace> nearbyPlaces;
 
     @Column(nullable = false, length = 20)
     @Builder.Default
