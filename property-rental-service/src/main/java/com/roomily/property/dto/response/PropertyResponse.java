@@ -25,6 +25,8 @@ public class PropertyResponse {
     private Double latitude;
     private Double longitude;
     private Integer totalRooms;
+    private String status;
+    private String statusReason;
     private LocalDateTime createdAt;
 
     public static PropertyResponse fromEntity(Property p) {
@@ -42,6 +44,8 @@ public class PropertyResponse {
                 .latitude(p.getLatitude())
                 .longitude(p.getLongitude())
                 .totalRooms(p.getRooms() != null ? p.getRooms().size() : 0)
+                .status(p.getStatus())
+                .statusReason(p.getStatusReason())
                 .createdAt(p.getCreatedAt())
                 .build();
     }

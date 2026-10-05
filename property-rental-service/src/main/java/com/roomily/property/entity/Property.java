@@ -46,11 +46,19 @@ public class Property {
     @Column(length = 500)
     private String utilities;
 
-    @Column(precision = 10, scale = 7)
+    @Column(columnDefinition = "DECIMAL(10,7)")
     private Double latitude;
 
-    @Column(precision = 10, scale = 7)
+    @Column(columnDefinition = "DECIMAL(10,7)")
     private Double longitude;
+
+    // ACTIVE | HIDDEN (admin tạm ẩn) | DELETED (admin xóa mềm)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'")
+    @Builder.Default
+    private String status = "ACTIVE";
+
+    @Column(name = "status_reason", length = 500)
+    private String statusReason;
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
