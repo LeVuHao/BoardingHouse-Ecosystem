@@ -1,22 +1,46 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  MapPin, Clock, Plus, ChevronLeft, ChevronRight, 
-  MessageCircle, Eye, Sparkles, Users, Zap, CheckCircle2, 
-  Calendar, FileText, X, Tag, Search, Filter, RotateCcw,
-  Phone, Home, Check
+  MapPin, Clock, Plus, ChevronLeft, ChevronRight,
+  MessageCircle, Eye, Users, Zap, FileText, X, Search, Filter, RotateCcw,
+  Phone
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import { forumApi, rentalApi } from "../api/apiClient";
+import { forumApi, rentalApi, unwrapApiData } from "../api/apiClient";
 import useAmenities from "../hooks/useAmenities";
 import MapView from "../components/MapView";
 import WishlistButton from "../components/WishlistButton";
 
 const PAGE_SIZE = 6;
+const API_PAGE_SIZE = 100;
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+
+const getCoordinates = (room) => {
+  if (room.latitude == null || room.longitude == null || room.latitude === "" || room.longitude === "") {
+    return null;
+  }
+  const latitude = Number(room.latitude);
+  const longitude = Number(room.longitude);
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? [latitude, longitude]
+    : null;
+};
+
+const distanceInMeters = (first, second) => {
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+  const [lat1, lng1] = first.map(toRadians);
+  const [lat2, lng2] = second.map(toRadians);
+  const latitudeDelta = lat2 - lat1;
+  const longitudeDelta = lng2 - lng1;
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return 6371000 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return "";
@@ -89,7 +113,7 @@ const PostImageCarousel = ({ images }) => {
 const Rooms = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,6 +131,21 @@ const Rooms = () => {
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState("LIST"); // LIST | MAP
+  const [roomCoordinates, setRoomCoordinates] = useState({});
+  const [activeRoomId, setActiveRoomId] = useState(null);
+  const [viewportBounds, setViewportBounds] = useState(null);
+  const [proximityQuery, setProximityQuery] = useState("");
+  const [proximityRadius, setProximityRadius] = useState(3);
+  const [proximityLocation, setProximityLocation] = useState(null);
+  const [proximityLoading, setProximityLoading] = useState(false);
+  const [proximityError, setProximityError] = useState("");
+  const [proximitySuggestions, setProximitySuggestions] = useState([]);
+  const [proximitySuggestionsLoading, setProximitySuggestionsLoading] = useState(false);
+  const [proximitySuggestionsOpen, setProximitySuggestionsOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+  const proximitySearchControllerRef = useRef(null);
+  const suggestionsControllerRef = useRef(null);
 
   // Modal Gửi Yêu Cầu Thuê
   const [rentalModalPost, setRentalModalPost] = useState(null);
@@ -125,30 +164,249 @@ const Rooms = () => {
   const [savingRoommate, setSavingRoommate] = useState(false);
 
   // Tải danh sách phòng từ diễn đàn trọ
-  const fetchPosts = () => {
+  const fetchPosts = async () => {
     setLoading(true);
-    forumApi
-      .getAllPosts({ page: 0, size: 100, sort: "createdAt,desc" })
-      .then((res) => {
-        const data = res.data?.content || res.data || [];
-        setPosts(data);
+    try {
+      const firstResponse = await forumApi.getAllPosts({
+        page: 0,
+        size: API_PAGE_SIZE,
+        sort: "createdAt,desc",
+      });
+      const firstPayload = unwrapApiData(firstResponse);
 
-        // Tìm bài vừa được thuê để làm banner nổi bật
-        const rented = data.find((p) => p.isRented);
-        if (rented) {
-          setRecentRentedPost(rented);
-        }
-      })
-      .catch((err) => {
-        console.error("Lỗi khi tải bài đăng phòng trọ:", err);
-        toast.error("Không thể tải danh sách bài đăng phòng trọ");
-      })
-      .finally(() => setLoading(false));
+      if (Array.isArray(firstPayload)) {
+        setPosts(firstPayload);
+        setRecentRentedPost(firstPayload.find((post) => post.isRented) || null);
+        return;
+      }
+
+      const data = [...(firstPayload?.content || [])];
+      const totalPages = Number(firstPayload?.totalPages) || 1;
+      for (let currentPage = 1; currentPage < totalPages; currentPage += 1) {
+        const response = await forumApi.getAllPosts({
+          page: currentPage,
+          size: API_PAGE_SIZE,
+          sort: "createdAt,desc",
+        });
+        const payload = unwrapApiData(response);
+        data.push(...(Array.isArray(payload) ? payload : payload?.content || []));
+      }
+
+      setPosts(data);
+      setRecentRentedPost(data.find((post) => post.isRented) || null);
+    } catch (err) {
+      console.error("Lỗi khi tải bài đăng phòng trọ:", err);
+      toast.error("Không thể tải danh sách bài đăng phòng trọ");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    const query = proximityQuery.trim();
+    if (query.length < 2 || selectedSuggestion?.query === query) {
+      setProximitySuggestions([]);
+      setProximitySuggestionsLoading(false);
+      setProximitySuggestionsOpen(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    suggestionsControllerRef.current?.abort();
+    suggestionsControllerRef.current = controller;
+    const timer = window.setTimeout(async () => {
+      setProximitySuggestionsLoading(true);
+      setProximitySuggestionsOpen(true);
+      try {
+        const params = new URLSearchParams({ limit: "10", q: query });
+        const response = await fetch(`https://photon.komoot.io/api/?${params}`, {
+          signal: controller.signal,
+          headers: { "Accept-Language": "vi" },
+        });
+        if (!response.ok) {
+          throw new Error(`Photon trả về lỗi ${response.status}`);
+        }
+
+        const result = await response.json();
+        const suggestions = (result.features || [])
+          .filter((feature) => feature.properties?.countrycode === "VN")
+          .map((feature) => {
+            const properties = feature.properties || {};
+            const [longitude, latitude] = feature.geometry?.coordinates || [];
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+            const street = [properties.housenumber, properties.street]
+              .filter(Boolean)
+              .join(" ");
+            const address = [
+              street,
+              properties.district,
+              properties.city,
+              properties.state !== properties.city ? properties.state : null,
+              properties.country,
+            ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(", ");
+
+            return {
+              query,
+              label: properties.name || street || properties.city || query,
+              address,
+              location: [Number(latitude), Number(longitude)],
+            };
+          })
+          .filter(Boolean)
+          .slice(0, 6);
+
+        if (controller.signal.aborted) return;
+        setProximitySuggestions(suggestions);
+        setActiveSuggestionIndex(-1);
+        setProximitySuggestionsOpen(suggestions.length > 0);
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("Không thể tải gợi ý địa điểm:", error);
+        setProximitySuggestions([]);
+        setProximitySuggestionsOpen(false);
+      } finally {
+        if (!controller.signal.aborted) setProximitySuggestionsLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [proximityQuery, selectedSuggestion]);
+
+  const handleRoomGeocoded = useCallback((roomId, coordinates) => {
+    setRoomCoordinates((previous) => {
+      if (previous[roomId]) return previous;
+      return { ...previous, [roomId]: coordinates };
+    });
+  }, []);
+
+  const handleMapBoundsChange = useCallback((bounds) => {
+    const nextBounds = {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+    };
+    setViewportBounds(nextBounds);
+    setPage(0);
+  }, []);
+
+  const handleProximitySearch = async (event) => {
+    event.preventDefault();
+    const query = proximityQuery.trim();
+    if (!query) {
+      proximitySearchControllerRef.current?.abort();
+      setProximityLoading(false);
+      setProximityLocation(null);
+      setProximityError("");
+      setViewportBounds(null);
+      setPage(0);
+      return;
+    }
+
+    if (selectedSuggestion?.query === query) {
+      setProximityLocation(selectedSuggestion.location);
+      setProximitySuggestionsOpen(false);
+      setViewportBounds(null);
+      setPage(0);
+      return;
+    }
+
+    proximitySearchControllerRef.current?.abort();
+    const controller = new AbortController();
+    proximitySearchControllerRef.current = controller;
+    setProximityLoading(true);
+    setProximityError("");
+    setProximityLocation(null);
+    setViewportBounds(null);
+    setPage(0);
+
+    try {
+      const params = new URLSearchParams({
+        limit: "10",
+        q: query,
+      });
+      const response = await fetch(
+        `https://photon.komoot.io/api/?${params}`,
+        { signal: controller.signal, headers: { "Accept-Language": "vi" } },
+      );
+      if (!response.ok) {
+        throw new Error(`Photon trả về lỗi ${response.status}`);
+      }
+
+      const result = await response.json();
+      const features = result.features || [];
+      const match = features.find((feature) => feature.properties?.countrycode === "VN")
+        || features[0];
+      const coordinates = match?.geometry?.coordinates;
+      if (!coordinates || coordinates.length < 2) {
+        setProximityLocation(null);
+        setProximityError("Không tìm thấy địa điểm. Hãy thử thêm quận/huyện hoặc thành phố.");
+        return;
+      }
+
+      const location = [Number(coordinates[1]), Number(coordinates[0])];
+      const properties = match.properties || {};
+      const street = [properties.housenumber, properties.street].filter(Boolean).join(" ");
+      setSelectedSuggestion({
+        query,
+        label: properties.name || street || properties.city || query,
+        address: [
+          street,
+          properties.district,
+          properties.city,
+          properties.state !== properties.city ? properties.state : null,
+          properties.country,
+        ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(", "),
+        location,
+      });
+      setProximitySuggestions([]);
+      setProximitySuggestionsOpen(false);
+      setProximityLocation(location);
+      setViewportBounds(null);
+      setPage(0);
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      console.error("Không thể tìm địa điểm gần phòng:", error);
+      setProximityError("Không thể tìm địa điểm lúc này. Vui lòng thử lại.");
+    } finally {
+      if (!controller.signal.aborted) setProximityLoading(false);
+    }
+  };
+
+  const clearProximitySearch = () => {
+    proximitySearchControllerRef.current?.abort();
+    suggestionsControllerRef.current?.abort();
+    setProximityQuery("");
+    setProximityLocation(null);
+    setProximityError("");
+    setProximitySuggestions([]);
+    setProximitySuggestionsOpen(false);
+    setSelectedSuggestion(null);
+    setViewportBounds(null);
+    setPage(0);
+  };
+
+  const chooseProximitySuggestion = (suggestion) => {
+    proximitySearchControllerRef.current?.abort();
+    suggestionsControllerRef.current?.abort();
+    setSelectedSuggestion({ ...suggestion, query: suggestion.label });
+    setProximityQuery(suggestion.label);
+    setProximitySuggestions([]);
+    setProximitySuggestionsOpen(false);
+    setProximitySuggestionsLoading(false);
+    setProximityError("");
+    setProximityLocation(suggestion.location);
+    setViewportBounds(null);
+    setPage(0);
+  };
 
   // Xử lý gửi yêu cầu thuê
   const handleRentalSubmit = async (e) => {
@@ -289,12 +547,58 @@ const Rooms = () => {
     return result;
   }, [posts, city, minPrice, maxPrice, minArea, maxArea, statusFilter, selectedAmenities, sort]);
 
+  const mapPosts = useMemo(
+    () =>
+      filteredPosts.map((post) => {
+        const coordinates = roomCoordinates[post.id];
+        return coordinates
+          ? { ...post, latitude: coordinates[0], longitude: coordinates[1] }
+          : post;
+      }),
+    [filteredPosts, roomCoordinates],
+  );
+  const proximityPosts = useMemo(() => {
+    if (!proximityLocation) return mapPosts;
+    const radiusMeters = proximityRadius * 1000;
+    return mapPosts.filter((post) => {
+      const coordinates = getCoordinates(post);
+      return coordinates && distanceInMeters(proximityLocation, coordinates) <= radiusMeters;
+    });
+  }, [mapPosts, proximityLocation, proximityRadius]);
+  const visiblePosts = useMemo(() => {
+    if (!viewportBounds) return proximityPosts;
+    return proximityPosts.filter((post) => {
+      const coordinates = getCoordinates(post);
+      if (!coordinates) return false;
+      const [latitude, longitude] = coordinates;
+      const insideLatitude = latitude >= viewportBounds.south && latitude <= viewportBounds.north;
+      const insideLongitude = viewportBounds.west <= viewportBounds.east
+        ? longitude >= viewportBounds.west && longitude <= viewportBounds.east
+        : longitude >= viewportBounds.west || longitude <= viewportBounds.east;
+      return insideLatitude && insideLongitude;
+    });
+  }, [proximityPosts, viewportBounds]);
+
   // Phân trang
-  const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE) || 1;
+  const totalPages = Math.ceil(visiblePosts.length / PAGE_SIZE) || 1;
   const currentItems = useMemo(() => {
     const start = page * PAGE_SIZE;
-    return filteredPosts.slice(start, start + PAGE_SIZE);
-  }, [filteredPosts, page]);
+    return visiblePosts.slice(start, start + PAGE_SIZE);
+  }, [visiblePosts, page]);
+
+  const handleMarkerClick = useCallback((room) => {
+    setActiveRoomId(room.id);
+    const index = visiblePosts.findIndex((post) => String(post.id) === String(room.id));
+    if (index >= 0) {
+      setPage(Math.floor(index / PAGE_SIZE));
+    }
+  }, [visiblePosts]);
+
+  useEffect(() => {
+    if (!activeRoomId) return;
+    const card = document.getElementById(`room-card-${activeRoomId}`);
+    if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeRoomId, currentItems]);
 
   // Reset trang khi đổi filter
   useEffect(() => {
@@ -310,6 +614,7 @@ const Rooms = () => {
     setStatusFilter("ALL");
     setSelectedAmenities([]);
     setSort("newest");
+    clearProximitySearch();
     setPage(0);
   };
 
@@ -434,7 +739,8 @@ const Rooms = () => {
       </section>
 
       {/* 2. MAIN LAYOUT: SIDEBAR BỘ LỌC + DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ */}
-      <div className="wrap results-wrap">
+      <div className={`results-wrap${viewMode === "MAP" ? " is-map-view" : " is-list-view"}`}>
+        <div className="rooms-results-column">
         {/* SIDEBAR BỘ LỌC BÊN TRÁI */}
         <aside className="filters">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -552,12 +858,12 @@ const Rooms = () => {
         </aside>
 
         {/* NỘI DUNG CHÍNH BÊN PHẢI (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
-        <main>
+        <main className="rooms-list-pane">
           {/* Header kết quả tìm kiếm */}
           <div className="results-head" style={{ marginBottom: 16 }}>
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>
-                {filteredPosts.length} phòng trọ đang cho thuê
+                {visiblePosts.length} phòng trọ trong khu vực
               </h1>
               <p style={{ margin: "4px 0 0 0", color: "var(--text-muted)", fontSize: 13.5 }}>
                 Đăng tin trực tiếp từ chủ trọ, duyệt hợp đồng số và trao đổi ngay trên Roomily
@@ -565,7 +871,7 @@ const Rooms = () => {
             </div>
 
             <div className="sort" style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ display: "flex", background: "var(--surface)", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+            <div className="rooms-view-toggle" style={{ display: "flex", background: "var(--surface)", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
                 <button
                   onClick={() => setViewMode("LIST")}
                   style={{
@@ -635,22 +941,21 @@ const Rooms = () => {
                 <RotateCcw size={14} style={{ marginRight: 6 }} /> Xóa bộ lọc tìm kiếm
               </button>
             </div>
-          ) : viewMode === "MAP" ? (
-            <div style={{ marginBottom: 20 }}>
-              <MapView rooms={filteredPosts} height="700px" />
-            </div>
           ) : (
-            <motion.div layout className="forum-posts-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <motion.div layout className="forum-posts-list rooms-cards-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <AnimatePresence>
                 {currentItems.map((post) => (
                   <motion.div
                     key={post.id}
+                    id={`room-card-${post.id}`}
                     layout
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3 }}
-                    className="forum-card hover-card-effect"
+                    className={`forum-card hover-card-effect${String(activeRoomId) === String(post.id) ? " is-map-active" : ""}`}
+                    onMouseEnter={() => setActiveRoomId(post.id)}
+                    onMouseLeave={() => setActiveRoomId(null)}
                   >
                   {/* Photo Carousel */}
                   <PostImageCarousel images={post.images || post.imageUrls} />
@@ -812,7 +1117,7 @@ const Rooms = () => {
           )}
 
           {/* Phân trang (Chỉ hiện ở LIST view) */}
-          {totalPages > 1 && viewMode === "LIST" && (
+          {totalPages > 1 && (
             <div className="pagination" style={{ marginTop: 32 }}>
               <button
                 disabled={page === 0}
@@ -838,6 +1143,148 @@ const Rooms = () => {
             </div>
           )}
         </main>
+        </div>
+
+        <aside className="rooms-map-panel" aria-label="Bản đồ và tìm kiếm quanh khu vực">
+          <form className="proximity-search" onSubmit={handleProximitySearch}>
+            <label htmlFor="proximity-search-input">Tìm phòng gần địa điểm</label>
+            <div className="proximity-search-row">
+              <div className="proximity-input-wrap">
+                <input
+                  id="proximity-search-input"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={proximitySuggestionsOpen}
+                  aria-controls="proximity-location-suggestions"
+                  aria-activedescendant={
+                    activeSuggestionIndex >= 0
+                      ? `proximity-suggestion-${activeSuggestionIndex}`
+                      : undefined
+                  }
+                  value={proximityQuery}
+                  onChange={(event) => {
+                    proximitySearchControllerRef.current?.abort();
+                    setProximityLoading(false);
+                    setProximityQuery(event.target.value);
+                    setSelectedSuggestion(null);
+                    setProximitySuggestions([]);
+                    setProximitySuggestionsOpen(false);
+                    setActiveSuggestionIndex(-1);
+                    setProximityError("");
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowDown" && proximitySuggestions.length > 0) {
+                      event.preventDefault();
+                      setProximitySuggestionsOpen(true);
+                      setActiveSuggestionIndex((index) =>
+                        (index + 1) % proximitySuggestions.length,
+                      );
+                    } else if (
+                      event.key === "ArrowUp" &&
+                      proximitySuggestions.length > 0
+                    ) {
+                      event.preventDefault();
+                      setActiveSuggestionIndex((index) =>
+                        index <= 0 ? proximitySuggestions.length - 1 : index - 1,
+                      );
+                    } else if (
+                      event.key === "Enter" &&
+                      proximitySuggestionsOpen &&
+                      activeSuggestionIndex >= 0
+                    ) {
+                      event.preventDefault();
+                      chooseProximitySuggestion(proximitySuggestions[activeSuggestionIndex]);
+                    } else if (event.key === "Escape") {
+                      setProximitySuggestionsOpen(false);
+                    }
+                  }}
+                  placeholder="Nhập địa điểm, ví dụ: Đại học"
+                />
+                {proximitySuggestionsOpen && (
+                  <div
+                    id="proximity-location-suggestions"
+                    className="proximity-suggestions"
+                    role="listbox"
+                    aria-label="Gợi ý địa điểm"
+                  >
+                    {proximitySuggestionsLoading ? (
+                      <div className="proximity-suggestions-status">Đang tìm địa điểm...</div>
+                    ) : (
+                      proximitySuggestions.map((suggestion, index) => (
+                        <button
+                          id={`proximity-suggestion-${index}`}
+                          key={`${suggestion.label}-${suggestion.location.join(",")}`}
+                          type="button"
+                          className={`proximity-suggestion${index === activeSuggestionIndex ? " is-active" : ""}`}
+                          role="option"
+                          aria-selected={index === activeSuggestionIndex}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onMouseEnter={() => setActiveSuggestionIndex(index)}
+                          onClick={() => chooseProximitySuggestion(suggestion)}
+                        >
+                          <MapPin size={17} aria-hidden="true" />
+                          <span>
+                            <strong>{suggestion.label}</strong>
+                            <small>{suggestion.address || "Việt Nam"}</small>
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+              <select
+                aria-label="Bán kính tìm kiếm"
+                value={proximityRadius}
+                onChange={(event) => {
+                  setProximityRadius(Number(event.target.value));
+                  setPage(0);
+                }}
+              >
+                <option value={1}>1 km</option>
+                <option value={3}>3 km</option>
+                <option value={5}>5 km</option>
+              </select>
+              <button type="submit" className="btn btn-primary" disabled={proximityLoading}>
+                {proximityLoading ? "Đang tìm..." : "Tìm"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline mobile-map-list-toggle"
+                onClick={() => setViewMode("LIST")}
+              >
+                Danh sách
+              </button>
+              {proximityLocation && (
+                <button type="button" className="btn btn-outline" onClick={clearProximitySearch}>
+                  Xóa
+                </button>
+              )}
+            </div>
+            {proximityError && <p className="proximity-search-error">{proximityError}</p>}
+            {proximityLocation && (
+              <p className="proximity-search-hint">
+                Hiển thị {proximityPosts.length} phòng trong bán kính {proximityRadius} km.
+              </p>
+            )}
+            {viewportBounds && (
+              <p className="proximity-search-hint">Danh sách đang lọc theo khung nhìn bản đồ.</p>
+            )}
+          </form>
+          <MapView
+            rooms={mapPosts}
+            height="100%"
+            defaultZoom={13}
+            activeRoomId={activeRoomId}
+            onMarkerClick={handleMarkerClick}
+            onMarkerHover={setActiveRoomId}
+            onBoundsChange={handleMapBoundsChange}
+            searchTarget={proximityLocation}
+            searchRadiusMeters={proximityLocation ? proximityRadius * 1000 : null}
+            isVisible={viewMode === "MAP"}
+            onRoomGeocoded={handleRoomGeocoded}
+          />
+        </aside>
       </div>
 
       {/* MODAL GỬI YÊU CẦU THUÊ PHÒNG */}

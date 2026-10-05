@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ImagePlus, X, MapPin, DollarSign, Phone, Home, Send, Maximize2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi } from "../api/apiClient";
 import AmenityPicker from "../components/AmenityPicker";
+import RoomLocationPicker from "../components/RoomLocationPicker";
 
 const CreateForumPost = () => {
   const { user } = useAuth();
@@ -16,6 +17,9 @@ const CreateForumPost = () => {
     description: "",
     price: "",
     address: "",
+    latitude: null,
+    longitude: null,
+    nearbyPlaces: [],
     city: "",
     district: "",
     ward: "",
@@ -30,8 +34,22 @@ const CreateForumPost = () => {
 
   const handleChange = (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
-    setForm({ ...form, [e.target.name]: value });
+    const updatesLocation = ["address", "ward", "district", "city"].includes(e.target.name);
+    setForm((previous) => ({
+      ...previous,
+      [e.target.name]: value,
+      ...(updatesLocation ? { latitude: null, longitude: null, nearbyPlaces: [] } : {}),
+    }));
   };
+
+  const handleLocationChange = useCallback((location) => {
+    setForm((previous) => ({
+      ...previous,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      nearbyPlaces: location.nearbyPlaces,
+    }));
+  }, []);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -262,6 +280,13 @@ const CreateForumPost = () => {
                 />
               </div>
             </div>
+
+            <RoomLocationPicker
+              addressQuery={[form.address, form.ward, form.district, form.city]
+                .filter(Boolean)
+                .join(", ")}
+              onChange={handleLocationChange}
+            />
 
             {/* Contact phone */}
             <div className="form-group">

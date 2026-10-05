@@ -1,5 +1,6 @@
 package com.roomily.property.dto.response;
 
+import com.roomily.property.dto.NearbyPlace;
 import com.roomily.property.entity.ForumPost;
 import com.roomily.property.entity.ForumPostImage;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,7 @@ public class ForumPostResponse {
     private String roommateNote;
     private Double latitude;
     private Double longitude;
+    private List<NearbyPlace> nearbyPlaces;
     private String status;
     private String moderationStatus;
     private String rejectReason;
@@ -78,6 +80,7 @@ public class ForumPostResponse {
                 .roommateNote(post.getRoommateNote())
                 .latitude(post.getLatitude())
                 .longitude(post.getLongitude())
+                .nearbyPlaces(post.getNearbyPlaces())
                 .status(post.getStatus())
                 .moderationStatus(post.getModerationStatus())
                 .rejectReason(post.getRejectReason())

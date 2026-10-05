@@ -73,3 +73,6 @@ ALTER TABLE properties
 ALTER TABLE forum_posts
     ADD COLUMN IF NOT EXISTS latitude  DECIMAL(10, 7) NULL COMMENT 'Vĩ độ GPS',
     ADD COLUMN IF NOT EXISTS longitude DECIMAL(10, 7) NULL COMMENT 'Kinh độ GPS';
+
+ALTER TABLE forum_posts
+    ADD COLUMN IF NOT EXISTS nearby_places JSON NULL COMMENT 'Địa điểm nổi bật gần bài đăng';

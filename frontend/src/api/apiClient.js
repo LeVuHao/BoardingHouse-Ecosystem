@@ -1,5 +1,7 @@
 import api from "./axiosInstance";
 
+export const unwrapApiData = (response) => response?.data ?? response;
+
 export const authApi = {
   login: (data) => api.post("/auth/login", data),
   register: (data) => api.post("/auth/register", data),
@@ -152,4 +154,3 @@ export const maintenanceApi = {
   getLandlordStats: () => api.get("/maintenance-tickets/landlord/stats"),
   updateTicketStatus: (id, data) => api.put(`/maintenance-tickets/${id}/status`, data),
 };
-
