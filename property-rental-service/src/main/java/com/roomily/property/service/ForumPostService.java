@@ -10,6 +10,7 @@ import com.roomily.property.entity.Property;
 import com.roomily.property.entity.Room;
 import com.roomily.property.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class ForumPostService {
     private final ContractRepository contractRepository;
     private final PropertyRepository propertyRepository;
     private final RoomRepository roomRepository;
+
+    /** true: bài mới ở trạng thái PENDING chờ Admin duyệt; false: hiển thị ngay (APPROVED). */
+    @Value("${forum.moderation.require-approval:true}")
+    private boolean requireApproval;
 
     /**
      * Tự động đảm bảo mỗi ForumPost có 1 Room & Property tương ứng trong hệ thống
@@ -74,7 +79,7 @@ public class ForumPostService {
     }
 
     /**
-     * Chủ trọ tạo bài đăng cho thuê — hiển thị ngay, không cần admin duyệt
+     * Chủ trọ tạo bài đăng cho thuê — mặc định chờ Admin duyệt (cấu hình forum.moderation.require-approval)
      */
     @Transactional
     public ForumPostResponse createPost(Long landlordId, CreateForumPostRequest req) {
@@ -121,6 +126,7 @@ public class ForumPostService {
                 .longitude(req.getLongitude())
                 .roomId(savedRoom.getId())
                 .status("ACTIVE")
+                .moderationStatus(requireApproval ? "PENDING" : "APPROVED")
                 .build();
 
         ForumPost saved = forumPostRepository.save(post);
@@ -146,7 +152,7 @@ public class ForumPostService {
      * Lấy tất cả bài đăng đang ACTIVE — public, ai cũng xem được
      */
     public Page<ForumPostResponse> getAllActivePosts(Pageable pageable) {
-        return forumPostRepository.findByStatusOrderByCreatedAtDesc("ACTIVE", pageable)
+        return forumPostRepository.findPublicPosts(pageable)
                 .map(ForumPostResponse::fromEntity);
     }
 
@@ -156,6 +162,10 @@ public class ForumPostService {
     public ForumPostResponse getPostDetail(Long id) {
         ForumPost post = forumPostRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng"));
+        // Bài chưa được duyệt / bị từ chối / đã xóa không được xem công khai
+        if ("DELETED".equals(post.getStatus()) || !"APPROVED".equals(post.getModerationStatus())) {
+            throw new ResourceNotFoundException("Không tìm thấy bài đăng");
+        }
         return ForumPostResponse.fromEntity(post);
     }
 
