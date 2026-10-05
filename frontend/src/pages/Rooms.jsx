@@ -10,6 +10,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, rentalApi } from "../api/apiClient";
+import useAmenities from "../hooks/useAmenities";
 import MapView from "../components/MapView";
 import WishlistButton from "../components/WishlistButton";
 
@@ -102,6 +103,7 @@ const Rooms = () => {
   const [maxArea, setMaxArea] = useState(searchParams.get("maxArea") || "");
   const [statusFilter, setStatusFilter] = useState("ALL"); // ALL | AVAILABLE | ROOMMATE | RENTED
   const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const amenityOptions = useAmenities(); // danh mục tiện ích do Admin quản lý
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState("LIST"); // LIST | MAP
@@ -523,7 +525,7 @@ const Rooms = () => {
           {/* Tiện ích */}
           <div className="filter-group">
             <h4>Tiện ích phòng</h4>
-            {["Wifi", "Máy giặt", "Chỗ để xe", "Camera an ninh", "Máy lạnh", "Gác lửng"].map((amenity) => (
+            {amenityOptions.map(({ name: amenity }) => (
               <label key={amenity} className="check-row" style={{ cursor: "pointer" }}>
                 <input
                   type="checkbox"
