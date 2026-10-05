@@ -4,6 +4,7 @@ import { ImagePlus, X, MapPin, DollarSign, Phone, Home, Send, Maximize2 } from "
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi } from "../api/apiClient";
+import AmenityPicker from "../components/AmenityPicker";
 
 const CreateForumPost = () => {
   const { user } = useAuth();
@@ -84,8 +85,13 @@ const CreateForumPost = () => {
         imageUrls: images.map((img) => img.url),
         landlordName: user?.fullName || "Chủ trọ",
       };
-      await forumApi.createPost(payload);
-      toast.success("Đăng bài thành công! 🎉");
+      const res = await forumApi.createPost(payload);
+      // Bài mới có thể phải chờ Admin duyệt trước khi hiển thị công khai
+      if (res?.data?.moderationStatus === "PENDING") {
+        toast.success("Đã gửi bài! Bài sẽ hiển thị sau khi quản trị viên duyệt.", { duration: 6000 });
+      } else {
+        toast.success("Đăng bài thành công! 🎉");
+      }
       navigate("/forum");
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || "Đăng bài thất bại");
@@ -105,7 +111,7 @@ const CreateForumPost = () => {
             </div>
             <div>
               <h1>Đăng bài cho thuê trọ</h1>
-              <p className="muted">Bài đăng sẽ hiển thị ngay trên diễn đàn cho mọi người xem</p>
+              <p className="muted">Bài đăng sẽ được quản trị viên kiểm duyệt trước khi hiển thị trên diễn đàn</p>
             </div>
           </div>
 
@@ -191,15 +197,14 @@ const CreateForumPost = () => {
                   <option value="Khác">Khác</option>
                 </select>
               </div>
-              <div className="form-group" style={{ flex: 1 }}>
-                <label>Tiện ích</label>
-                <input
-                  name="utilities"
-                  value={form.utilities}
-                  onChange={handleChange}
-                  placeholder="VD: Wifi, máy giặt, bãi xe, tủ lạnh"
-                />
-              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Tiện ích</label>
+              <AmenityPicker
+                value={form.utilities}
+                onChange={(utilities) => setForm((f) => ({ ...f, utilities }))}
+              />
             </div>
 
             {/* Address Section */}

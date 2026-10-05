@@ -17,7 +17,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
+    
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.List;
@@ -47,6 +47,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
+        // 0. Endpoint nội bộ (service-to-service) không bao giờ được gọi từ bên ngoài
+        if (path.contains("/internal/")) {
+            return onError(exchange, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN);
+        }
+
         // 1. Check open/whitelisted endpoints
         if (isSecured(path, request.getMethod().name())) {
             // 2. Check Authorization header
@@ -64,9 +69,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 Claims claims = validateAndGetClaims(token);
                 String userId = claims.getSubject();
                 String role = claims.get("role", String.class);
+                String email = claims.get("email", String.class);
 
                 // Role-based access control for admin endpoints
-                if (path.startsWith("/api/v1/auth/admin")) {
+                if (path.startsWith("/api/v1/auth/admin") || path.startsWith("/api/v1/admin")) {
                     if (!"ADMIN".equalsIgnoreCase(role)) {
                         return onError(exchange, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN);
                     }
@@ -76,6 +82,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-User-Id", userId)
                         .header("X-User-Role", role)
+                        .header("X-User-Email", email != null ? email : "")
                         .build();
 
                 return chain.filter(exchange.mutate().request(mutatedRequest).build());
@@ -90,8 +97,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private boolean isSecured(String path, String method) {
         // GET requests to rooms, properties, and forum feed details / search can be public
         if ("GET".equalsIgnoreCase(method)) {
-            if (path.startsWith("/api/v1/rooms") || path.startsWith("/api/v1/properties") || path.startsWith("/api/v1/rental/forum") || path.startsWith("/api/v1/rental/posts")) {
-                if (!path.contains("/my-") && !path.contains("/requests") && !path.contains("/messages/received")) {
+            if (path.startsWith("/api/v1/rooms") || path.startsWith("/api/v1/properties") || path.startsWith("/api/v1/rental/forum") || path.startsWith("/api/v1/rental/posts")
+                    || path.startsWith("/api/v1/amenities")) {
+                if (!path.contains("/my-") && !path.contains("/requests") && !path.contains("/messages")
+                        && !path.contains("/conversation")) {
                     return false;
                 }
             }

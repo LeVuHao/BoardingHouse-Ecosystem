@@ -69,8 +69,8 @@ public class PropertyController {
     @GetMapping("/admin/count")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getAdminCount() {
         Map<String, Long> result = new HashMap<>();
-        result.put("totalProperties", propertyRepository.count());
-        result.put("totalRooms", roomRepository.count());
+        result.put("totalProperties", propertyRepository.countByStatusNot("DELETED"));
+        result.put("totalRooms", roomRepository.countByProperty_StatusNot("DELETED"));
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

@@ -50,7 +50,7 @@ public class PropertyService {
     }
 
     public List<PropertyResponse> getMyProperties(Long landlordId) {
-        return propertyRepository.findByLandlordId(landlordId).stream()
+        return propertyRepository.findByLandlordIdAndStatusNot(landlordId, "DELETED").stream()
                 .map(PropertyResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -58,6 +58,9 @@ public class PropertyService {
     public PropertyResponse getPropertyDetail(Long id) {
         Property p = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin khu trọ"));
+        if ("DELETED".equals(p.getStatus())) {
+            throw new ResourceNotFoundException("Không tìm thấy thông tin khu trọ");
+        }
         return PropertyResponse.fromEntity(p);
     }
 

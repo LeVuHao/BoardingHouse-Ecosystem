@@ -35,3 +35,8 @@ rabbitmq:
   routing:
     rental-approved: "rental.approved"
     join-approved: "join.approved"
+
+forum:
+  moderation:
+    # true: bài đăng mới phải được Admin duyệt (PENDING -> APPROVED) mới hiển thị công khai
+    require-approval: true

@@ -2,20 +2,10 @@
 import { AlertTriangle, MessageSquare, UserX, CheckCircle, XCircle, Trash2, Search, Eye, ShieldBan, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const MOCK_DISPUTES = [
-  { id: 'D-001', type: 'TENANT_REPORT_LANDLORD', reporter: 'Nguyễn Văn A (Tenant)', target: 'Trần Thị B (Landlord)', reason: 'Chủ trọ tự ý tăng tiền điện trái hợp đồng', status: 'PENDING', date: '2026-10-01', severity: 'HIGH' },
-  { id: 'D-002', type: 'LANDLORD_REPORT_TENANT', reporter: 'Lê Văn C (Landlord)', target: 'Hoàng Thị D (Tenant)', reason: 'Người thuê liên tục gây ồn ào lúc nửa đêm', status: 'RESOLVED', date: '2026-09-28', severity: 'MEDIUM' }
-];
-
-const MOCK_FORUM_REPORTS = [
-  { id: 'F-001', reporter: 'Lê Huy', targetPostId: 'POST-102', targetAuthor: 'Vô Danh', reason: 'Bài đăng có chứa từ ngữ xúc phạm', status: 'PENDING', date: '2026-10-02', contentSnippet: 'Thằng chủ trọ phòng 102 làm ăn như hạch...' },
-  { id: 'F-002', reporter: 'Trần Ngọc', targetPostId: 'POST-105', targetAuthor: 'Dịch Vụ Chuyển Nhà', reason: 'Spam quảng cáo', status: 'PENDING', date: '2026-10-03', contentSnippet: 'Nhận chuyển nhà trọn gói giá rẻ 090xxxxxxx' }
-];
-
 const AdminReports = () => {
   const [activeTab, setActiveTab] = useState('DISPUTES');
-  const [disputes, setDisputes] = useState(MOCK_DISPUTES);
-  const [forumReports, setForumReports] = useState(MOCK_FORUM_REPORTS);
+  const [disputes, setDisputes] = useState([]);
+  const [forumReports, setForumReports] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Warning Modal State
@@ -48,16 +38,12 @@ const AdminReports = () => {
     setWarningModal({ isOpen: false, reportId: null, message: '' });
   };
 
+  const matches = (item) => !searchQuery.trim() || JSON.stringify(item).toLowerCase().includes(searchQuery.trim().toLowerCase());
+
   const getStatusBadge = (status) => {
     if (status === 'RESOLVED') return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '12px', background: '#DCFCE7', color: '#166534', fontWeight: '600' }}>Đã giải quyết</span>;
     if (status === 'REJECTED') return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '12px', background: '#FEE2E2', color: '#991B1B', fontWeight: '600' }}>Từ chối</span>;
     return <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '12px', background: '#FEF3C7', color: '#92400E', fontWeight: '600' }}>Chờ xử lý</span>;
-  };
-
-  const getSeverityBadge = (severity) => {
-    if (severity === 'HIGH') return <span style={{ color: '#EF4444', fontWeight: 'bold' }}>Cao</span>;
-    if (severity === 'MEDIUM') return <span style={{ color: '#F59E0B', fontWeight: 'bold' }}>Trung bình</span>;
-    return <span style={{ color: '#10B981', fontWeight: 'bold' }}>Thấp</span>;
   };
 
   return (
@@ -89,18 +75,21 @@ const AdminReports = () => {
                   <th style={{ padding: '12px 16px', fontWeight: '600' }}>Mã KQ</th>
                   <th style={{ padding: '12px 16px', fontWeight: '600' }}>Người Tố Cáo / Bị Tố Cáo</th>
                   <th style={{ padding: '12px 16px', fontWeight: '600' }}>Lý Do</th>
-                  <th style={{ padding: '12px 16px', fontWeight: '600' }}>Mức độ</th>
                   <th style={{ padding: '12px 16px', fontWeight: '600' }}>Trạng thái</th>
                   <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {disputes.map((d) => (
+                {disputes.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '48px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '14px' }}>Chưa có khiếu nại nào cần xử lý.</td>
+                  </tr>
+                )}
+                {disputes.filter((d) => matches(d)).map((d) => (
                   <tr key={d.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <td style={{ padding: '16px', fontSize: '14px', fontWeight: '500', color: '#0F172A' }}>{d.id}</td>
                     <td style={{ padding: '16px' }}><div style={{ fontSize: '14px', fontWeight: '600', color: '#0F172A' }}>{d.reporter}</div><div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12}/> {d.target}</div></td>
                     <td style={{ padding: '16px', fontSize: '14px', color: '#475569', maxWidth: '250px' }}>{d.reason}</td>
-                    <td style={{ padding: '16px', fontSize: '14px' }}>{getSeverityBadge(d.severity)}</td>
                     <td style={{ padding: '16px' }}>{getStatusBadge(d.status)}</td>
                     <td style={{ padding: '16px', textAlign: 'right' }}>
                       {d.status === 'PENDING' ? (
@@ -131,7 +120,12 @@ const AdminReports = () => {
                 </tr>
               </thead>
               <tbody>
-                {forumReports.map((f) => (
+                {forumReports.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '48px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '14px' }}>Chưa có báo cáo bài đăng vi phạm nào.</td>
+                  </tr>
+                )}
+                {forumReports.filter((f) => matches(f)).map((f) => (
                   <tr key={f.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <td style={{ padding: '16px', fontSize: '14px', fontWeight: '500', color: '#0F172A' }}>{f.id}</td>
                     <td style={{ padding: '16px', maxWidth: '250px' }}><div style={{ fontSize: '13px', color: '#8B5CF6', fontWeight: '600', marginBottom: '4px' }}>{f.targetPostId} - {f.targetAuthor}</div><div style={{ fontSize: '14px', color: '#475569', background: '#F8FAFC', padding: '8px', borderRadius: '6px', fontStyle: 'italic', borderLeft: '3px solid #E2E8F0' }}>"{f.contentSnippet}"</div></td>

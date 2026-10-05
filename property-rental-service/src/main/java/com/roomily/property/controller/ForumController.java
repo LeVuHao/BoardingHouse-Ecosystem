@@ -29,15 +29,18 @@ public class ForumController {
     // ===== BÀI ĐĂNG CHO THUÊ TRỌ =====
 
     /**
-     * Chủ trọ tạo bài đăng cho thuê (hiển thị ngay, không cần duyệt)
+     * Chủ trọ tạo bài đăng cho thuê (mặc định chờ Admin duyệt trước khi hiển thị công khai)
      */
     @PostMapping
     public ResponseEntity<ApiResponse<ForumPostResponse>> createPost(
             @RequestHeader("X-User-Id") Long landlordId,
             @Valid @RequestBody CreateForumPostRequest req) {
         ForumPostResponse res = forumPostService.createPost(landlordId, req);
+        String msg = "PENDING".equals(res.getModerationStatus())
+                ? "Đã gửi bài đăng! Bài sẽ hiển thị sau khi quản trị viên duyệt."
+                : "Đăng bài cho thuê trọ thành công!";
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Đăng bài cho thuê trọ thành công!", res));
+                .body(ApiResponse.success(msg, res));
     }
 
     /**

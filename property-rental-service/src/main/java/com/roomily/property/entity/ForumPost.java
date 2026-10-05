@@ -79,15 +79,30 @@ public class ForumPost {
     @Column(name = "roommate_note", length = 500)
     private String roommateNote;
 
-    @Column(precision = 10, scale = 7)
+    @Column(columnDefinition = "DECIMAL(10,7)")
     private Double latitude;
 
-    @Column(precision = 10, scale = 7)
+    @Column(columnDefinition = "DECIMAL(10,7)")
     private Double longitude;
 
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private String status = "ACTIVE"; // ACTIVE | CLOSED
+    private String status = "ACTIVE"; // ACTIVE | CLOSED | DELETED (admin xóa mềm)
+
+    // Trạng thái kiểm duyệt của Admin: PENDING | APPROVED | REJECTED
+    @Column(name = "moderation_status", nullable = false,
+            columnDefinition = "VARCHAR(20) NOT NULL DEFAULT 'APPROVED'")
+    @Builder.Default
+    private String moderationStatus = "APPROVED";
+
+    @Column(name = "reject_reason", length = 500)
+    private String rejectReason;
+
+    @Column(name = "moderated_at")
+    private LocalDateTime moderatedAt;
+
+    @Column(name = "moderated_by")
+    private Long moderatedBy;
 
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

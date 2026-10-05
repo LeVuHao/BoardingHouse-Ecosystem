@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { propertyApi, rentalApi } from '../api/apiClient';
 import { Plus, Home, Eye, Check, X, Edit2, Image } from 'lucide-react';
+import AmenityPicker from '../components/AmenityPicker';
 
 const LandlordProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -349,7 +350,7 @@ const LandlordProperties = () => {
                 <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={(e) => setDistrict(e.target.value)} /></div>
                 <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={(e) => setWard(e.target.value)} /></div>
               </div>
-              <div className="form-group"><label>Tiện ích (phân tách dấu phẩy)</label><input value={utilities} onChange={(e) => setUtilities(e.target.value)} /></div>
+              <div className="form-group"><label>Tiện ích</label><AmenityPicker value={utilities} onChange={setUtilities} /></div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowAddProperty(false)} className="btn btn-outline">Hủy</button>
                 <button type="submit" className="btn btn-primary">Lưu khu trọ</button>
@@ -373,7 +374,7 @@ const LandlordProperties = () => {
                 <div className="form-group"><label>Quận/Huyện</label><input value={district} onChange={(e) => setDistrict(e.target.value)} /></div>
                 <div className="form-group"><label>Phường/Xã</label><input value={ward} onChange={(e) => setWard(e.target.value)} /></div>
               </div>
-              <div className="form-group"><label>Tiện ích</label><input value={utilities} onChange={(e) => setUtilities(e.target.value)} /></div>
+              <div className="form-group"><label>Tiện ích</label><AmenityPicker value={utilities} onChange={setUtilities} /></div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowEditProperty(false)} className="btn btn-outline">Hủy</button>
                 <button type="submit" className="btn btn-primary">Cập nhật</button>

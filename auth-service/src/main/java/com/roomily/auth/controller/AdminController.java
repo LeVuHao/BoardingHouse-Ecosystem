@@ -1,15 +1,22 @@
 package com.roomily.auth.controller;
 
+import com.roomily.auth.dto.response.AuditLogResponse;
 import com.roomily.auth.dto.response.UserResponse;
+import com.roomily.auth.service.AuditLogService;
 import com.roomily.auth.service.AdminService;
 import com.roomily.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import com.roomily.common.exception.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,6 +25,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AuditLogService auditLogService;
 
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardStats(@RequestHeader("X-User-Role") String role) {
@@ -32,10 +40,28 @@ public class AdminController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
-            Pageable pageable) {
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         requireAdmin(userRole);
         Page<UserResponse> users = adminService.listUsers(role, status, keyword, pageable);
         return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @GetMapping("/audit-logs")
+    public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> listAuditLogs(
+            @RequestHeader("X-User-Role") String userRole,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        requireAdmin(userRole);
+        return ResponseEntity.ok(ApiResponse.success(auditLogService.search(keyword, action, from, to, pageable)));
+    }
+
+    @GetMapping("/audit-logs/actions")
+    public ResponseEntity<ApiResponse<List<String>>> listAuditActions(@RequestHeader("X-User-Role") String userRole) {
+        requireAdmin(userRole);
+        return ResponseEntity.ok(ApiResponse.success(auditLogService.listActions()));
     }
 
     @PutMapping("/users/{id}/lock")

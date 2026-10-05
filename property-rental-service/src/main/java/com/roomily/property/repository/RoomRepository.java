@@ -15,6 +15,7 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificationExecutor<Room> {
     List<Room> findByPropertyId(Long propertyId);
+    long countByProperty_StatusNot(String status);
     List<Room> findByProperty_LandlordId(Long landlordId);
 
     @Query("SELECT r FROM Room r JOIN r.property p WHERE " +
@@ -23,7 +24,8 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
            "(:minPrice IS NULL OR r.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR r.price <= :maxPrice) AND " +
            "(:minArea IS NULL OR r.area >= :minArea) AND " +
-           "(:status IS NULL OR r.status = :status)")
+           "(:status IS NULL OR r.status = :status) AND " +
+           "p.status = 'ACTIVE'")
     Page<Room> searchRooms(
             @Param("city") String city,
             @Param("district") String district,
