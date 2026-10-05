@@ -33,6 +33,10 @@ import AdminLayout from "./components/AdminLayout";
 import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminSettings from "./pages/AdminSettings";
 import AdminReports from "./pages/AdminReports";
+import AdminProperties from "./pages/AdminProperties";
+import AdminUsers from "./pages/AdminUsers";
+import AdminForumPosts from "./pages/AdminForumPosts";
+import AdminAmenities from "./pages/AdminAmenities";
 
 // Component to handle layout logic based on route
 const AppContent = () => {
@@ -110,6 +114,10 @@ const AppContent = () => {
                 <AdminLayout>
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
+                    <Route path="/properties" element={<AdminProperties />} />
+                    <Route path="/users" element={<AdminUsers />} />
+                    <Route path="/forum-posts" element={<AdminForumPosts />} />
+                    <Route path="/amenities" element={<AdminAmenities />} />
                     <Route path="/reports" element={<AdminReports />} />
                     <Route path="/audit-logs" element={<AdminAuditLogs />} />
                     <Route path="/settings" element={<AdminSettings />} />

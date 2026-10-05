@@ -78,6 +78,36 @@ export const adminApi = {
   getUsers: (params) => api.get("/auth/admin/users", { params }),
   lockUser: (id) => api.put(`/auth/admin/users/${id}/lock`),
   unlockUser: (id) => api.put(`/auth/admin/users/${id}/unlock`),
+
+  // ===== Nhật ký hệ thống =====
+  getAuditLogs: (params) => api.get("/auth/admin/audit-logs", { params }),
+  getAuditActions: () => api.get("/auth/admin/audit-logs/actions"),
+
+  // ===== Task 2.1: Khu trọ & Phòng =====
+  getProperties: (params) => api.get("/admin/properties", { params }),
+  getPropertyDetail: (id) => api.get(`/admin/properties/${id}`),
+  updatePropertyStatus: (id, data) => api.patch(`/admin/properties/${id}/status`, data),
+  deleteProperty: (id, reason) =>
+    api.delete(`/admin/properties/${id}`, { params: reason ? { reason } : {} }),
+
+  // ===== Task 2.2: Diễn đàn & Bài đăng =====
+  getForumPosts: (params) => api.get("/admin/forum/posts", { params }),
+  getForumPostStats: () => api.get("/admin/forum/posts/stats"),
+  updateForumPostStatus: (id, data) => api.patch(`/admin/forum/posts/${id}/status`, data),
+  deleteForumPost: (id, reason) =>
+    api.delete(`/admin/forum/posts/${id}`, { params: reason ? { reason } : {} }),
+
+  // ===== Task 2.3: Danh mục dữ liệu =====
+  getAmenities: () => api.get("/admin/amenities"),
+  createAmenity: (data) => api.post("/admin/amenities", data),
+  updateAmenity: (id, data) => api.put(`/admin/amenities/${id}`, data),
+  getAmenity: (id) => api.get(`/admin/amenities/${id}`),
+  deleteAmenity: (id) => api.delete(`/admin/amenities/${id}`),
+};
+
+// Dữ liệu danh mục công khai (do Admin quản lý)
+export const catalogApi = {
+  getAmenities: () => api.get("/amenities"),
 };
 
 export const forumApi = {
