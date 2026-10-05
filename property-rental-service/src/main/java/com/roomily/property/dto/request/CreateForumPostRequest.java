@@ -1,5 +1,6 @@
 package com.roomily.property.dto.request;
 
+import com.roomily.property.dto.NearbyPlace;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,8 @@ public class CreateForumPostRequest {
     private Double latitude;
 
     private Double longitude;
+
+    private List<NearbyPlace> nearbyPlaces;
 
     // Base64 data URLs
     private List<String> imageUrls;
