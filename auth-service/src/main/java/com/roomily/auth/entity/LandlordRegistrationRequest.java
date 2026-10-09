@@ -38,7 +38,7 @@ public class LandlordRegistrationRequest {
 
     @Column(name = "amount", precision = 15, scale = 2)
     @Builder.Default
-    private BigDecimal amount = BigDecimal.valueOf(199000); // Phí kích hoạt tài khoản chủ trọ
+    private BigDecimal amount = BigDecimal.valueOf(5000); // Phí kích hoạt tài khoản chủ trọ (demo: 5.000đ)
 
     @Column(name = "payment_code", unique = true, nullable = false, length = 64)
     private String paymentCode;

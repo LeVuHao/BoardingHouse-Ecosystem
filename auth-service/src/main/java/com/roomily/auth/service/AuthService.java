@@ -61,7 +61,7 @@ public class AuthService {
 
         java.math.BigDecimal reqAmount = (req.getAmount() != null && req.getAmount().compareTo(java.math.BigDecimal.ZERO) > 0)
                 ? req.getAmount()
-                : java.math.BigDecimal.valueOf(199000);
+                : java.math.BigDecimal.valueOf(5000);
 
         com.roomily.auth.entity.LandlordRegistrationRequest request = com.roomily.auth.entity.LandlordRegistrationRequest.builder()
                 .fullName(req.getFullName().trim())
@@ -85,6 +85,85 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu đăng ký với mã: " + code));
         return com.roomily.auth.dto.response.LandlordRegistrationResponse.fromEntity(req);
     }
+
+    @Transactional
+    public boolean processSepayWebhook(com.roomily.auth.dto.request.SepayWebhookRequest webhook) {
+        if (webhook == null) return false;
+        
+        // Kiểm tra loại giao dịch: chỉ xử lý tiền vào (in) hoặc transferAmount > 0
+        if (webhook.getTransferAmount() == null || webhook.getTransferAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            log.info("[SePay Webhook] Bỏ qua giao dịch không phải nạp tiền: {}", webhook);
+            return false;
+        }
+
+        String content = webhook.getContent() != null ? webhook.getContent().toUpperCase() : "";
+        String code = webhook.getCode() != null ? webhook.getCode().toUpperCase() : "";
+
+        // Tìm kiếm tất cả đơn PENDING để đối soát nội dung
+        java.util.List<com.roomily.auth.entity.LandlordRegistrationRequest> pendingRequests = 
+                landlordRegistrationRequestRepository.findAll().stream()
+                        .filter(r -> "PENDING".equalsIgnoreCase(r.getStatus()))
+                        .collect(java.util.stream.Collectors.toList());
+
+        com.roomily.auth.entity.LandlordRegistrationRequest matchedRequest = null;
+
+        for (com.roomily.auth.entity.LandlordRegistrationRequest req : pendingRequests) {
+            String pCode = req.getPaymentCode() != null ? req.getPaymentCode().toUpperCase() : "";
+            if (!pCode.isBlank() && (content.contains(pCode) || code.contains(pCode))) {
+                matchedRequest = req;
+                break;
+            }
+        }
+
+        if (matchedRequest == null) {
+            log.warn("[SePay Webhook] Không tìm thấy đơn đăng ký PENDING nào khớp với nội dung: {}", content);
+            return false;
+        }
+
+        log.info("[SePay Webhook] Khớp đơn đăng ký ID: {}, Email: {}, Số tiền: {}", 
+                matchedRequest.getId(), matchedRequest.getEmail(), webhook.getTransferAmount());
+
+        // Kích hoạt User thành LANDLORD
+        String email = matchedRequest.getEmail().trim().toLowerCase();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            user = User.builder()
+                    .email(email)
+                    .fullName(matchedRequest.getFullName().trim())
+                    .phoneNumber(matchedRequest.getPhoneNumber())
+                    .idCardNumber(matchedRequest.getIdCardNumber())
+                    .password(matchedRequest.getDesiredPassword() != null ? matchedRequest.getDesiredPassword() : passwordEncoder.encode("123456"))
+                    .role("LANDLORD")
+                    .status("ACTIVE")
+                    .provider("LOCAL")
+                    .emailVerified(true)
+                    .build();
+        } else {
+            user.setRole("LANDLORD");
+            user.setStatus("ACTIVE");
+            if (matchedRequest.getPhoneNumber() != null && !matchedRequest.getPhoneNumber().isBlank()) {
+                user.setPhoneNumber(matchedRequest.getPhoneNumber());
+            }
+            if (matchedRequest.getIdCardNumber() != null && !matchedRequest.getIdCardNumber().isBlank()) {
+                user.setIdCardNumber(matchedRequest.getIdCardNumber());
+            }
+            if (matchedRequest.getDesiredPassword() != null && !matchedRequest.getDesiredPassword().isBlank()) {
+                user.setPassword(matchedRequest.getDesiredPassword());
+            }
+        }
+        userRepository.save(user);
+
+        // Cập nhật trạng thái đơn
+        matchedRequest.setStatus("APPROVED");
+        matchedRequest.setPaymentStatus("PAID");
+        matchedRequest.setAdminNote((matchedRequest.getAdminNote() != null ? matchedRequest.getAdminNote() + " | " : "") 
+                + "Tự động kích hoạt qua SePay Webhook (Mã GD: " + webhook.getId() + " - " + webhook.getGateway() + ")");
+        landlordRegistrationRequestRepository.save(matchedRequest);
+
+        log.info("[SePay Webhook] Đã kích hoạt tài khoản Chủ trọ thành công cho email: {}", email);
+        return true;
+    }
+
 
     @Transactional
     public UserResponse register(RegisterRequest req) {
