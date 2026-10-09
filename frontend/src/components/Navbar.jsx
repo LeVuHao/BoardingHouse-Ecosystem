@@ -97,19 +97,19 @@ const Navbar = () => {
           
           {user?.role === "LANDLORD" && (
             <>
-              <Link to="/forum/create" className="site-nav-link" style={{ color: "#059669", fontWeight: 600 }}>
+              <Link to="/forum/create" className={`site-nav-link ${location.pathname === "/forum/create" ? "active" : ""}`} style={{ color: location.pathname === "/forum/create" ? "var(--ink)" : "#059669", fontWeight: 600 }}>
                 + Đăng tin trọ
               </Link>
-              <Link to="/landlord/properties" className="site-nav-link">
+              <Link to="/landlord/properties" className={`site-nav-link ${location.pathname.startsWith("/landlord/properties") ? "active" : ""}`}>
                 Khu trọ
               </Link>
-              <Link to="/landlord/requests" className="site-nav-link">
+              <Link to="/landlord/requests" className={`site-nav-link ${location.pathname.startsWith("/landlord/requests") ? "active" : ""}`}>
                 Yêu cầu thuê
               </Link>
-              <Link to="/landlord/create-bill" className="site-nav-link">
+              <Link to="/landlord/create-bill" className={`site-nav-link ${location.pathname.startsWith("/landlord/create-bill") ? "active" : ""}`}>
                 Tạo hóa đơn
               </Link>
-              <Link to="/landlord/tickets" className="site-nav-link" style={{ position: "relative" }}>
+              <Link to="/landlord/tickets" className={`site-nav-link ${location.pathname.startsWith("/landlord/tickets") ? "active" : ""}`} style={{ position: "relative" }}>
                 Sự cố
                 {ticketUrgentCount > 0 && (
                   <span style={{
@@ -125,7 +125,7 @@ const Navbar = () => {
           )}
 
           {user?.role === "ADMIN" && (
-            <Link to="/admin" className="site-nav-link">
+            <Link to="/admin" className={`site-nav-link ${location.pathname.startsWith("/admin") ? "active" : ""}`}>
               Quản trị
             </Link>
           )}
@@ -135,17 +135,17 @@ const Navbar = () => {
               <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" ? "active" : ""}`}>
                 Trọ của tôi
               </Link>
-              <Link to="/my-bills" className="site-nav-link">
+              <Link to="/my-bills" className={`site-nav-link ${location.pathname === "/my-bills" ? "active" : ""}`}>
                 Hóa đơn
               </Link>
-              <Link to="/maintenance" className="site-nav-link">
+              <Link to="/maintenance" className={`site-nav-link ${location.pathname === "/maintenance" ? "active" : ""}`}>
                 Báo hỏng
               </Link>
             </>
           )}
 
           {!user && (
-            <Link to="/register-landlord" className="site-nav-link">
+            <Link to="/register-landlord" className={`site-nav-link ${location.pathname === "/register-landlord" ? "active" : ""}`}>
               Dành cho chủ trọ
             </Link>
           )}

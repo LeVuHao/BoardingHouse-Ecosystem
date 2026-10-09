@@ -70,6 +70,13 @@ const Register = () => {
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
           Đã có tài khoản? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Đăng nhập</Link>
         </div>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0', textAlign: 'center', fontSize: '0.88rem', color: '#64748b' }}>
+          Bạn là Chủ trọ muốn đăng tin cho thuê?{" "}
+          <Link to="/register-landlord" style={{ color: '#4f46e5', fontWeight: 700, display: 'inline-block', marginTop: '4px' }}>
+            🏦 Đăng ký kích hoạt tài khoản Chủ trọ (VietQR) →
+          </Link>
+        </div>
       </div>
     </div>
   );

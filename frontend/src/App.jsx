@@ -37,6 +37,8 @@ import AdminProperties from "./pages/AdminProperties";
 import AdminUsers from "./pages/AdminUsers";
 import AdminForumPosts from "./pages/AdminForumPosts";
 import AdminAmenities from "./pages/AdminAmenities";
+import AdminLandlordRequests from "./pages/AdminLandlordRequests";
+import AdminContactQRWidget from "./components/AdminContactQRWidget";
 
 // Component to handle layout logic based on route
 const AppContent = () => {
@@ -53,6 +55,7 @@ const AppContent = () => {
       }}
     >
       {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && <AdminContactQRWidget />}
       <main style={{ flex: 1, display: isAdminRoute ? "flex" : "block" }}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -116,6 +119,7 @@ const AppContent = () => {
                     <Route path="/" element={<AdminDashboard />} />
                     <Route path="/properties" element={<AdminProperties />} />
                     <Route path="/users" element={<AdminUsers />} />
+                    <Route path="/landlord-requests" element={<AdminLandlordRequests />} />
                     <Route path="/forum-posts" element={<AdminForumPosts />} />
                     <Route path="/amenities" element={<AdminAmenities />} />
                     <Route path="/reports" element={<AdminReports />} />

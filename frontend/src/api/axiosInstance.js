@@ -26,7 +26,15 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      if (window.location.pathname !== "/login") {
+      const currentPath = window.location.pathname;
+      const isPublicPath = 
+        currentPath === "/login" || 
+        currentPath === "/register" || 
+        currentPath === "/register-landlord" || 
+        currentPath === "/forgot-password" || 
+        currentPath === "/reset-password";
+
+      if (!isPublicPath) {
         window.location.href = "/login";
       }
     }
