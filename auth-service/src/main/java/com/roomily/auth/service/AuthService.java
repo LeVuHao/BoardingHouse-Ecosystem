@@ -37,6 +37,7 @@ public class AuthService {
     private static final int CODE_EXPIRE_MINUTES = 10;
 
     private final UserRepository userRepository;
+    private final com.roomily.auth.repository.LandlordRegistrationRequestRepository landlordRegistrationRequestRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final GoogleTokenVerifier googleTokenVerifier;
@@ -44,6 +45,46 @@ public class AuthService {
     private final MailService mailService;
 
     private final SecureRandom secureRandom = new SecureRandom();
+
+    @Transactional
+    public com.roomily.auth.dto.response.LandlordRegistrationResponse createLandlordRequest(com.roomily.auth.dto.request.CreateLandlordApplicationRequest req) {
+        if (userRepository.existsByEmail(req.getEmail())) {
+            User existing = userRepository.findByEmail(req.getEmail()).orElse(null);
+            if (existing != null && "LANDLORD".equalsIgnoreCase(existing.getRole())) {
+                throw new BadRequestException("Email này đã có tài khoản chủ trọ trong hệ thống");
+            }
+        }
+
+        // Sinh mã thanh toán độc nhất: SEPAY_<timestamp 6 so cuoi>_<random 3 chu>
+        String randomSuffix = String.format("%04d", secureRandom.nextInt(10000));
+        String code = "SEPAY_LL_" + System.currentTimeMillis() % 1000000 + "_" + randomSuffix;
+
+        java.math.BigDecimal reqAmount = (req.getAmount() != null && req.getAmount().compareTo(java.math.BigDecimal.ZERO) > 0)
+                ? req.getAmount()
+                : java.math.BigDecimal.valueOf(199000);
+
+        com.roomily.auth.entity.LandlordRegistrationRequest request = com.roomily.auth.entity.LandlordRegistrationRequest.builder()
+                .fullName(req.getFullName().trim())
+                .email(req.getEmail().trim().toLowerCase())
+                .phoneNumber(req.getPhoneNumber().trim())
+                .idCardNumber(req.getIdCardNumber() != null ? req.getIdCardNumber().trim() : null)
+                .desiredPassword(passwordEncoder.encode(req.getDesiredPassword()))
+                .amount(reqAmount)
+                .paymentCode(code)
+                .paymentStatus("PENDING")
+                .status("PENDING")
+                .channel("ONLINE_QR")
+                .build();
+
+        com.roomily.auth.entity.LandlordRegistrationRequest saved = landlordRegistrationRequestRepository.save(request);
+        return com.roomily.auth.dto.response.LandlordRegistrationResponse.fromEntity(saved);
+    }
+
+    public com.roomily.auth.dto.response.LandlordRegistrationResponse getLandlordRequestByCode(String code) {
+        com.roomily.auth.entity.LandlordRegistrationRequest req = landlordRegistrationRequestRepository.findByPaymentCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu đăng ký với mã: " + code));
+        return com.roomily.auth.dto.response.LandlordRegistrationResponse.fromEntity(req);
+    }
 
     @Transactional
     public UserResponse register(RegisterRequest req) {

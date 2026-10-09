@@ -78,6 +78,53 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("Đã mở khóa tài khoản thành công", user));
     }
 
+    @PostMapping("/landlords")
+    public ResponseEntity<ApiResponse<UserResponse>> createLandlordDirectly(
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader(value = "X-User-Email", required = false) String adminEmail,
+            @jakarta.validation.Valid @RequestBody com.roomily.auth.dto.request.AdminCreateLandlordRequest req) {
+        requireAdmin(role);
+        UserResponse res = adminService.createLandlordDirectly(req, adminEmail);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(ApiResponse.success("Tạo tài khoản chủ trọ trực tiếp thành công", res));
+    }
+
+    @GetMapping("/landlord-requests")
+    public ResponseEntity<ApiResponse<Page<com.roomily.auth.dto.response.LandlordRegistrationResponse>>> listLandlordRequests(
+            @RequestHeader("X-User-Role") String role,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String paymentStatus,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        requireAdmin(role);
+        Page<com.roomily.auth.dto.response.LandlordRegistrationResponse> res = adminService.listRegistrationRequests(status, paymentStatus, keyword, pageable);
+        return ResponseEntity.ok(ApiResponse.success(res));
+    }
+
+    @PostMapping("/landlord-requests/{id}/approve")
+    public ResponseEntity<ApiResponse<com.roomily.auth.dto.response.LandlordRegistrationResponse>> approveLandlordRequest(
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader(value = "X-User-Email", required = false) String adminEmail,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        requireAdmin(role);
+        String note = body != null ? body.get("note") : null;
+        com.roomily.auth.dto.response.LandlordRegistrationResponse res = adminService.approveRegistrationRequest(id, adminEmail, note);
+        return ResponseEntity.ok(ApiResponse.success("Phê duyệt đơn đăng ký chủ trọ thành công! Tài khoản đã được kích hoạt.", res));
+    }
+
+    @PostMapping("/landlord-requests/{id}/reject")
+    public ResponseEntity<ApiResponse<com.roomily.auth.dto.response.LandlordRegistrationResponse>> rejectLandlordRequest(
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader(value = "X-User-Email", required = false) String adminEmail,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        requireAdmin(role);
+        String reason = body != null ? body.get("reason") : null;
+        com.roomily.auth.dto.response.LandlordRegistrationResponse res = adminService.rejectRegistrationRequest(id, adminEmail, reason);
+        return ResponseEntity.ok(ApiResponse.success("Đã từ chối đơn đăng ký chủ trọ.", res));
+    }
+
     private void requireAdmin(String role) {
         if (!"ADMIN".equalsIgnoreCase(role)) {
             throw new BadRequestException("Bạn không có quyền thực hiện hành động này");
