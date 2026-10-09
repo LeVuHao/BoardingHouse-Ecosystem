@@ -13,10 +13,13 @@ const GEOCODE_DEBOUNCE_MS = 1000;
 const SEARCH_RADIUS_METERS = 2500;
 
 const placeCategoryNames = {
+  university: "Trường Đại học",
+  college: "Trường Cao đẳng",
   school: "Trường học",
-  hospital: "Bệnh viện",
-  marketplace: "Chợ",
-  supermarket: "Siêu thị",
+  hospital: "Bệnh viện / Phòng khám",
+  marketplace: "Chợ truyền thống",
+  supermarket: "Siêu thị / TTTM",
+  bus_station: "Bến xe / Trạm trung chuyển",
 };
 
 const getDistanceMeters = (from, to) => {
@@ -153,7 +156,7 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
     const query = `
       [out:json][timeout:20];
       (
-        nwr["amenity"~"^(school|hospital|marketplace)$"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+        nwr["amenity"~"^(university|college|school|hospital|marketplace|bus_station)$"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
         nwr["shop"="supermarket"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
       );
       out center tags;

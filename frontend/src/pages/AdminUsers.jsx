@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Users, Search, Lock, Unlock, Phone, Mail } from "lucide-react";
+import { Users, Search, Lock, Unlock, Phone, Mail, ShieldCheck } from "lucide-react";
 import { adminApi } from "../api/apiClient";
 import {
   ConfirmDialog, EmptyState, PageHeader, Pagination, Spinner, StatusBadge,
@@ -91,11 +91,31 @@ const AdminUsers = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <PageHeader
-        icon={<Users size={28} color="#8B5CF6" />}
-        title="Quản lý Người dùng"
-        subtitle="Xem, tìm kiếm và khóa / mở khóa tài khoản người thuê, chủ trọ trên hệ thống."
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+        <PageHeader
+          icon={<Users size={28} color="#8B5CF6" />}
+          title="Quản lý Người dùng"
+          subtitle="Xem, tìm kiếm và khóa / mở khóa tài khoản người thuê, chủ trọ trên hệ thống."
+        />
+        <a
+          href="/admin/landlord-requests"
+          style={{
+            ...buttonStyle("primary"),
+            background: "linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)",
+            color: "#FFFFFF",
+            padding: "10px 16px",
+            borderRadius: 10,
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontWeight: 600,
+            fontSize: 13.5,
+          }}
+        >
+          <ShieldCheck size={16} /> Quản lý Đăng ký & Kích hoạt Chủ trọ
+        </a>
+      </div>
 
       <div style={{ ...cardStyle, padding: "16px 24px", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>

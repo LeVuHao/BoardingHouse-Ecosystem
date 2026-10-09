@@ -6,6 +6,8 @@ export const authApi = {
   login: (data) => api.post("/auth/login", data),
   register: (data) => api.post("/auth/register", data),
   registerLandlord: (data) => api.post("/auth/landlord/register", data),
+  createLandlordRequest: (data) => api.post("/auth/landlord-request", data),
+  getLandlordRequestStatus: (code) => api.get(`/auth/landlord-request/${code}`),
   loginWithGoogle: (data) => api.post("/auth/google", data),
   forgotPassword: (data) => api.post("/auth/forgot-password", data),
   resetPassword: (data) => api.post("/auth/reset-password", data),
@@ -80,6 +82,12 @@ export const adminApi = {
   getUsers: (params) => api.get("/auth/admin/users", { params }),
   lockUser: (id) => api.put(`/auth/admin/users/${id}/lock`),
   unlockUser: (id) => api.put(`/auth/admin/users/${id}/unlock`),
+
+  // ===== Quản lý & Cấp quyền Chủ trọ =====
+  createLandlordDirectly: (data) => api.post("/auth/admin/landlords", data),
+  getLandlordRequests: (params) => api.get("/auth/admin/landlord-requests", { params }),
+  approveLandlordRequest: (id, data) => api.post(`/auth/admin/landlord-requests/${id}/approve`, data),
+  rejectLandlordRequest: (id, data) => api.post(`/auth/admin/landlord-requests/${id}/reject`, data),
 
   // ===== Nhật ký hệ thống =====
   getAuditLogs: (params) => api.get("/auth/admin/audit-logs", { params }),

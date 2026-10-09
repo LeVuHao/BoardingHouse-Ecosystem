@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -28,7 +28,8 @@ const AdminLayout = ({ children }) => {
   const menuItems = [
     { path: "/admin", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
     { path: "/admin/properties", icon: <Building2 size={20} />, label: "Khu Trọ & Phòng" },
-    { path: "/admin/users", icon: <Users size={20} />, label: "Người Dùng" },
+    { path: "/admin/users", icon: <Users size={20} />, label: "Người Dùng & Chủ Trọ" },
+    { path: "/admin/landlord-requests", icon: <ShieldAlert size={20} />, label: "Duyệt Đăng Ký Chủ Trọ" },
     { path: "/admin/forum-posts", icon: <MessageSquare size={20} />, label: "Bài Đăng" },
     { path: "/admin/amenities", icon: <Tag size={20} />, label: "Tiện Ích" },
     { path: "/admin/audit-logs", icon: <ShieldAlert size={20} />, label: "Nhật Ký Hệ Thống" },

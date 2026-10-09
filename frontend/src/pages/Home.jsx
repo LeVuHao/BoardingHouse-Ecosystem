@@ -179,11 +179,52 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <div className="hero-note glassmorphism hover-card-effect">
-              <b>Đăng ký nhanh, miễn phí</b>
-              <p>
-                Ai cũng có thể đăng ký làm chủ trọ và bắt đầu quản lý phòng ngay.
-              </p>
+            <div 
+              className="hero-note hover-card-effect"
+              style={{
+                background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+                color: "#FFFFFF",
+                padding: "20px 22px",
+                borderRadius: "18px",
+                boxShadow: "0 12px 30px rgba(49, 46, 129, 0.35)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(253, 224, 71, 0.2)", color: "#FDE047", padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 700, marginBottom: 6 }}>
+                  ⚡ DÀNH CHO CHỦ TRỌ
+                </div>
+                <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "#FFFFFF", margin: "2px 0 4px 0" }}>
+                  Mở Quyền Đăng Tin & Quản Lý Trọ
+                </div>
+                <p style={{ margin: 0, fontSize: 12.5, color: "#C7D2FE", lineHeight: 1.4 }}>
+                  Quét mã VietQR SePay hoặc gọi Hotline Admin: <strong style={{ color: "#FDE047" }}>0348.108.630</strong>
+                </p>
+              </div>
+
+              <Link
+                to="/register-landlord"
+                style={{
+                  background: "#FDE047",
+                  color: "#1E1B4B",
+                  fontWeight: 800,
+                  fontSize: 13,
+                  padding: "10px 16px",
+                  borderRadius: 12,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 4px 12px rgba(253, 224, 71, 0.4)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6
+                }}
+              >
+                Quét QR Ngay →
+              </Link>
             </div>
           </motion.div>
 

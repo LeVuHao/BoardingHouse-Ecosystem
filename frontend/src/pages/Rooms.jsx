@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Clock, Plus, ChevronLeft, ChevronRight,
   MessageCircle, Eye, Users, Zap, FileText, X, Search, Filter, RotateCcw,
-  Phone
+  Phone, Maximize2, Sparkles, ShieldCheck, Layers
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -16,7 +16,43 @@ import WishlistButton from "../components/WishlistButton";
 const PAGE_SIZE = 6;
 const API_PAGE_SIZE = 100;
 
+// Các địa điểm sinh viên & người đi làm quan tâm nhất
+const POPULAR_LANDMARKS = [
+  { id: "dh-qg", name: "ĐHQG / Làng Đại học", query: "Làng Đại Học Quốc Gia TP.HCM", icon: "🎓", coords: [10.8753, 106.8007], city: "Thủ Đức, TP.HCM" },
+  { id: "bach-khoa", name: "ĐH Bách Khoa TP.HCM", query: "Đại học Bách Khoa TP.HCM 268 Lý Thường Kiệt", icon: "🏛️", coords: [10.7725, 106.6578], city: "Quận 10, TP.HCM" },
+  { id: "su-pham-kt", name: "ĐH Sư Phạm Kỹ Thuật", query: "Đại học Sư phạm Kỹ thuật TP.HCM", icon: "⚙️", coords: [10.8506, 106.7719], city: "Thủ Đức, TP.HCM" },
+  { id: "kinh-te", name: "ĐH Kinh Tế (UEH)", query: "Đại học Kinh tế TP.HCM 59C Nguyễn Đình Chiểu", icon: "📈", coords: [10.7828, 106.6959], city: "Quận 3, TP.HCM" },
+  { id: "fpt-q9", name: "ĐH FPT / Khu CNC", query: "Đại học FPT TP.HCM Khu Công Nghệ Cao", icon: "💻", coords: [10.8411, 106.8099], city: "Quận 9, TP.HCM" },
+  { id: "pho-di-bo", name: "Phố đi bộ Nguyễn Huệ", query: "Phố đi bộ Nguyễn Huệ Quận 1", icon: "🏙️", coords: [10.7735, 106.7037], city: "Quận 1, TP.HCM" },
+  { id: "hang-xanh", name: "Ngã 4 Hàng Xanh", query: "Ngã tư Hàng Xanh Bình Thạnh", icon: "🚦", coords: [10.8016, 106.7114], city: "Bình Thạnh, TP.HCM" },
+  { id: "san-bay", name: "Sân bay Tân Sơn Nhất", query: "Sân bay Tân Sơn Nhất", icon: "✈️", coords: [10.8185, 106.6588], city: "Tân Bình, TP.HCM" },
+];
+
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+
+const formatDistance = (meters) => {
+  if (meters == null || isNaN(meters)) return null;
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+};
+
+const isUserPost = (post, user) => {
+  if (!post || !user) return false;
+  const uid = String(user.id || user.userId || "");
+  const postLandlordId = String(post.landlordId || "");
+  const postUserId = String(post.userId || "");
+  if (uid && (postLandlordId === uid || postUserId === uid)) return true;
+  
+  const uEmail = (user.email || "").toLowerCase().trim();
+  const postEmail = (post.contactEmail || post.landlordEmail || "").toLowerCase().trim();
+  if (uEmail && postEmail && uEmail === postEmail) return true;
+
+  const uName = (user.fullName || "").toLowerCase().trim();
+  const postName = (post.landlordName || "").toLowerCase().trim();
+  if (uName && postName && uName === postName) return true;
+
+  return false;
+};
 
 const getCoordinates = (room) => {
   if (room.latitude == null || room.longitude == null || room.latitude === "" || room.longitude === "") {
@@ -126,6 +162,8 @@ const Rooms = () => {
   const [minArea, setMinArea] = useState(searchParams.get("minArea") || "");
   const [maxArea, setMaxArea] = useState(searchParams.get("maxArea") || "");
   const [statusFilter, setStatusFilter] = useState("ALL"); // ALL | AVAILABLE | ROOMMATE | RENTED
+  const [postTab, setPostTab] = useState("ALL"); // ALL | MY_POSTS | OTHERS
+  const [showFullMap, setShowFullMap] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const amenityOptions = useAmenities(); // danh mục tiện ích do Admin quản lý
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
@@ -532,6 +570,13 @@ const Rooms = () => {
       });
     }
 
+    // Lọc theo Tab Người đăng (Của tôi / Người khác)
+    if (postTab === "MY_POSTS" && user) {
+      result = result.filter((p) => isUserPost(p, user));
+    } else if (postTab === "OTHERS" && user) {
+      result = result.filter((p) => !isUserPost(p, user));
+    }
+
     // Sắp xếp
     if (sort === "price-asc") {
       result.sort((a, b) => Number(a.price) - Number(b.price));
@@ -545,7 +590,7 @@ const Rooms = () => {
     }
 
     return result;
-  }, [posts, city, minPrice, maxPrice, minArea, maxArea, statusFilter, selectedAmenities, sort]);
+  }, [posts, city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort, user]);
 
   const mapPosts = useMemo(
     () =>
@@ -560,10 +605,16 @@ const Rooms = () => {
   const proximityPosts = useMemo(() => {
     if (!proximityLocation) return mapPosts;
     const radiusMeters = proximityRadius * 1000;
-    return mapPosts.filter((post) => {
-      const coordinates = getCoordinates(post);
-      return coordinates && distanceInMeters(proximityLocation, coordinates) <= radiusMeters;
-    });
+    const withDistances = mapPosts
+      .map((post) => {
+        const coordinates = getCoordinates(post);
+        const dist = coordinates ? distanceInMeters(proximityLocation, coordinates) : null;
+        return { ...post, distanceToTarget: dist };
+      })
+      .filter((post) => post.distanceToTarget != null && post.distanceToTarget <= radiusMeters);
+
+    // Khi tìm kiếm quanh địa điểm, ưu tiên sắp xếp theo khoảng cách gần nhất
+    return withDistances.sort((a, b) => (a.distanceToTarget || 0) - (b.distanceToTarget || 0));
   }, [mapPosts, proximityLocation, proximityRadius]);
   const visiblePosts = useMemo(() => {
     if (!viewportBounds) return proximityPosts;
@@ -578,6 +629,16 @@ const Rooms = () => {
       return insideLatitude && insideLongitude;
     });
   }, [proximityPosts, viewportBounds]);
+
+  const myPostsCount = useMemo(() => {
+    if (!user || !posts.length) return 0;
+    return posts.filter((p) => isUserPost(p, user)).length;
+  }, [posts, user]);
+
+  const otherPostsCount = useMemo(() => {
+    if (!user || !posts.length) return posts.length;
+    return posts.filter((p) => !isUserPost(p, user)).length;
+  }, [posts, user]);
 
   // Phân trang
   const totalPages = Math.ceil(visiblePosts.length / PAGE_SIZE) || 1;
@@ -603,7 +664,7 @@ const Rooms = () => {
   // Reset trang khi đổi filter
   useEffect(() => {
     setPage(0);
-  }, [city, minPrice, maxPrice, minArea, maxArea, statusFilter, selectedAmenities, sort]);
+  }, [city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort]);
 
   const clearAllFilters = () => {
     setCity("");
@@ -612,6 +673,7 @@ const Rooms = () => {
     setMinArea("");
     setMaxArea("");
     setStatusFilter("ALL");
+    setPostTab("ALL");
     setSelectedAmenities([]);
     setSort("newest");
     clearProximitySearch();
@@ -735,6 +797,77 @@ const Rooms = () => {
               <Search size={16} style={{ marginRight: 6 }} /> Tìm phòng
             </button>
           </form>
+
+          {/* Quick Landmark Recommendations (Đề xuất khu vực & trường học gần nhất) */}
+          <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)", display: "flex", alignItems: "center", gap: 4 }}>
+              🔥 Gợi ý gần các trường & địa điểm hot:
+            </span>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {POPULAR_LANDMARKS.map((lm) => {
+                const isSelected = proximityLocation && 
+                  Math.abs(proximityLocation[0] - lm.coords[0]) < 0.001 && 
+                  Math.abs(proximityLocation[1] - lm.coords[1]) < 0.001;
+
+                return (
+                  <button
+                    key={lm.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        clearProximitySearch();
+                      } else {
+                        setProximityQuery(lm.name);
+                        setProximityLocation(lm.coords);
+                        setProximityRadius(3); // Mặc định 3km
+                        setSelectedSuggestion({ label: lm.name, query: lm.name });
+                        setPage(0);
+                        toast.success(`Đang tìm các phòng trọ quanh ${lm.name} (bán kính 3 km) 📍`);
+                      }
+                    }}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 20,
+                      border: isSelected ? "1.5px solid var(--ink)" : "1px solid var(--border)",
+                      background: isSelected ? "var(--ink)" : "#f8fafc",
+                      color: isSelected ? "#fff" : "var(--ink)",
+                      fontSize: 12,
+                      fontWeight: isSelected ? 700 : 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      transition: "all 0.15s ease",
+                      boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.12)" : "none"
+                    }}
+                  >
+                    <span>{lm.icon}</span>
+                    <span>{lm.name}</span>
+                    {isSelected && <span style={{ marginLeft: 2, fontSize: 11 }}>✕</span>}
+                  </button>
+                );
+              })}
+              {proximityLocation && (
+                <button
+                  type="button"
+                  onClick={clearProximitySearch}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--danger)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textDecoration: "underline"
+                  }}
+                >
+                  Xóa lọc vị trí
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -857,54 +990,119 @@ const Rooms = () => {
           )}
         </aside>
 
-        {/* NỘI DUNG CHÍNH BÊN PHẢI (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
+        {/* NỘI DUNG CHÍNH (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
         <main className="rooms-list-pane">
-          {/* Header kết quả tìm kiếm */}
-          <div className="results-head" style={{ marginBottom: 16 }}>
-            <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>
-                {visiblePosts.length} phòng trọ trong khu vực
-              </h1>
-              <p style={{ margin: "4px 0 0 0", color: "var(--text-muted)", fontSize: 13.5 }}>
-                Đăng tin trực tiếp từ chủ trọ, duyệt hợp đồng số và trao đổi ngay trên Roomily
-              </p>
-            </div>
+          {/* Modern Header: Tabs (Tất cả / Của tôi / Người khác) & Bộ lọc sắp xếp */}
+          <div style={{ background: "#fff", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border)", marginBottom: 20, boxShadow: "var(--shadow-soft)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+              {/* Tab phân loại bài đăng */}
+              <div style={{ display: "flex", gap: 8, background: "#f1f5f9", padding: 4, borderRadius: 12 }}>
+                <button
+                  onClick={() => setPostTab("ALL")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 13.5,
+                    fontWeight: postTab === "ALL" ? 700 : 500,
+                    background: postTab === "ALL" ? "#fff" : "transparent",
+                    color: postTab === "ALL" ? "var(--ink)" : "var(--text-muted)",
+                    boxShadow: postTab === "ALL" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  <Sparkles size={15} color={postTab === "ALL" ? "var(--accent)" : "currentColor"} />
+                  Tất cả bài đăng ({posts.length})
+                </button>
 
-            <div className="sort" style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <div className="rooms-view-toggle" style={{ display: "flex", background: "var(--surface)", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
-                <button
-                  onClick={() => setViewMode("LIST")}
-                  style={{
-                    padding: "6px 12px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
-                    background: viewMode === "LIST" ? "var(--ink)" : "transparent",
-                    color: viewMode === "LIST" ? "#fff" : "var(--text-muted)",
-                    display: "flex", alignItems: "center", gap: 4
-                  }}
-                >
-                  <FileText size={14} /> Danh sách
-                </button>
-                <button
-                  onClick={() => setViewMode("MAP")}
-                  style={{
-                    padding: "6px 12px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
-                    background: viewMode === "MAP" ? "var(--ink)" : "transparent",
-                    color: viewMode === "MAP" ? "#fff" : "var(--text-muted)",
-                    display: "flex", alignItems: "center", gap: 4
-                  }}
-                >
-                  <MapPin size={14} /> Bản đồ
-                </button>
+                {user && (
+                  <>
+                    <button
+                      onClick={() => setPostTab("MY_POSTS")}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: 8,
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 13.5,
+                        fontWeight: postTab === "MY_POSTS" ? 700 : 500,
+                        background: postTab === "MY_POSTS" ? "#fff" : "transparent",
+                        color: postTab === "MY_POSTS" ? "var(--ink)" : "var(--text-muted)",
+                        boxShadow: postTab === "MY_POSTS" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <ShieldCheck size={15} color={postTab === "MY_POSTS" ? "var(--success)" : "currentColor"} />
+                      Bài đăng của tôi ({myPostsCount})
+                    </button>
+
+                    <button
+                      onClick={() => setPostTab("OTHERS")}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: 8,
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 13.5,
+                        fontWeight: postTab === "OTHERS" ? 700 : 500,
+                        background: postTab === "OTHERS" ? "#fff" : "transparent",
+                        color: postTab === "OTHERS" ? "var(--ink)" : "var(--text-muted)",
+                        boxShadow: postTab === "OTHERS" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <Users size={15} />
+                      Bài của cộng đồng ({otherPostsCount})
+                    </button>
+                  </>
+                )}
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span>Sắp xếp:</span>
-                <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                  <option value="newest">Mới nhất</option>
-                  <option value="price-asc">Giá thấp đến cao</option>
-                  <option value="price-desc">Giá cao đến thấp</option>
-                  <option value="area-desc">Diện tích lớn nhất</option>
+              {/* Sắp xếp */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>Sắp xếp:</span>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    fontSize: 13,
+                    background: "#fff",
+                    fontWeight: 600,
+                    outline: "none"
+                  }}
+                >
+                  <option value="newest">✨ Mới nhất</option>
+                  <option value="price-asc">💵 Giá thấp đến cao</option>
+                  <option value="price-desc">💎 Giá cao đến thấp</option>
+                  <option value="area-desc">📐 Diện tích rộng nhất</option>
                 </select>
               </div>
+            </div>
+
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                Tìm thấy <strong style={{ color: "var(--ink)" }}>{visiblePosts.length}</strong> bài đăng phòng trọ phù hợp
+              </span>
+              <button 
+                onClick={() => setShowFullMap(true)}
+                className="btn btn-outline"
+                style={{ padding: "4px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 5, borderRadius: 6 }}
+              >
+                <Maximize2 size={13} /> Mở bản đồ toàn màn hình
+              </button>
             </div>
           </div>
 
@@ -980,8 +1178,17 @@ const Rooms = () => {
                         </div>
                       </div>
 
-                      {/* Badges: ĐÃ THUÊ / Ở GHÉP */}
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {/* Badges: ĐÃ THUÊ / Ở GHÉP / BÀI ĐĂNG CỦA BẠN */}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                        {user && (
+                          (post.landlordId && user.id && String(post.landlordId) === String(user.id)) ||
+                          (post.userId && user.id && String(post.userId) === String(user.id)) ||
+                          (post.landlordName && user.fullName && post.landlordName.toLowerCase() === user.fullName.toLowerCase())
+                        ) && (
+                          <span style={{ background: "#e0e7ff", color: "#4338ca", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 12, border: "1px solid #c7d2fe" }}>
+                            👤 Bài đăng của bạn
+                          </span>
+                        )}
                         {post.isRented && (
                           <span className="rented-badge-flashing">
                             ⚡ ĐÃ CÓ NGƯỜI THUÊ
@@ -1018,10 +1225,28 @@ const Rooms = () => {
                       )}
                     </div>
 
-                    {/* Address */}
-                    <div className="forum-card-address">
-                      <MapPin size={14} style={{ color: "var(--brand-primary, #2563eb)", flexShrink: 0, marginTop: 2 }} />
-                      <span>{post.address}, {post.ward}, {post.district}, {post.city}</span>
+                    {/* Address & Distance from search target */}
+                    <div className="forum-card-address" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 200 }}>
+                        <MapPin size={14} style={{ color: "var(--brand-primary, #2563eb)", flexShrink: 0 }} />
+                        <span>{post.address}, {post.ward}, {post.district}, {post.city}</span>
+                      </div>
+                      {post.distanceToTarget != null && (
+                        <span style={{
+                          background: "#ecfdf5",
+                          color: "#059669",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: 6,
+                          border: "1px solid #a7f3d0",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4
+                        }}>
+                          📍 Cách đích {formatDistance(post.distanceToTarget)}
+                        </span>
+                      )}
                     </div>
 
                     {/* Description preview */}
@@ -1145,145 +1370,123 @@ const Rooms = () => {
         </main>
         </div>
 
-        <aside className="rooms-map-panel" aria-label="Bản đồ và tìm kiếm quanh khu vực">
-          <form className="proximity-search" onSubmit={handleProximitySearch}>
-            <label htmlFor="proximity-search-input">Tìm phòng gần địa điểm</label>
-            <div className="proximity-search-row">
-              <div className="proximity-input-wrap">
-                <input
-                  id="proximity-search-input"
-                  role="combobox"
-                  aria-autocomplete="list"
-                  aria-expanded={proximitySuggestionsOpen}
-                  aria-controls="proximity-location-suggestions"
-                  aria-activedescendant={
-                    activeSuggestionIndex >= 0
-                      ? `proximity-suggestion-${activeSuggestionIndex}`
-                      : undefined
-                  }
-                  value={proximityQuery}
-                  onChange={(event) => {
-                    proximitySearchControllerRef.current?.abort();
-                    setProximityLoading(false);
-                    setProximityQuery(event.target.value);
-                    setSelectedSuggestion(null);
-                    setProximitySuggestions([]);
-                    setProximitySuggestionsOpen(false);
-                    setActiveSuggestionIndex(-1);
-                    setProximityError("");
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "ArrowDown" && proximitySuggestions.length > 0) {
-                      event.preventDefault();
-                      setProximitySuggestionsOpen(true);
-                      setActiveSuggestionIndex((index) =>
-                        (index + 1) % proximitySuggestions.length,
-                      );
-                    } else if (
-                      event.key === "ArrowUp" &&
-                      proximitySuggestions.length > 0
-                    ) {
-                      event.preventDefault();
-                      setActiveSuggestionIndex((index) =>
-                        index <= 0 ? proximitySuggestions.length - 1 : index - 1,
-                      );
-                    } else if (
-                      event.key === "Enter" &&
-                      proximitySuggestionsOpen &&
-                      activeSuggestionIndex >= 0
-                    ) {
-                      event.preventDefault();
-                      chooseProximitySuggestion(proximitySuggestions[activeSuggestionIndex]);
-                    } else if (event.key === "Escape") {
-                      setProximitySuggestionsOpen(false);
-                    }
-                  }}
-                  placeholder="Nhập địa điểm, ví dụ: Đại học"
-                />
-                {proximitySuggestionsOpen && (
-                  <div
-                    id="proximity-location-suggestions"
-                    className="proximity-suggestions"
-                    role="listbox"
-                    aria-label="Gợi ý địa điểm"
-                  >
-                    {proximitySuggestionsLoading ? (
-                      <div className="proximity-suggestions-status">Đang tìm địa điểm...</div>
-                    ) : (
-                      proximitySuggestions.map((suggestion, index) => (
-                        <button
-                          id={`proximity-suggestion-${index}`}
-                          key={`${suggestion.label}-${suggestion.location.join(",")}`}
-                          type="button"
-                          className={`proximity-suggestion${index === activeSuggestionIndex ? " is-active" : ""}`}
-                          role="option"
-                          aria-selected={index === activeSuggestionIndex}
-                          onMouseDown={(event) => event.preventDefault()}
-                          onMouseEnter={() => setActiveSuggestionIndex(index)}
-                          onClick={() => chooseProximitySuggestion(suggestion)}
-                        >
-                          <MapPin size={17} aria-hidden="true" />
-                          <span>
-                            <strong>{suggestion.label}</strong>
-                            <small>{suggestion.address || "Việt Nam"}</small>
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-              <select
-                aria-label="Bán kính tìm kiếm"
-                value={proximityRadius}
-                onChange={(event) => {
-                  setProximityRadius(Number(event.target.value));
-                  setPage(0);
-                }}
-              >
-                <option value={1}>1 km</option>
-                <option value={3}>3 km</option>
-                <option value={5}>5 km</option>
-              </select>
-              <button type="submit" className="btn btn-primary" disabled={proximityLoading}>
-                {proximityLoading ? "Đang tìm..." : "Tìm"}
-              </button>
+        {/* CỘT BÊN PHẢI: MAP THU NHỎ VUÔNG VỪA PHẢI + TIỆN ÍCH BỔ SUNG */}
+        <aside className="rooms-right-sidebar">
+          {/* Widget Bản đồ thu nhỏ góc phải */}
+          <div className="compact-map-card">
+            <div className="compact-map-header">
+              <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                <MapPin size={16} color="var(--primary)" /> Bản đồ vị trí ({visiblePosts.length} phòng)
+              </span>
               <button
                 type="button"
-                className="btn btn-outline mobile-map-list-toggle"
-                onClick={() => setViewMode("LIST")}
+                onClick={() => setShowFullMap(true)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--ink-2)",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4
+                }}
               >
-                Danh sách
+                <Maximize2 size={13} /> Phóng to
               </button>
-              {proximityLocation && (
-                <button type="button" className="btn btn-outline" onClick={clearProximitySearch}>
-                  Xóa
-                </button>
-              )}
             </div>
-            {proximityError && <p className="proximity-search-error">{proximityError}</p>}
-            {proximityLocation && (
-              <p className="proximity-search-hint">
-                Hiển thị {proximityPosts.length} phòng trong bán kính {proximityRadius} km.
-              </p>
-            )}
-            {viewportBounds && (
-              <p className="proximity-search-hint">Danh sách đang lọc theo khung nhìn bản đồ.</p>
-            )}
-          </form>
-          <MapView
-            rooms={mapPosts}
-            height="100%"
-            defaultZoom={13}
-            activeRoomId={activeRoomId}
-            onMarkerClick={handleMarkerClick}
-            onMarkerHover={setActiveRoomId}
-            onBoundsChange={handleMapBoundsChange}
-            searchTarget={proximityLocation}
-            searchRadiusMeters={proximityLocation ? proximityRadius * 1000 : null}
-            isVisible={viewMode === "MAP"}
-            onRoomGeocoded={handleRoomGeocoded}
-          />
+
+            <div 
+              className="compact-map-preview"
+              onClick={() => setShowFullMap(true)}
+              title="Nhấn để phóng to bản đồ tìm phòng"
+            >
+              <MapView
+                rooms={mapPosts}
+                height="100%"
+                defaultZoom={12}
+                activeRoomId={activeRoomId}
+                onMarkerClick={handleMarkerClick}
+                onMarkerHover={setActiveRoomId}
+                onBoundsChange={handleMapBoundsChange}
+                searchTarget={proximityLocation}
+                searchRadiusMeters={proximityLocation ? proximityRadius * 1000 : null}
+                isVisible={true}
+                onRoomGeocoded={handleRoomGeocoded}
+              />
+              <div className="compact-map-overlay">
+                <Maximize2 size={24} />
+                <span style={{ fontSize: 13, fontWeight: 700 }}>Nhấn để mở rộng toàn màn hình</span>
+              </div>
+            </div>
+
+            {/* Quick search by location inside card */}
+            <div style={{ padding: "12px 14px", background: "#fff", borderTop: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  value={proximityQuery}
+                  onChange={(e) => setProximityQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleProximitySearch(e);
+                    }
+                  }}
+                  placeholder="Gõ tên trường ĐH, địa điểm..."
+                  style={{
+                    flex: 1,
+                    padding: "6px 10px",
+                    fontSize: 12.5,
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    outline: "none"
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleProximitySearch}
+                  className="btn btn-primary"
+                  style={{ padding: "6px 10px", fontSize: 12 }}
+                  disabled={proximityLoading}
+                >
+                  {proximityLoading ? "..." : "Tìm"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner thông tin hỗ trợ */}
+          <div style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)", borderRadius: 16, padding: "18px", border: "1px solid #bbf7d0" }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <Sparkles size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+              <div>
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#14532d" }}>
+                  Đăng tin nhanh, tìm bạn dễ dàng
+                </h4>
+                <p style={{ margin: "4px 0 10px 0", fontSize: 12.5, color: "#166534", lineHeight: 1.4 }}>
+                  Mọi bài đăng đều được xác minh danh tính và hỗ trợ liên hệ chat trực tiếp.
+                </p>
+                {user?.role === "LANDLORD" ? (
+                  <Link
+                    to="/forum/create"
+                    className="btn btn-primary"
+                    style={{ fontSize: 12.5, padding: "6px 12px", width: "100%", justifyContent: "center" }}
+                  >
+                    + Đăng bài trọ ngay
+                  </Link>
+                ) : (
+                  <Link
+                    to="/roommates"
+                    className="btn btn-outline"
+                    style={{ fontSize: 12.5, padding: "6px 12px", width: "100%", justifyContent: "center", background: "#fff" }}
+                  >
+                    Khám phá tìm bạn ở ghép
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
 
@@ -1473,6 +1676,120 @@ const Rooms = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PHÓNG TO BẢN ĐỒ TOÀN MÀN HÌNH (FULLSCREEN MAP DIALOG) */}
+      {showFullMap && (
+        <div className="full-map-modal" onClick={() => setShowFullMap(false)}>
+          <div className="full-map-dialog" onClick={(e) => e.stopPropagation()}>
+            {/* Header Dialog */}
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--success-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--success)" }}>
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
+                    Bản Đồ Tìm Phòng Trọ Toàn Màn Hình
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
+                    Hiển thị {mapPosts.length} phòng trên toàn hệ thống • Bấm vào ghim để xem chi tiết phòng
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowFullMap(false)}
+                style={{
+                  background: "#e2e8f0",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "var(--ink)"
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content: Search Bar on top of map + Leaflet Map */}
+            <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+              {/* Floating Proximity Search inside modal */}
+              <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1000, background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(6px)", padding: "10px 14px", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", gap: 8, alignItems: "center", maxWidth: 450, width: "calc(100% - 24px)" }}>
+                <MapPin size={16} color="var(--primary)" />
+                <input
+                  value={proximityQuery}
+                  onChange={(e) => setProximityQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleProximitySearch(e);
+                    }
+                  }}
+                  placeholder="Nhập địa điểm, trường học..."
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    outline: "none",
+                    fontSize: 13,
+                    background: "transparent"
+                  }}
+                />
+                <select
+                  value={proximityRadius}
+                  onChange={(e) => setProximityRadius(Number(e.target.value))}
+                  style={{ border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", fontSize: 12, background: "#fff" }}
+                >
+                  <option value={1}>1 km</option>
+                  <option value={3}>3 km</option>
+                  <option value={5}>5 km</option>
+                  <option value={10}>10 km</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleProximitySearch}
+                  className="btn btn-primary"
+                  style={{ padding: "6px 12px", fontSize: 12 }}
+                  disabled={proximityLoading}
+                >
+                  {proximityLoading ? "..." : "Tìm"}
+                </button>
+                {proximityLocation && (
+                  <button
+                    type="button"
+                    onClick={clearProximitySearch}
+                    className="btn btn-outline"
+                    style={{ padding: "6px 10px", fontSize: 12 }}
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+
+              <MapView
+                rooms={mapPosts}
+                height="100%"
+                defaultZoom={13}
+                activeRoomId={activeRoomId}
+                onMarkerClick={(room) => {
+                  handleMarkerClick(room);
+                  setShowFullMap(false);
+                }}
+                onMarkerHover={setActiveRoomId}
+                onBoundsChange={handleMapBoundsChange}
+                searchTarget={proximityLocation}
+                searchRadiusMeters={proximityLocation ? proximityRadius * 1000 : null}
+                isVisible={true}
+                onRoomGeocoded={handleRoomGeocoded}
+              />
+            </div>
           </div>
         </div>
       )}
