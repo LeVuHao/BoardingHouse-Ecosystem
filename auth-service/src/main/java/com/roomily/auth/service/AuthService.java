@@ -55,9 +55,9 @@ public class AuthService {
             }
         }
 
-        // Sinh mã thanh toán độc nhất: SEPAY_<timestamp 6 so cuoi>_<random 3 chu>
+        // Sinh mã thanh toán độc nhất không dấu gạch: SEPAYLL<timestamp 6 so cuoi><random 4 so>
         String randomSuffix = String.format("%04d", secureRandom.nextInt(10000));
-        String code = "SEPAY_LL_" + System.currentTimeMillis() % 1000000 + "_" + randomSuffix;
+        String code = "SEPAYLL" + (System.currentTimeMillis() % 1000000) + randomSuffix;
 
         java.math.BigDecimal reqAmount = (req.getAmount() != null && req.getAmount().compareTo(java.math.BigDecimal.ZERO) > 0)
                 ? req.getAmount()
