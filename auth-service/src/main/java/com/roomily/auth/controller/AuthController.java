@@ -32,6 +32,21 @@ public class AuthController {
                 .body(ApiResponse.success("Đăng ký tài khoản thành công", res));
     }
 
+    @PostMapping("/landlord-request")
+    public ResponseEntity<ApiResponse<com.roomily.auth.dto.response.LandlordRegistrationResponse>> createLandlordRequest(
+            @Valid @RequestBody com.roomily.auth.dto.request.CreateLandlordApplicationRequest req) {
+        com.roomily.auth.dto.response.LandlordRegistrationResponse res = authService.createLandlordRequest(req);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tạo yêu cầu đăng ký chủ trọ thành công. Vui lòng quét mã QR thanh toán!", res));
+    }
+
+    @GetMapping("/landlord-request/{code}")
+    public ResponseEntity<ApiResponse<com.roomily.auth.dto.response.LandlordRegistrationResponse>> getLandlordRequestByCode(
+            @PathVariable String code) {
+        com.roomily.auth.dto.response.LandlordRegistrationResponse res = authService.getLandlordRequestByCode(code);
+        return ResponseEntity.ok(ApiResponse.success(res));
+    }
+
     @PostMapping("/landlord/register")
     public ResponseEntity<ApiResponse<UserResponse>> registerLandlord(@Valid @RequestBody LandlordRegisterRequest req) {
         UserResponse res = authService.registerLandlord(req);

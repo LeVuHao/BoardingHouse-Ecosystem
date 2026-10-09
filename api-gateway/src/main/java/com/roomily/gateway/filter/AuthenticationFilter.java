@@ -32,6 +32,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/landlord/register",
+            "/api/v1/auth/landlord-request",
             "/api/v1/auth/google",
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
