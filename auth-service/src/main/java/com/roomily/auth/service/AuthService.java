@@ -98,6 +98,8 @@ public class AuthService {
 
         String content = webhook.getContent() != null ? webhook.getContent().toUpperCase() : "";
         String code = webhook.getCode() != null ? webhook.getCode().toUpperCase() : "";
+        String normalizedContent = content.replaceAll("[^A-Z0-9]", "");
+        String normalizedCode = code.replaceAll("[^A-Z0-9]", "");
 
         // Tìm kiếm tất cả đơn PENDING để đối soát nội dung
         java.util.List<com.roomily.auth.entity.LandlordRegistrationRequest> pendingRequests = 
@@ -109,7 +111,13 @@ public class AuthService {
 
         for (com.roomily.auth.entity.LandlordRegistrationRequest req : pendingRequests) {
             String pCode = req.getPaymentCode() != null ? req.getPaymentCode().toUpperCase() : "";
-            if (!pCode.isBlank() && (content.contains(pCode) || code.contains(pCode))) {
+            String normalizedPCode = pCode.replaceAll("[^A-Z0-9]", "");
+
+            if (!pCode.isBlank() && (
+                    content.contains(pCode) || 
+                    code.contains(pCode) || 
+                    (!normalizedPCode.isEmpty() && (normalizedContent.contains(normalizedPCode) || normalizedCode.contains(normalizedPCode)))
+            )) {
                 matchedRequest = req;
                 break;
             }
