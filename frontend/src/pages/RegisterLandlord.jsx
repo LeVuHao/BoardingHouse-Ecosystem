@@ -58,7 +58,7 @@ const RegisterLandlord = () => {
         phoneNumber,
         idCardNumber,
         desiredPassword,
-        amount: 199000,
+        amount: 5000,
       });
 
       const responseData = res.data?.data || res.data;
@@ -154,8 +154,8 @@ const RegisterLandlord = () => {
           </div>
 
           <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "18px 24px", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", zIndex: 2, minWidth: 220, textAlign: "center" }}>
-            <div style={{ fontSize: 13, color: "#C7D2FE", marginBottom: 4 }}>Phí kích hoạt trọn đời</div>
-            <div style={{ fontSize: "1.85rem", fontWeight: 800, color: "#FDE047" }}>199.000đ</div>
+            <div style={{ fontSize: 13, color: "#C7D2FE", marginBottom: 4 }}>Phí kích hoạt (Demo Test)</div>
+            <div style={{ fontSize: "1.85rem", fontWeight: 800, color: "#FDE047" }}>5.000đ</div>
             <div style={{ fontSize: 12, color: "#E0E7FF", marginTop: 4 }}>Đăng bài không giới hạn & Quản lý phòng</div>
           </div>
         </div>

@@ -47,6 +47,17 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(res));
     }
 
+    @PostMapping("/payment/sepay-webhook")
+    public ResponseEntity<java.util.Map<String, Object>> handleSepayWebhook(
+            @RequestBody com.roomily.auth.dto.request.SepayWebhookRequest webhook) {
+        boolean success = authService.processSepayWebhook(webhook);
+        java.util.Map<String, Object> res = new java.util.HashMap<>();
+        res.put("success", success);
+        res.put("message", success ? "Xử lý kích hoạt thành công" : "Bỏ qua hoặc không khớp giao dịch");
+        return ResponseEntity.ok(res);
+    }
+
+
     @PostMapping("/landlord/register")
     public ResponseEntity<ApiResponse<UserResponse>> registerLandlord(@Valid @RequestBody LandlordRegisterRequest req) {
         UserResponse res = authService.registerLandlord(req);

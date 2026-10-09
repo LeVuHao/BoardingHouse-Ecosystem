@@ -41,12 +41,12 @@ public class LandlordRegistrationResponse {
 
         String bankName = "BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)";
         String bankCode = "BIDV";
-        String bankAccount = "8890014407";
+        String bankAccount = "96247160605";
         String accountHolder = "LE VU HAO";
 
         String encodedHolder = URLEncoder.encode(accountHolder, StandardCharsets.UTF_8);
         String encodedCode = URLEncoder.encode(req.getPaymentCode(), StandardCharsets.UTF_8);
-        long amountVal = req.getAmount() != null ? req.getAmount().longValue() : 199000L;
+        long amountVal = req.getAmount() != null ? req.getAmount().longValue() : 5000L;
 
         String qrUrl = String.format(
                 "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",

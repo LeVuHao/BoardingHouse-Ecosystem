@@ -20,12 +20,12 @@ const AdminContactQRWidget = () => {
   const bankInfo = {
     bankName: "BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)",
     bankCode: "BIDV",
-    bankAccount: "8890014407",
+    bankAccount: "96247160605",
     accountHolder: "LE VU HAO",
-    amount: "199.000",
+    amount: "5.000",
     phone: "0348.108.630",
     email: "levuhao10jq@gmail.com",
-    qrUrl: "https://img.vietqr.io/image/BIDV-8890014407-compact2.png?amount=199000&addInfo=NAP_TIEN_CHU_TRO&accountName=LE%20VU%20HAO"
+    qrUrl: "https://img.vietqr.io/image/BIDV-96247160605-compact2.png?amount=5000&addInfo=NAP_TIEN_CHU_TRO&accountName=LE%20VU%20HAO"
   };
 
   const copyToClipboard = (text, field) => {
