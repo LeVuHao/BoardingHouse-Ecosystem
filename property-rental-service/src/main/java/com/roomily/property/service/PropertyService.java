@@ -9,6 +9,7 @@ import com.roomily.property.dto.response.RoomResponse;
 import com.roomily.property.entity.Property;
 import com.roomily.property.entity.Room;
 import com.roomily.property.entity.RoomImage;
+import com.roomily.property.repository.ContractRepository;
 import com.roomily.property.repository.PropertyRepository;
 import com.roomily.property.repository.RoomImageRepository;
 import com.roomily.property.repository.RoomRepository;
@@ -29,6 +30,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final RoomRepository roomRepository;
     private final RoomImageRepository roomImageRepository;
+    private final ContractRepository contractRepository;
 
     @Transactional
     public PropertyResponse createProperty(Long landlordId, CreatePropertyRequest req) {
@@ -188,7 +190,17 @@ public class PropertyService {
 
     public List<RoomResponse> getRoomsByProperty(Long propertyId) {
         return roomRepository.findByPropertyId(propertyId).stream()
-                .map(RoomResponse::fromEntity)
+                .map(r -> {
+                    RoomResponse resp = RoomResponse.fromEntity(r);
+                    contractRepository.findByRoomId(r.getId()).stream()
+                            .filter(c -> "ACTIVE".equalsIgnoreCase(c.getStatus()))
+                            .findFirst()
+                            .ifPresent(c -> {
+                                resp.setActiveContractId(c.getId());
+                                resp.setActiveTenantId(c.getTenantId());
+                            });
+                    return resp;
+                })
                 .collect(Collectors.toList());
     }
 }

@@ -48,7 +48,9 @@ Dự án giải quyết 2 bài toán thực tế nhức nhối:
   5. **Tìm người ở ghép:**
      - _Nếu đang thuê phòng còn chỗ:_ Tạo bài đăng tìm bạn ở ghép (nhập mô tả lối sống, giá chia).
      - _Nếu muốn tìm phòng ở ghép:_ Vào mục "Ở ghép", xem các phòng còn chỗ trống, gửi yêu cầu xin tham gia kèm lời giới thiệu.
-  6. **Theo dõi hóa đơn:** Hàng tháng nhận thông báo hóa đơn tiền nhà từ chủ trọ, xem hạn đóng và trạng thái thanh toán.
+  6. **Theo dõi & Thanh toán hóa đơn:** Hàng tháng nhận thông báo hóa đơn tiền nhà từ chủ trọ, quét mã **VietQR (SePay Webhook)** tự động đối soát giao dịch để thanh toán tức thời.
+  7. **Tương tác Diễn đàn & Nhắn tin:** Đăng bài thảo luận, tìm trọ, hỏi đáp tiện ích xung quanh, chat trao đổi trực tiếp với chủ trọ.
+  8. **Báo cáo sự cố & Đánh giá (Maintenance & Review):** Tạo phiếu báo hỏng hóc điện nước, đánh giá và chấm điểm chất lượng phòng trọ.
 
 ---
 
@@ -57,23 +59,21 @@ Dự án giải quyết 2 bài toán thực tế nhức nhối:
 1. **Chống tranh chấp chỗ ở (Concurrency Control với Redis Distributed Lock):**
    - _Bài toán:_ Một phòng chỉ còn 1 chỗ trống duy nhất nhưng có nhiều yêu cầu ở ghép được gửi tới hoặc duyệt cùng lúc.
    - _Giải pháp:_ Sử dụng **Redis Lock (Redisson) + Database Transaction + Optimistic Locking (`@Version`)** để đảm bảo tính tuần tự tuyệt đối (Atomic). Chỉ 1 người duy nhất được duyệt vào ở, các yêu cầu vượt quá sức chứa sẽ tự động bị từ chối an toàn.
-2. **Tích hợp Cổng thanh toán VNPay Sandbox & Chuẩn hóa SOAP/WSDL:**
-
-- Tích hợp thanh toán sandbox cho quy trình thanh toán hóa đơn phòng.
-- Cung cấp giao thức Web Service chuẩn **SOAP/WSDL** phục vụ tra cứu/xử lý giao dịch thanh toán chuẩn chỉ.
-
+2. **Tích hợp Cổng thanh toán Tự Động SePay (VietQR Webhook) & Chuẩn hóa SOAP/WSDL:**
+   - Tích hợp thanh toán quét mã VietQR tự động qua **SePay Open API / Webhook**: Người thuê quét mã QR chuyển khoản với cú pháp định danh (`BILL<id>`), SePay đẩy Webhook thời gian thực -> Tự động đối soát và gạch nợ hóa đơn sang `PAID`.
+   - Cung cấp giao thức Web Service chuẩn **SOAP/WSDL** phục vụ tra cứu/xử lý giao dịch thanh toán chuẩn chỉ.
 3. **Kiến trúc hướng sự kiện (Event-Driven Architecture với RabbitMQ):**
-
-- Tách biệt logic và xử lý bất đồng bộ các luồng: Gửi thông báo hệ thống khi Duyệt thuê / Duyệt ở ghép / Tạo hóa đơn.
-
-4. **Kiến trúc Microservices chuẩn mực:**
+   - Tách biệt logic và xử lý bất đồng bộ các luồng: Gửi thông báo hệ thống khi Duyệt thuê / Duyệt ở ghép / Tạo hóa đơn / Thanh toán hóa đơn thành công.
+4. **Hệ sinh thái Diễn đàn & Tương tác Cộng đồng (Community Forum & Messaging):**
+   - Chia sẻ thông tin bài đăng phòng trọ công khai, hỗ trợ tiện ích bán kính xung quanh (Nearby Places) và trao đổi tin nhắn trực tiếp giữa các bên.
+5. **Kiến trúc Microservices chuẩn mực:**
    - Chia nhỏ 4 domain độc lập, cơ sở dữ liệu riêng biệt (**Database-per-Service**), định tuyến tập trung qua **API Gateway** và phân giải qua **Eureka Discovery Server**.
 
 ---
 
 ### 4. Tóm Tắt Định Hướng Dự Án
 
-> **"Xây dựng nền tảng trung gian hoàn chỉnh, tin cậy, giao diện hiện đại, logic nghiệp vụ chặt chẽ từ tìm kiếm, quản lý phòng, kiểm duyệt hợp đồng đến kết nối ở ghép — vận hành trên nền tảng Microservices Spring Boot & React."**
+> **"Xây dựng nền tảng trung gian hoàn chỉnh, tin cậy, giao diện hiện đại, logic nghiệp vụ chặt chẽ từ tìm kiếm, quản lý phòng, kiểm duyệt hợp đồng, kết nối ở ghép, diễn đàn thảo luận đến thanh toán tự động qua VietQR/SePay — vận hành trên nền tảng Microservices Spring Boot & React."**
 
 ---
 
@@ -101,10 +101,10 @@ Port: 8081 | DB: db_auth
 (Xác thực, JWT, User, Admin)"]
         PRService["Property & Rental Service
 Port: 8082 | DB: db_property_rental
-(Khu trọ, Phòng, Ở ghép, Request)"]
+(Khu trọ, Phòng, Ở ghép, Request, Forum, Review, Maintenance)"]
         BPService["Billing & Payment Service
 Port: 8083 | DB: db_billing_payment
-(Hóa đơn, VNPay, Giao dịch)"]
+(Hóa đơn, SePay VietQR, Giao dịch)"]
         NotifSvc["Notification Service
 Port: 8084 | DB: db_notification
 (Thông báo hệ thống)"]
@@ -114,7 +114,7 @@ Port: 8084 | DB: db_notification
     subgraph Shared_Layer ["Tầng Phụ Trợ & Third-party"]
         Redis[(Redis - Distributed Lock Redisson)]
         MQ[[RabbitMQ Event Broker]]
-        VNPay[VNPay Sandbox API]
+        SePay[SePay Webhook & VietQR API]
     end
 
     FE -->|HTTP REST Requests| GW
@@ -125,7 +125,7 @@ Port: 8084 | DB: db_notification
     NotifSvc -.-|Đăng ký| Discovery
 
     GW -->|/api/v1/auth/**| AuthSvc
-    GW -->|/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**| PRService
+    GW -->|/api/v1/properties/**, /api/v1/rooms/**, /api/v1/rental/**, /api/v1/forum/**, /api/v1/reviews/**, /api/v1/tickets/**| PRService
     GW -->|/api/v1/bills/**, /api/v1/payments/**, /api/v1/contracts/**| BPService
     GW -->|/api/v1/notifications/**| NotifSvc
 
@@ -138,25 +138,25 @@ Port: 8084 | DB: db_notification
     MQ -.->|Consume Events| NotifSvc
     MQ -.->|Consume Events| AuthSvc
 
-    %% VNPay & SOAP
-    BPService <-->|VNPay Callback / IPN| VNPay
+    %% SePay & SOAP
+    BPService <-->|SePay Webhook / VietQR| SePay
     PRService <-->|SOAP / WSDL Endpoint| BPService
 ```
 
 ### 2. Bảng Phân Chia Dịch Vụ & Database (Database-per-Service)
 
-| Service                       | Port   | Database             | Nhiệm vụ chính                                                                                        |
-| :---------------------------- | :----- | :------------------- | :---------------------------------------------------------------------------------------------------- |
-| **API Gateway**               | `8080` | -                    | Entry point duy nhất, JWT Authentication Filter, Routing, CORS                                        |
-| **Eureka Server**             | `8761` | -                    | Service Discovery & Registration Registry                                                             |
-| **Auth Service**              | `8081` | `db_auth`            | Đăng ký, đăng nhập, cấp phát/validate JWT, Admin dashboard, Quản lý User/Landlord                     |
-| **Property & Rental Service** | `8082` | `db_property_rental` | CRUD Khu trọ, Phòng trọ, Upload ảnh, Tìm kiếm/Lọc, Yêu cầu thuê, Ở ghép, Cư dân, Hợp đồng, Redis Lock |
-| **Billing & Payment Service** | `8083` | `db_billing_payment` | Quản lý Hóa đơn, Giao dịch thanh toán VNPay, SOAP Web Service endpoint                                |
-| **Notification Service**      | `8084` | `db_notification`    | Lắng nghe RabbitMQ messages → Lưu trữ và trả về danh sách thông báo người dùng                        |
+| Service                       | Port   | Database             | Nhiệm vụ chính                                                                                                        |
+| :---------------------------- | :----- | :------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| **API Gateway**               | `8080` | -                    | Entry point duy nhất, JWT Authentication Filter, Routing, CORS                                                        |
+| **Eureka Server**             | `8761` | -                    | Service Discovery & Registration Registry                                                                             |
+| **Auth Service**              | `8081` | `db_auth`            | Đăng ký, đăng nhập, cấp phát/validate JWT, Admin dashboard, Quản lý User/Landlord, Khóa tài khoản                    |
+| **Property & Rental Service** | `8082` | `db_property_rental` | CRUD Bất động sản, Phòng trọ, Yêu cầu thuê, Ở ghép, Diễn đàn (Forum Post & Chat), Đánh giá Review, Sự cố Maintenance |
+| **Billing & Payment Service** | `8083` | `db_billing_payment` | Quản lý Hóa đơn, Sinh mã VietQR SePay, Webhook đối soát tự động, Giao dịch thanh toán, SOAP Web Service endpoint    |
+| **Notification Service**      | `8084` | `db_notification`    | Lắng nghe RabbitMQ messages → Lưu trữ và trả về danh sách thông báo người dùng                                        |
 
 ---
 
-### 3. Thiết Kế Cơ Sở Dữ Liệu Chi Tiết (12 Bảng)
+### 3. Thiết Kế Cơ Sở Dữ Liệu Chi Tiết (16 Bảng)
 
 #### 🗄️ 3.1. Database `db_auth`
 
@@ -173,14 +173,14 @@ Port: 8084 | DB: db_notification
 
 #### 🗄️ 3.2. Database `db_property_rental`
 
-- **Bảng `properties` (Khu trọ):**
-  - `id` (BIGINT, PK, AI), `landlord_id` (BIGINT, Index), `title` (VARCHAR 150), `description` (TEXT), `address` (VARCHAR 255), `city` (VARCHAR 100), `district` (VARCHAR 100), `ward` (VARCHAR 100), `utilities` (VARCHAR 500), `created_at` (TIMESTAMP).
+- **Bảng `properties` (Khu trọ / Bất động sản):**
+  - `id` (BIGINT, PK, AI), `landlord_id` (BIGINT, Index), `title` (VARCHAR 150), `description` (TEXT), `address` (VARCHAR 255), `city` (VARCHAR 100), `district` (VARCHAR 100), `ward` (VARCHAR 100), `utilities` (VARCHAR 500), `latitude` (DECIMAL 10,7), `longitude` (DECIMAL 10,7), `status` (VARCHAR 20 default 'ACTIVE'), `created_at` (TIMESTAMP).
 - **Bảng `rooms` (Phòng trọ):**
-  - `id` (BIGINT, PK, AI), `property_id` (BIGINT, FK), `room_number` (VARCHAR 20), `price` (DECIMAL 12,2), `area` (DECIMAL 5,2), `capacity` (INT), `current_occupants` (INT default 0), `status` (VARCHAR 20: `AVAILABLE`, `FULL`, `MAINTENANCE`), `version` (INT default 0 - Optimistic Lock).
+  - `id` (BIGINT, PK, AI), `property_id` (BIGINT, FK), `room_number` (VARCHAR 20), `price` (DECIMAL 12,2), `area` (DECIMAL 6,2), `capacity` (INT), `current_occupants` (INT default 0), `status` (VARCHAR 20: `AVAILABLE`, `FULL`, `MAINTENANCE`), `version` (INT default 0 - Optimistic Lock).
 - **Bảng `room_images` (Ảnh phòng):**
-  - `id` (BIGINT, PK, AI), `room_id` (BIGINT, FK), `image_url` (VARCHAR 255).
+  - `id` (BIGINT, PK, AI), `room_id` (BIGINT, FK), `image_url` (VARCHAR 500).
 - **Bảng `rental_requests` (Yêu cầu thuê phòng):**
-  - `id` (BIGINT, PK, AI), `user_id` (BIGINT), `room_id` (BIGINT, Index), `note` (TEXT), `status` (VARCHAR 20: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `created_at` (TIMESTAMP).
+  - `id` (BIGINT, PK, AI), `user_id` (BIGINT), `room_id` (BIGINT, Index), `note` (TEXT), `duration_months` (INT default 12), `status` (VARCHAR 20: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `created_at` (TIMESTAMP).
 - **Bảng `tenants` (Người đang ở thực tế - Quan hệ cư trú):**
   - `id` (BIGINT, PK, AI), `room_id` (BIGINT, Index), `user_id` (BIGINT, Unique - 1 user chỉ ở 1 phòng), `joined_at` (TIMESTAMP).
 - **Bảng `contracts` (Hợp đồng thuê):**
@@ -189,18 +189,26 @@ Port: 8084 | DB: db_notification
   - `id` (BIGINT, PK, AI), `room_id` (BIGINT, Unique), `creator_id` (BIGINT), `title` (VARCHAR 255), `description` (TEXT), `price_share` (DECIMAL 12,2), `status` (VARCHAR 20: `OPEN`, `FULL`, `CLOSED`), `created_at` (TIMESTAMP).
 - **Bảng `join_requests` (Yêu cầu xin ở ghép):**
   - `id` (BIGINT, PK, AI), `post_id` (BIGINT, FK), `user_id` (BIGINT), `introduction` (TEXT), `status` (VARCHAR 20: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `created_at` (TIMESTAMP).
+- **Bảng `forum_posts` (Bài đăng diễn đàn & bài đăng trọ cộng đồng):**
+  - `id` (BIGINT, PK, AI), `landlord_id` (BIGINT), `landlord_name` (VARCHAR 100), `title` (VARCHAR 200), `description` (TEXT), `price` (DECIMAL 12,2), `address` (VARCHAR 255), `city` (VARCHAR 100), `district` (VARCHAR 100), `ward` (VARCHAR 100), `contact_phone` (VARCHAR 20), `room_area` (DECIMAL 6,2), `post_type` (VARCHAR 50), `status` (VARCHAR 20: `ACTIVE`, `HIDDEN`), `created_at` (TIMESTAMP).
+- **Bảng `forum_messages` (Tin nhắn trao đổi diễn đàn/chủ trọ):**
+  - `id` (BIGINT, PK, AI), `post_id` (BIGINT, FK), `sender_id` (BIGINT), `sender_name` (VARCHAR 100), `receiver_id` (BIGINT), `message` (TEXT), `created_at` (TIMESTAMP).
+- **Bảng `reviews` (Đánh giá chất lượng phòng trọ):**
+  - `id` (BIGINT, PK, AI), `room_id` (BIGINT), `user_id` (BIGINT), `rating` (INT 1-5), `comment` (TEXT), `created_at` (TIMESTAMP).
+- **Bảng `maintenance_tickets` (Sự cố & bảo trì phòng trọ):**
+  - `id` (BIGINT, PK, AI), `room_id` (BIGINT), `tenant_id` (BIGINT), `landlord_id` (BIGINT), `category` (VARCHAR 50), `title` (VARCHAR 200), `description` (TEXT), `urgency` (VARCHAR 20), `status` (VARCHAR 20: `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`), `created_at` (TIMESTAMP).
 
 #### 🗄️ 3.3. Database `db_billing_payment`
 
-- **Bảng `invoices` (Hóa đơn phòng):**
-  - `id` (BIGINT, PK, AI), `contract_id` (BIGINT, Index), `room_id` (BIGINT), `billing_cycle` (VARCHAR 10, VD `2026-08`), `room_amount` (DECIMAL 12,2), `electricity_amount` (DECIMAL 12,2), `water_amount` (DECIMAL 12,2), `service_amount` (DECIMAL 12,2), `total_amount` (DECIMAL 12,2), `due_date` (DATE), `status` (VARCHAR 20: `UNPAID`, `PAID`, `OVERDUE`), `created_at` (TIMESTAMP).
-- **Bảng `transactions` (Lịch sử giao dịch):**
-  - `id` (BIGINT, PK, AI), `txn_ref` (VARCHAR 100, Unique), `amount` (DECIMAL 12,2), `payment_type` (VARCHAR 50: `INVOICE_PAYMENT`), `reference_id` (BIGINT), `vnp_transaction_no` (VARCHAR 100), `bank_code` (VARCHAR 20), `status` (VARCHAR 20: `PENDING`, `SUCCESS`, `FAILED`), `created_at` (TIMESTAMP), `completed_at` (TIMESTAMP).
+- **Bảng `invoices` / `bills` (Hóa đơn phòng):**
+  - `id` (BIGINT, PK, AI), `contract_id` (BIGINT, Index), `room_id` (BIGINT), `tenant_id` (BIGINT), `month_year` (VARCHAR 10, format: `YYYY-MM`), `room_amount` (DECIMAL 12,2), `electricity_amount` (DECIMAL 12,2), `water_amount` (DECIMAL 12,2), `other_amount` (DECIMAL 12,2), `total_amount` (DECIMAL 12,2), `due_date` (DATE), `status` (VARCHAR 20: `UNPAID`, `PAID`, `OVERDUE`), `created_at` (TIMESTAMP).
+- **Bảng `payment_transactions` (Lịch sử giao dịch SePay / VietQR):**
+  - `id` (BIGINT, PK, AI), `user_id` (BIGINT), `bill_id` (BIGINT), `txn_ref` (VARCHAR 100, Unique), `amount` (DECIMAL 12,2), `payment_method` (VARCHAR 50: `SEPAY_VIETQR`, `VNPAY`), `transaction_type` (VARCHAR 50: `BILL_PAYMENT`), `status` (VARCHAR 20: `PENDING`, `SUCCESS`, `FAILED`), `created_at` (TIMESTAMP).
 
 #### 🗄️ 3.4. Database `db_notification`
 
 - **Bảng `notifications`:**
-  - `id` (BIGINT, PK, AI), `user_id` (BIGINT, Index), `title` (VARCHAR 255), `content` (TEXT), `is_read` (BOOLEAN default FALSE), `created_at` (TIMESTAMP).
+  - `id` (BIGINT, PK, AI), `user_id` (BIGINT, Index), `title` (VARCHAR 255), `content` (TEXT), `type` (VARCHAR 50), `reference_id` (BIGINT), `is_read` (BOOLEAN default FALSE), `created_at` (TIMESTAMP).
 
 ---
 
@@ -248,12 +256,12 @@ sequenceDiagram
 
 ## 👥 III. PHÂN CHIA TRÁCH NHIỆM TỔNG THỂ (RESPONSIBILITY MATRIX)
 
-| Thành viên                 | Trọng tâm phụ trách                              | Khối lượng Backend                                                                                      | Khối lượng Frontend                                                                       | Tích hợp & Hạ tầng                                                 |
-| :------------------------- | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| **🔵 HẢO** _(Nhóm trưởng)_ | Hạ tầng Core + Module Ở ghép + Concurrency       | Eureka, Gateway, JWT Filter, Roommate Post, Join Request, Redis Redisson Lock                           | UI Tìm & Đăng bài ở ghép, Modal xin tham gia, Script Test Race Condition                  | Docker Compose, Redisson Lock, Concurrency Benchmark               |
-| **🟢 HÙNG**                | Xác thực + Đặt phòng + Admin + Notification      | Auth Service (JWT, Login/Register), Rental Request CRUD & Duyệt, Admin Service, Notification Service    | UI Login/Register/LandlordRegister, UI Duyệt yêu cầu thuê, Notification Bell component    | RabbitMQ Listener xử lý thông báo, OpenFeign client                |
-| **🟡 HUY**                 | Bất động sản + Tìm kiếm + SOAP Interface         | Property CRUD, Room CRUD, Upload ảnh đa file, JPA Specification Search Engine, SOAP Service             | UI Quản lý Khu trọ & Phòng trọ của Chủ trọ, UI Tìm kiếm lọc phòng đa điều kiện (Debounce) | File Storage Service, Spring Web Services (WSDL / XSD contract)    |
-| **🟠 HOÀNG**               | Hợp đồng + Hóa đơn + VNPay Gateway + MQ Producer | Invoice CRUD, Transaction CRUD, VNPay Utility & Hashing, Internal REST API cho SOAP, RabbitMQ Publisher | UI Quản lý Hợp đồng & Hóa đơn phía User, UI Chủ trọ tạo hóa đơn hàng tháng                | Tích hợp VNPay Sandbox IPN/Callback, RabbitMQ Exchanges & Producer |
+| Thành viên                 | Trọng tâm phụ trách                                | Khối lượng Backend                                                                                                  | Khối lượng Frontend                                                                          | Tích hợp & Hạ tầng                                                   |
+| :------------------------- | :------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------- |
+| **🔵 HẢO** _(Nhóm trưởng)_ | Hạ tầng Core + Module Ở ghép + Concurrency         | Eureka, Gateway, JWT Filter, Roommate Post, Join Request, Redis Redisson Lock                                       | UI Tìm & Đăng bài ở ghép, Modal xin tham gia, Script Test Race Condition                     | Docker Compose, Redisson Lock, Concurrency Benchmark                 |
+| **🟢 HÙNG**                | Xác thực + Đặt phòng + Admin + Notification        | Auth Service (JWT, Login/Register), Rental Request CRUD & Duyệt, Admin Service, Notification Service                | UI Login/Register/LandlordRegister, UI Duyệt yêu cầu thuê, Notification Bell & SSE Realtime   | RabbitMQ Listener xử lý thông báo, OpenFeign client                  |
+| **🟡 HUY**                 | Bất động sản + Tìm kiếm + Diễn đàn & Review        | Property CRUD, Room CRUD, Forum Post & Messages API, Review Service, Maintenance Ticket, SOAP Service               | UI Quản lý BĐS/Phòng, Tìm kiếm lọc phòng, Diễn đàn & Chat trao đổi, Đánh giá Review, Sự cố   | File Storage Service, Spring Web Services (WSDL / XSD contract)      |
+| **🟠 HOÀNG**               | Hợp đồng + Hóa đơn + Cổng SePay VietQR + Producer  | Bill CRUD, SePay VietQR API, Webhook SePay Handler, Transaction History, Internal REST SOAP, RabbitMQ Event Producer | UI Quản lý Hợp đồng & Hóa đơn, UI Quét mã QR thanh toán (SePay/VietQR), Chủ trọ tạo hóa đơn | Tích hợp SePay Webhook đối soát tự động, RabbitMQ Exchange & Message |
 
 ---
 
@@ -293,146 +301,75 @@ Mỗi người làm trọn một gói từ giao diện đến backend. Khi hoàn
 
 **Kết quả cần bàn giao:** Đăng nhập qua Gateway, tạo bài ở ghép, gửi yêu cầu và duyệt an toàn khi có nhiều request đồng thời.
 
-### 🟢 HÙNG — Gói tài khoản, thuê phòng và Admin
+### 🟢 HÙNG — Gói tài khoản, thuê phòng, Admin & Notification Realtime
 
-**Mục tiêu:** Người dùng đăng ký/đăng nhập được, chủ trọ quản lý yêu cầu thuê, Admin quản lý tài khoản.
+**Mục tiêu:** Người dùng đăng ký/đăng nhập được, chủ trọ quản lý yêu cầu thuê, Admin quản lý tài khoản & nội dung, nhận thông báo realtime.
 
 **Hùng làm giao diện:**
 
-- Trang đăng nhập.
-- Trang đăng ký người thuê.
-- Trang đăng ký chủ trọ.
-- Trang chủ trọ xem danh sách yêu cầu thuê.
-- Nút duyệt và từ chối yêu cầu thuê.
-- Trang Admin Dashboard đầy đủ:
-  - Xem tổng số người dùng.
-  - Xem tổng số chủ trọ.
-  - Xem tổng số khu trọ và phòng.
-  - Xem danh sách tài khoản.
-  - Lọc người dùng theo role/trạng thái.
-  - Khóa và mở khóa tài khoản.
-- Chuông và danh sách thông báo.
+- Trang đăng nhập, đăng ký người thuê và chủ trọ.
+- Trang chủ trọ xem danh sách và duyệt/từ chối yêu cầu thuê phòng.
+- Trang Admin Dashboard: thống kê tài khoản, duyệt chủ trọ, quản lý báo cáo vi phạm, quản trị bài đăng diễn đàn.
+- Chuông và trung tâm thông báo (Notifications Center).
 
 **Hùng làm backend:**
 
-- Auth Service.
-- Đăng ký người thuê và chủ trọ.
-- Đăng nhập và sinh JWT.
-- Mã hóa mật khẩu bằng BCrypt.
-- Phân quyền `USER`, `LANDLORD`, `ADMIN`.
-- Kiểm tra tài khoản bị khóa.
-- Rental Request API:
-  - Người thuê gửi yêu cầu thuê phòng.
-  - Chủ trọ xem yêu cầu thuộc phòng của mình.
-  - Chủ trọ duyệt hoặc từ chối.
-  - Kiểm tra quyền sở hữu phòng.
-  - Tạo Tenant và Contract khi duyệt.
-- Admin API thống kê, tìm kiếm, khóa và mở khóa tài khoản.
-- Notification Service lưu và trả thông báo.
-- Nhận event từ RabbitMQ để tạo thông báo.
+- Auth Service (Đăng ký, Đăng nhập, JWT token, BCrypt, phân quyền `USER`, `LANDLORD`, `ADMIN`).
+- Rental Request API (Gửi yêu cầu thuê, Landlord duyệt -> tự động sinh Tenant và Contract).
+- Admin Service (Thống kê hệ thống, Khóa/Mở khóa tài khoản, Quản lý nội dung vi phạm).
+- Notification Service (Lắng nghe sự kiện từ RabbitMQ, lưu trữ thông báo, cung cấp SSE stream đẩy realtime).
 
-**Hùng làm phần tích hợp:**
+**Kết quả cần bàn giao:** Một người dùng có thể đăng ký, đăng nhập; chủ trọ có thể duyệt yêu cầu thuê; Admin có thể quản lý toàn bộ hệ thống; Thông báo realtime hoạt động trơn tru.
 
-- Auth Service phát JWT cho toàn hệ thống.
-- Phối hợp với Hảo để Gateway chuyển `X-User-Id`, `X-User-Role`.
-- Phối hợp với Hoàng để nhận thông báo khi có hóa đơn hoặc thanh toán.
+### 🟡 HUY — Gói Bất động sản, Tìm kiếm, Diễn đàn & Đánh giá/Sự cố
 
-**Kết quả cần bàn giao:** Một người dùng có thể đăng ký, đăng nhập; chủ trọ có thể duyệt yêu cầu thuê; Admin có thể quản lý toàn bộ tài khoản bằng UI và API.
+**Mục tiêu:** Chủ trọ đăng và quản lý phòng; người thuê tìm kiếm phòng, tương tác trên diễn đàn và đánh giá chất lượng phòng ở.
 
-### 🟡 HUY — Gói đăng phòng cho thuê và tìm kiếm phòng
+**Huy làm giao diện:**
 
-**Mục tiêu:** Chủ trọ đăng được khu trọ/phòng; người thuê tìm thấy phòng phù hợp.
-
-**Huy làm giao diện cho chủ trọ:**
-
-- Trang danh sách khu trọ của mình.
-- Form tạo khu trọ:
-  - Tên khu trọ.
-  - Địa chỉ.
-  - Tỉnh/thành phố.
-  - Quận/huyện.
-  - Phường/xã.
-  - Mô tả và tiện ích.
-- Trang danh sách phòng trong từng khu trọ.
-- Form đăng phòng cho thuê:
-  - Số phòng.
-  - Giá tiền mỗi tháng.
-  - Diện tích.
-  - Sức chứa.
-  - Trạng thái phòng.
-- Chức năng sửa thông tin phòng.
-- Upload nhiều ảnh phòng và xem ảnh preview.
-
-**Huy làm giao diện cho người thuê:**
-
-- Trang tìm kiếm phòng.
-- Bộ lọc theo khu vực.
-- Bộ lọc theo khoảng giá.
-- Bộ lọc theo diện tích.
-- Hiển thị phòng còn bao nhiêu chỗ.
-- Trang xem chi tiết phòng, ảnh, giá và tiện ích.
-- Nút gửi yêu cầu thuê phòng.
+- Trang quản lý khu trọ và phòng trọ của Chủ trọ (upload ảnh đa file preview).
+- Trang tìm kiếm và lọc phòng thông minh đa tiêu chí (địa điểm, giá, diện tích, tiện ích).
+- Trang Diễn đàn cộng đồng (`ForumFeed`, `CreateForumPost`, `ForumPostDetail`) & Khung chat tin nhắn (`ForumMessages`).
+- Giao diện Đánh giá Review 5 sao và Gửi phiếu sự cố bảo trì (`MaintenanceTickets`, `LandlordTickets`).
 
 **Huy làm backend:**
 
-- Property Service quản lý khu trọ.
-- Room Service quản lý phòng.
-- CRUD khu trọ và phòng.
-- Kiểm tra chủ trọ chỉ được sửa dữ liệu của mình.
-- Upload và lưu ảnh phòng.
-- API tìm kiếm phòng.
-- JPA Specification để kết hợp nhiều điều kiện tìm kiếm.
-- API xem chi tiết phòng.
-- SOAP/WSDL endpoint để tra cứu trạng thái giao dịch, phối hợp với Hoàng.
+- Property & Room Service (CRUD BĐS, phòng, upload ảnh, định vị tọa độ kinh độ/vĩ độ).
+- JPA Specification Search Engine cho tìm kiếm phòng.
+- Forum Post & Forum Message Service (đăng bài cộng đồng, nhắn tin trực tiếp).
+- Review Service & Maintenance Ticket Service (tính điểm đánh giá trung bình, cập nhật tiến độ xử lý sự cố).
+- SOAP/WSDL endpoint tra cứu trạng thái giao dịch thanh toán.
 
-**Kết quả cần bàn giao:** Chủ trọ đăng được phòng với đầy đủ giá, diện tích, sức chứa, hình ảnh; người thuê tìm kiếm và xem chi tiết phòng được.
+**Kết quả cần bàn giao:** Chủ trọ đăng được phòng; người thuê tìm kiếm phòng, đăng bài diễn đàn, gửi đánh giá và báo cáo hỏng hóc thiết bị.
 
-### 🟠 HOÀNG — Gói hợp đồng, hóa đơn và thanh toán hóa đơn
+### 🟠 HOÀNG — Gói hợp đồng, hóa đơn và Cổng thanh toán VietQR / SePay
 
-**Mục tiêu:** Quản lý hợp đồng, tạo hóa đơn hàng tháng và cho người thuê thanh toán hóa đơn.
+**Mục tiêu:** Quản lý hợp đồng, tạo hóa đơn hàng tháng và thanh toán tự động quét mã QR qua SePay.
 
 **Hoàng làm giao diện:**
 
-- Trang người thuê xem hợp đồng.
-- Trang người thuê xem danh sách hóa đơn.
-- Hiển thị trạng thái:
-  - Chưa thanh toán.
-  - Đã thanh toán.
-  - Quá hạn.
-- Nút thanh toán hóa đơn qua VNPay.
-- Trang chủ trọ tạo hóa đơn cho người thuê:
-  - Tiền phòng.
-  - Tiền điện.
-  - Tiền nước.
-  - Phí dịch vụ.
-  - Tháng thanh toán.
-  - Hạn thanh toán.
-- Tự động tính tổng tiền trước khi gửi.
+- Trang người thuê xem danh sách hợp đồng (`MyContracts`).
+- Trang người thuê xem danh sách hóa đơn (`MyBills`) và màn hình Quét mã VietQR động để thanh toán.
+- Trang Kết quả thanh toán tự động (`PaymentResult`) đón kết quả đối soát từ SePay Webhook.
+- Trang Chủ trọ lập hóa đơn định kỳ (`LandlordCreateBill`) với tính năng tự động tính tiền điện nước.
 
 **Hoàng làm backend:**
 
-- Invoice API tạo và xem hóa đơn.
-- Tính tổng tiền hóa đơn.
-- Transaction API lưu lịch sử giao dịch.
-- Trạng thái hóa đơn `UNPAID`, `PAID`, `OVERDUE`.
-- API lấy danh sách hợp đồng từ Property/Rental Service.
-- Tạo URL thanh toán VNPay cho hóa đơn.
-- Kiểm tra chữ ký VNPay.
-- Xử lý callback VNPay.
-- Cập nhật hóa đơn thành `PAID` khi thanh toán thành công.
-- API nội bộ tra cứu transaction cho SOAP.
-- RabbitMQ Producer gửi event tạo hóa đơn và thanh toán hóa đơn.
+- Bill Service: Tạo, cập nhật và tính toán tổng tiền hóa đơn (`UNPAID`, `PAID`, `OVERDUE`).
+- SePay / VietQR Service: Sinh link mã QR thanh toán chuẩn VietQR kèm cú pháp nạp tiền `BILL<id>`.
+- Webhook Handler: Tiếp nhận webhook từ SePay khi có biến động số dư ngân hàng -> Tự động đối soát và đổi trạng thái hóa đơn sang `PAID`.
+- Transaction History API lưu vết giao dịch.
+- Internal REST API cho SOAP Web Service tra cứu giao dịch.
+- RabbitMQ Event Producer bắn event khi hóa đơn được tạo và khi thanh toán thành công.
 
-**Lưu ý nghiệp vụ:** Không làm thanh toán phí đăng ký hoặc phí kích hoạt chủ trọ. VNPay trong gói này chỉ dùng cho người thuê thanh toán hóa đơn phòng.
-
-**Kết quả cần bàn giao:** Chủ trọ tạo được hóa đơn, người thuê xem và thanh toán được, hệ thống cập nhật trạng thái sau callback VNPay.
+**Kết quả cần bàn giao:** Chủ trọ tạo được hóa đơn, người thuê quét mã QR chuyển khoản, SePay tự động bắn Webhook gạch nợ hóa đơn thành công tức thì.
 
 ### 🔗 Phần mọi người phải phối hợp
 
 - Hảo cung cấp Gateway và JWT Filter.
 - Hùng cung cấp Auth API, JWT và thông tin role/user.
-- Huy cung cấp Property, Room, Tenant và Contract API.
-- Hoàng cung cấp Invoice, Transaction và Payment API.
+- Huy cung cấp Property, Room, Forum và Review API.
+- Hoàng cung cấp Bill, Payment SePay và Transaction API.
 - Tất cả API phải dùng `ApiResponse` thống nhất.
 - Tất cả API cần kiểm tra quyền ở backend, không tin `userId` do frontend tự gửi.
 - Mỗi người phải viết Postman request hoặc test cho API mình phụ trách.
@@ -627,44 +564,42 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 - [ ] `frontend/src/pages/SearchRooms.jsx` — Prompt: "Trang search: sidebar filter (input city/district, 2 input minPrice/maxPrice), grid card kết quả (ảnh đầu tiên, giá format VNĐ, diện tích, 'Trống x/y chỗ' = capacity-currentOccupants), nút phân trang dưới cùng, gọi lại API mỗi khi filter đổi (debounce 500ms)."
 - [ ] `frontend/src/components/RoomCard.jsx` — Prompt: "Component card nhận prop room, hiển thị ảnh, giá, diện tích, địa chỉ ngắn, click điều hướng sang trang chi tiết /rooms/{id}."
 
-#### Task 3.7 — Triển Khai Chuẩn SOAP / WSDL (Ngày 31–36, Phối hợp cùng Hoàng)
+#### Task 3.7 — Triển Khai Chuẩn SOAP / WSDL (Ngày 31–36)
 
 - [ ] `pom.xml` (thêm dependency) — Prompt: "Thêm spring-boot-starter-web-services và wsdl4j:wsdl4j vào pom.xml."
 - [ ] `src/main/resources/payment.xsd` — Prompt: "Viết XSD định nghĩa 2 element: CheckPaymentStatusRequest (field txnRef kiểu string), CheckPaymentStatusResponse (field txnRef, status, amount kiểu decimal), namespace 'http://roomily.com/payment'."
-- [ ] `config/WsConfig.java` — Prompt: "@EnableWs @Configuration: bean ServletRegistrationBean cho MessageDispatcherServlet map '/ws/\*', bean DefaultWsdl11Definition tên 'payment' trỏ tới payment.xsd, portTypeName 'PaymentPort', locationUri '/ws'."
-- [ ] `endpoint/PaymentSoapEndpoint.java` — Prompt: "@Endpoint class, method @PayloadRoot(namespace='http://roomily.com/payment', localPart='CheckPaymentStatusRequest') nhận request đã unmarshal, gọi TransactionServiceClient.findByTxnRef(txnRef) (interface tạm gọi sang Billing Service qua Feign hoặc REST call), build response CheckPaymentStatusResponse trả về."
+- [ ] `config/WsConfig.java` — Prompt: "@EnableWs @Configuration: bean ServletRegistrationBean cho MessageDispatcherServlet map '/ws/*', bean DefaultWsdl11Definition tên 'payment' trỏ tới payment.xsd, portTypeName 'PaymentPort', locationUri '/ws'."
+- [ ] `endpoint/PaymentSoapEndpoint.java` — Prompt: "@Endpoint class, method @PayloadRoot(namespace='http://roomily.com/payment', localPart='CheckPaymentStatusRequest') nhận request đã unmarshal, gọi TransactionServiceClient.findByTxnRef(txnRef) sang Billing Service qua REST call, build response CheckPaymentStatusResponse trả về."
 
 ---
 
-### 🟠 4. HOÀNG (Hóa Đơn, Hợp Đồng, Cổng VNPay, RabbitMQ Publisher)
+### 🟠 4. HOÀNG (Hóa Đơn, Hợp Đồng, Cổng SePay VietQR, RabbitMQ Publisher)
 
-#### Task 4.1 — Entity & Repository: Invoice, Transaction (Ngày 4–10)
+#### Task 4.1 — Entity & Repository: Bill, PaymentTransaction (Ngày 4–10)
 
-- [ ] `entity/Invoice.java` — Prompt: "Entity bảng invoices: id PK, contractId(Long), roomId(Long), userId(Long), billingCycle(String 10, vd '2026-08'), roomAmount(BigDecimal 12,2), electricityAmount, waterAmount, serviceAmount cùng kiểu, totalAmount(BigDecimal, tự tính), dueDate(LocalDate), status(String 20 default UNPAID), createdAt @CreationTimestamp."
-- [ ] `entity/Transaction.java` — Prompt: "Entity bảng transactions: id PK, txnRef(String unique), amount(BigDecimal), paymentType(String 30, INVOICE_PAYMENT), referenceId(Long), vnpTransactionNo(String nullable), bankCode(String nullable), status(String 20 default PENDING), createdAt, completedAt(LocalDateTime nullable)."
-- [ ] `repository/InvoiceRepository.java`, `TransactionRepository.java` — Prompt: "InvoiceRepository extends JpaRepository, thêm findByUserId(Long userId, Pageable). TransactionRepository thêm findByTxnRef(String txnRef)."
+- [ ] `entity/Bill.java` — Prompt: "Entity bảng bills: id PK, contractId(Long), roomId(Long), tenantId(Long), landlordId(Long), monthYear(String), roomAmount(BigDecimal), electricityAmount, waterAmount, otherAmount, totalAmount, dueDate(LocalDate), status(String default UNPAID), createdAt @CreationTimestamp."
+- [ ] `entity/PaymentTransaction.java` — Prompt: "Entity bảng payment_transactions: id PK, userId(Long), billId(Long), txnRef(String unique), amount(BigDecimal), paymentMethod(String), transactionType(String), status(String default PENDING), createdAt, completedAt."
+- [ ] `repository/BillRepository.java`, `PaymentTransactionRepository.java` — Prompt: "BillRepository extends JpaRepository, thêm findByTenantId, findByLandlordId. PaymentTransactionRepository thêm findByVnpTxnRef hoặc findByTxnRef."
 
-#### Task 4.2 — Invoice CRUD & Contract Read-only Proxy (Ngày 11–15)
+#### Task 4.2 — Bill CRUD & Contract Read-only Proxy (Ngày 11–15)
 
-- [ ] `dto/request/CreateInvoiceRequest.java`, `dto/response/InvoiceResponse.java` — Prompt: "Request field contractId,roomId,userId,billingCycle,roomAmount,electricityAmount,waterAmount,serviceAmount,dueDate. Response đầy đủ field kèm totalAmount."
-- [ ] `service/InvoiceService.java` — Prompt: "Method create(req): totalAmount = roomAmount+electricityAmount+waterAmount+serviceAmount, status=UNPAID, save. Method listByUser(Long userId, Pageable)."
-- [ ] `controller/InvoiceController.java` — Prompt: "POST /api/v1/bills, GET /api/v1/bills/user (userId từ header)."
-- [ ] `client/PropertyRentalClient.java` — Prompt: "@FeignClient(name='property-rental-service') method GET /api/v1/contracts trả List<ContractDto> (id,userId,roomId,startDate,rentalPrice) — dùng cho endpoint GET /api/v1/contracts phía Billing chỉ để proxy/hiển thị."
-- [ ] `controller/ContractController.java` — Prompt: "GET /api/v1/contracts gọi PropertyRentalClient, filter theo userId từ header nếu role=USER, trả nguyên list nếu role=LANDLORD."
+- [ ] `dto/request/CreateBillRequest.java`, `dto/response/BillResponse.java` — Prompt: "Request field contractId,roomId,tenantId,monthYear,roomAmount,electricityAmount,waterAmount,otherAmount,dueDate. Response đầy đủ field kèm totalAmount."
+- [ ] `service/BillingService.java` — Prompt: "Method createBill(Long landlordId, CreateBillRequest req): tính totalAmount, status=UNPAID, save Bill, publish event 'invoice.created'. Method getBillsByTenant(Long tenantId), getBillsByLandlord(Long landlordId)."
+- [ ] `controller/BillingController.java` — Prompt: "POST /api/v1/bills, GET /api/v1/bills/tenant, GET /api/v1/bills/landlord."
 
 #### Task 4.3 — Frontend Hợp Đồng & Hóa Đơn (Ngày 16–20)
 
-- [ ] `frontend/src/api/billingApi.js` — Prompt: "Axios client: getMyContracts(), createInvoice(data), getMyInvoices(params)."
-- [ ] `frontend/src/pages/MyContracts.jsx`, `frontend/src/pages/MyBills.jsx` — Prompt: "2 trang React: MyContracts hiển thị list hợp đồng dạng bảng. MyBills hiển thị list hóa đơn, badge màu theo status (UNPAID đỏ, PAID xanh, OVERDUE cam)."
-- [ ] `frontend/src/pages/LandlordCreateBill.jsx` — Prompt: "Form landlord tạo hóa đơn: chọn contract (dropdown), input 4 khoản tiền, input dueDate, hiển thị tổng tự động cộng khi gõ, submit gọi createInvoice."
+- [ ] `frontend/src/api/billingApi.js` — Prompt: "Axios client: getMyContracts(), createBill(data), getMyBills(), createBillPaymentUrl(billId, amount)."
+- [ ] `frontend/src/pages/MyContracts.jsx`, `frontend/src/pages/MyBills.jsx` — Prompt: "2 trang React: MyContracts hiển thị list hợp đồng dạng bảng. MyBills hiển thị list hóa đơn, badge màu theo status (UNPAID đỏ, PAID xanh), nút quét mã QR chuyển khoản."
+- [ ] `frontend/src/pages/LandlordCreateBill.jsx` — Prompt: "Form landlord tạo hóa đơn: chọn contract, nhập số điện/nước, tự động cộng tổng, submit gọi createBill."
 
-#### Task 4.4 — Tích Hợp VNPay Sandbox Gateway (Ngày 21–30)
+#### Task 4.4 — Tích Hợp Cổng Thanh Toán SePay VietQR (Ngày 21–30)
 
-- [ ] `util/VNPayUtil.java` — Prompt: "Class tiện ích: method buildPaymentUrl(String txnRef, long amount, String orderInfo) — build query param theo chuẩn VNPay (vnp_Version, vnp_Command=pay, vnp_TmnCode, vnp_Amount=amount\*100, vnp_CurrCode=VND, vnp_TxnRef, vnp_OrderInfo, vnp_OrderType=other, vnp_Locale=vn, vnp_ReturnUrl, vnp_IpAddr, vnp_CreateDate=yyyyMMddHHmmss), sort tham số theo alphabet, ký HMAC-SHA512 bằng vnp_HashSecret, trả full URL kèm vnp_SecureHash. Method verifySignature(Map params) kiểm tra lại hash."
-- [ ] `service/PaymentService.java` (method `createInvoicePayment`) — Prompt: "Method createInvoicePayment(Long invoiceId, Long userId): tạo Transaction PENDING paymentType=INVOICE_PAYMENT, referenceId=invoiceId, gọi VNPayUtil.buildPaymentUrl, trả String paymentUrl."
-- [ ] `service/PaymentService.java` (method `handleCallback`) — Prompt: "Method handleCallback(Map<String,String> params): verify signature bằng VNPayUtil.verifySignature, nếu sai trả lỗi; nếu đúng và vnp_ResponseCode='00' thì tìm Transaction theo txnRef, update status=SUCCESS, completedAt=now, cập nhật hóa đơn liên quan sang PAID; nếu response code khác 00 thì update status=FAILED."
-- [ ] `controller/PaymentController.java` — Prompt: "POST /api/v1/payments/invoice/{invoiceId} trả {paymentUrl}. GET /api/v1/payments/vnpay-callback nhận toàn bộ query param dạng Map, gọi handleCallback, redirect (302) về FE trang kết quả kèm query status=success|failed."
-- [ ] `application.yml` (thêm config) — Prompt: "Thêm block vnpay: tmnCode, hashSecret, payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html, returnUrl=http://localhost:8083/api/v1/payments/vnpay-callback (giá trị thật lấy từ tài khoản sandbox đã đăng ký)."
+- [ ] `util/VietQRUtil.java` — Prompt: "Class tiện ích: method buildVietQRUrl(String bankCode, String accountNumber, BigDecimal amount, String content) — build link ảnh VietQR động dạng https://img.vietqr.io/image/{bank}-{acc}-compact.png?amount={amount}&addInfo={content}."
+- [ ] `service/PaymentService.java` (method `createInvoicePaymentQR`) — Prompt: "Method createInvoicePaymentQR(Long billId, Long userId): tạo PaymentTransaction PENDING paymentType=BILL_PAYMENT, referenceId=billId, txnRef='BILL'+billId, sinh link QR chuyển khoản SePay, trả String qrUrl và thông tin chuyển khoản."
+- [ ] `service/PaymentService.java` (method `handleSePayWebhook`) — Prompt: "Method handleSePayWebhook(SePayWebhookRequest req): kiểm tra API Key/Authorization của SePay, parse content lấy mã billId (cú pháp BILL{id}), tìm Bill theo id, đối soát số tiền khớp, update Bill status=PAID, update Transaction status=SUCCESS, completedAt=now, bắn event RabbitMQ 'bill.paid'; nếu không khớp log cảnh báo."
+- [ ] `controller/PaymentController.java` — Prompt: "POST /api/v1/payments/bill/{billId}/qr trả {qrUrl, bankInfo}. POST /api/v1/payments/sepay-webhook nhận webhook từ SePay Server, gọi handleSePayWebhook, trả {success: true}."
+- [ ] `application.yml` (thêm config) — Prompt: "Thêm block sepay: apiKey, bankAccount, bankName, webhookToken."
 
 #### Task 4.5 — REST Internal Phục Vụ SOAP Service (Ngày 31–36, Xem Task 3.7)
 
@@ -676,9 +611,9 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 - [ ] `config/RabbitMQConfig.java` — Prompt: "Bean DirectExchange 'payment.exchange', DirectExchange 'notification.exchange' (dùng Topic hoặc Direct đều được, chọn Direct cho đơn giản), khai báo RabbitTemplate với Jackson2JsonMessageConverter."
 - [ ] `service/InvoiceService.java` (sửa `create`, thêm publish) — Prompt: "Sau khi save Invoice thành công: rabbitTemplate.convertAndSend('notification.exchange','invoice.created', Map.of('userId',userId,'invoiceId',invoice.getId(),'billingCycle',billingCycle))."
 
-#### Task 4.7 — Unit Test & Kiểm Thử Thanh Toán (Ngày 45–48)
+#### Task 4.7 — Unit Test & Kiểm Thử Webhook SePay (Ngày 45–48)
 
-- [ ] `test/PaymentServiceTest.java` — Prompt: "Viết unit test cho VNPayUtil.verifySignature: 1 test case chữ ký đúng phải trả true, 1 test case tamper 1 param (đổi vnp_Amount) phải trả false."
+- [ ] `test/PaymentServiceTest.java` — Prompt: "Viết unit test cho handleSePayWebhook: 1 test case webhook hợp lệ cập nhật Bill sang PAID và publish event, 1 test case sai số tiền hoặc sai format billId trả về lỗi."
 
 ---
 
@@ -693,17 +628,17 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 | **Tuần 3** | Property Service: CRUD Khu trọ, Phòng trọ, File Storage upload ảnh            | Chủ trọ tạo và quản lý phòng thành công                            |
 | **Tuần 4** | JPA Specification Search Engine + Luồng gửi/duyệt Rental Request              | User tìm kiếm phòng và gửi yêu cầu thuê; Chủ trọ duyệt             |
 | **Tuần 5** | Module Ở ghép + Redisson Distributed Lock + Quản lý Hợp đồng                  | Đăng bài ở ghép, gửi Join Request, kiểm soát concurrency tranh chỗ |
-| **Tuần 6** | Invoice Management + Cổng VNPay Sandbox + SOAP / WSDL Service                 | Quản lý hóa đơn và thanh toán hóa đơn qua VNPay                    |
-| **Tuần 7** | RabbitMQ Events + Notification Service + Hoàn thiện UI toàn bộ                | Hệ thống gửi nhận event tự động; Chuông thông báo realtime-polling |
+| **Tuần 6** | Bill Management + Cổng SePay VietQR Webhook + SOAP / WSDL Service             | Quản lý hóa đơn và thanh toán hóa đơn quét mã VietQR tự động       |
+| **Tuần 7** | Diễn đàn, Review, Bảo trì + RabbitMQ Notification Realtime + Hoàn thiện UI   | Tương tác cộng đồng, đánh giá, thông báo đẩy SSE realtime          |
 | **Tuần 8** | Integration Testing + Dockerize + Viết báo cáo & Chuẩn bị Slide Demo          | Hệ thống hoàn chỉnh, trơn tru cho buổi bảo vệ                      |
 
 ---
 
 ### 2. Chi Tiết Lịch Trình Từng Thành Viên Theo Từng Ngày (Daily Timeline Matrix)
 
-| Mốc Thời Gian  | 🔵 HẢO (Hạ tầng, Concurrency & Ở ghép)                                                                   | 🟢 HÙNG (Auth, Quản lý thuê & Admin)                                                                       | 🟡 HUY (Property, Search Engine & SOAP)                                                                 | 🟠 HOÀNG (Billing, VNPay & Event Producer)                                                                            |
+| Mốc Thời Gian  | 🔵 HẢO (Hạ tầng, Concurrency & Ở ghép)                                                                   | 🟢 HÙNG (Auth, Quản lý thuê & Admin)                                                                       | 🟡 HUY (Property, Diễn đàn & Review)                                                                    | 🟠 HOÀNG (Billing, SePay VietQR & Event Producer)                                                                     |
 | :------------- | :------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------- |
-| **Ngày 1–3**   | **HẢO:** Chủ trì họp chốt Scope, ERD, Microservices boundaries, API endpoints, setup Docker cơ sở        | **HÙNG:** Chốt ERD bảng `users`, flow xác thực JWT, phân quyền 3 roles (`ADMIN`, `LANDLORD`, `USER`)       | **HUY:** Chốt ERD bảng `properties`, `rooms`, `room_images`, quan hệ 1-N                                | **HOÀNG:** Chốt ERD bảng `invoices`, `transactions`, flow VNPay Sandbox                                               |
+| **Ngày 1–3**   | **HẢO:** Chủ trì họp chốt Scope, ERD, Microservices boundaries, API endpoints, setup Docker cơ sở        | **HÙNG:** Chốt ERD bảng `users`, flow xác thực JWT, phân quyền 3 roles (`ADMIN`, `LANDLORD`, `USER`)       | **HUY:** Chốt ERD bảng `properties`, `rooms`, `forum_posts`, quan hệ 1-N                                 | **HOÀNG:** Chốt ERD bảng `invoices`, `transactions`, flow SePay VietQR Webhook                                        |
 | **Ngày 4–6**   | **HẢO (Task 1.1):** Setup Eureka Server (Port 8761) & API Gateway (Port 8080 routing 4 services)         | **HÙNG (Task 2.1):** Khởi tạo `auth-service` skeleton, pom.xml, `application.yml` kết nối Eureka           | **HUY (Task 3.1):** Khởi tạo `property-service`, tạo Entity & Repo `Property`                           | **HOÀNG (Task 4.1):** Khởi tạo `billing-service`, tạo Entity & Repo `Invoice`                                         |
 | **Ngày 7–8**   | **HẢO (Task 1.2):** Viết `docker-compose.yml` (MySQL 8, Redis 7, RabbitMQ 3.12) + script `init-db.sql`   | **HÙNG (Task 2.1 tiếp):** Tạo Entity & Repository `User`, config kết nối `db_auth`, mã hóa BCrypt          | **HUY (Task 3.1 tiếp):** Tạo Entity & Repo `Room` (kèm `@Version`), `RoomImage`                         | **HOÀNG (Task 4.1 tiếp):** Tạo Entity & Repo `Transaction` (kèm `txn_ref`, `payment_type`)                            |
 | **Ngày 9–10**  | **HẢO (Task 1.3):** Viết Gateway `AuthenticationFilter` (JWT), `ApiResponse`, Forward Header `X-User-Id` | **HÙNG (Task 2.1 tiếp):** Hoàn thiện kết nối Eureka & test kết nối DB Auth                                 | **HUY (Task 3.1 tiếp):** Hoàn thiện JPA Repositories và test kết nối DB Property                        | **HOÀNG (Task 4.1 tiếp):** Cấu hình `application.yml` cho Billing kết nối Eureka & DB                                 |
@@ -712,13 +647,13 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 | **Ngày 13–14** | **HẢO (Task 1.6):** `RoommatePostService` (method `createPost` check tenant, `searchPosts` theo status)  | **HÙNG (Task 2.2 tiếp):** Cấu hình `SecurityConfig`, hoàn thiện `AuthController`                           | **HUY (Task 3.3):** DTOs `RoomRequest`, `RoomResponse`, `RoomService` (CRUD phòng trọ)                  | **HOÀNG (Task 4.2 tiếp):** `@FeignClient` gọi `PropertyRentalClient` lấy Contract hiển thị                            |
 | **Ngày 14–15** | **HẢO (Task 1.7):** `JoinRequestService` (`sendJoinRequest`, `getRequestsByPost`), `RentalController`    | **HÙNG (Task 2.2 tiếp):** Test luồng Auth qua Postman (Login trả về JWT)                                   | **HUY (Task 3.3 tiếp):** `FileStorageService` (lưu local `./uploads/rooms/`), upload ảnh phòng          | **HOÀNG (Task 4.2 tiếp):** `ContractController` cho User & Landlord xem hợp đồng                                      |
 | **Ngày 16–20** | **HẢO (Task 1.8 FE):** `roommateApi.js`, `Roommates.jsx` (List bài đăng, Form tạo bài, Modal xin ghép)   | **HÙNG (Task 2.3 FE):** `authApi.js`, `AuthContext.jsx`, `Login.jsx`, `Register.jsx`, `ProtectedRoute.jsx` | **HUY (Task 3.4 FE):** `propertyApi.js`, `LandlordProperties.jsx`, `LandlordRooms.jsx` (upload preview) | **HOÀNG (Task 4.3 FE):** `billingApi.js`, `MyContracts.jsx`, `MyBills.jsx`, `LandlordCreateBill.jsx`                  |
-| **Ngày 21–25** | **HẢO (Task 1.9):** Entity & DTO `RentalRequest`, API gửi yêu cầu thuê phòng cho User                    | **HÙNG (Task 2.4):** `RentalRequestService` (Landlord duyệt/từ chối → tự động tạo Tenant + Contract)       | **HUY (Task 3.5):** Xây dựng `RoomSpecification` (lọc đa tiêu chí: city, giá, diện tích, trạng thái)    | **HOÀNG (Task 4.4):** Viết `VNPayUtil` (HMAC-SHA512 checksum, URL encode, param sorting)                              |
-| **Ngày 26–30** | **HẢO:** Test tích hợp luồng gửi request thuê & phối hợp Hùng xử lý duyệt tạo Tenant                     | **HÙNG (Task 2.5 FE):** Xây dựng `LandlordRequests.jsx` (giao diện duyệt/từ chối yêu cầu thuê)             | **HUY (Task 3.6 FE):** `roomApi.js`, `SearchRooms.jsx` (Sidebar filter, Debounce 500ms), `RoomCard.jsx` | **HOÀNG (Task 4.4 tiếp):** `PaymentService` (`createInvoicePayment`, `handleCallback` verify signature)               |
+| **Ngày 21–25** | **HẢO (Task 1.9):** Entity & DTO `RentalRequest`, API gửi yêu cầu thuê phòng cho User                    | **HÙNG (Task 2.4):** `RentalRequestService` (Landlord duyệt/từ chối → tự động tạo Tenant + Contract)       | **HUY (Task 3.5):** Xây dựng `RoomSpecification` (lọc đa tiêu chí: city, giá, diện tích, trạng thái)    | **HOÀNG (Task 4.4):** Viết `VietQRUtil` và tích hợp API sinh mã QR thanh toán hóa đơn                                  |
+| **Ngày 26–30** | **HẢO:** Test tích hợp luồng gửi request thuê & phối hợp Hùng xử lý duyệt tạo Tenant                     | **HÙNG (Task 2.5 FE):** Xây dựng `LandlordRequests.jsx` (giao diện duyệt/từ chối yêu cầu thuê)             | **HUY (Task 3.6 FE):** `roomApi.js`, `SearchRooms.jsx` (Sidebar filter, Debounce 500ms), `RoomCard.jsx` | **HOÀNG (Task 4.4 tiếp):** Xây dựng SePay Webhook Endpoint nhận biến động số dư và gạch nợ tự động                    |
 | **Ngày 31–36** | **HẢO (Task 1.10):** Cấu hình **Redisson**, viết `approveJoinRequestWithLock` chống tranh chỗ            | **HÙNG (Task 2.6 & 2.7):** `AdminService`, Feign Client thống kê, xử lý notification events                | **HUY (Task 3.7):** Xây dựng **SOAP Endpoint** (`payment.xsd`, `WsConfig`, `PaymentSoapEndpoint`)       | **HOÀNG (Task 4.5 & 4.6):** REST Internal cho SOAP gọi, RabbitMQ Config (`payment.exchange`, `notification.exchange`) |
-| **Ngày 37–40** | **HẢO (Task 1.11):** Viết script Node.js `demo-race-condition.js` benchmark race condition               | **HÙNG:** Kiểm thử notification events qua RabbitMQ                                                        | **HUY:** Test gọi chéo SOAP sang REST Internal lấy trạng thái giao dịch                                 | **HOÀNG:** Hoàn thiện `handleCallback` publish event `invoice.created`                                                |
-| **Ngày 41–44** | **HẢO:** Rà soát Gateway routes, xử lý CORS, tối ưu hiệu năng Redis Lock & TTL                           | **HÙNG (Task 2.8):** Khởi tạo `notification-service`, Entity, Repo, Service, Controller                    | **HUY (FE):** Tinh chỉnh giao diện trang chủ, trang chi tiết phòng `RoomDetail.jsx`                     | **HOÀNG:** Viết Producer publish notification event cho hóa đơn mới                                                   |
-| **Ngày 45–48** | **HẢO:** Test end-to-end flow Ở ghép + Concurrency Lock (gửi request & duyệt đồng thời)                  | **HÙNG (Task 2.8 tiếp):** `EventListener` (3 RabbitListeners), Component `NotificationBell.jsx`            | **HUY:** Hỗ trợ ghép nối Frontend toàn trang, test bộ lọc tìm kiếm phòng                                | **HOÀNG (Task 4.7):** Viết Unit Test `PaymentServiceTest.java` (test checksum VNPay), test full flow thanh toán       |
-| **Ngày 49–54** | **HẢO:** Đóng gói Docker Compose toàn bộ 4 Microservices + Gateway + Eureka + Frontend                   | **HÙNG:** Kiểm thử phân quyền 3 Role (`ADMIN`, `LANDLORD`, `USER`) trên giao diện                          | **HUY:** Kiểm thử toàn bộ luồng tạo phòng, upload ảnh, tìm kiếm phòng                                   | **HOÀNG:** Kiểm thử luồng thanh toán VNPay Sandbox & xuất hóa đơn tiền phòng                                          |
+| **Ngày 37–40** | **HẢO (Task 1.11):** Viết script Node.js `demo-race-condition.js` benchmark race condition               | **HÙNG:** Kiểm thử notification events qua RabbitMQ                                                        | **HUY:** Triển khai Diễn đàn & Chat `ForumPostService`, `ForumMessageService`                           | **HOÀNG:** Hoàn thiện `handleSePayWebhook` publish event `bill.paid`                                                  |
+| **Ngày 41–44** | **HẢO:** Rà soát Gateway routes, xử lý CORS, tối ưu hiệu năng Redis Lock & TTL                           | **HÙNG (Task 2.8):** Khởi tạo `notification-service`, SSE stream controller                               | **HUY (FE):** Xây dựng giao diện Diễn đàn `ForumFeed.jsx`, `ForumPostDetail.jsx`, `ForumMessages.jsx`    | **HOÀNG:** Viết Producer publish notification event cho hóa đơn mới                                                   |
+| **Ngày 45–48** | **HẢO:** Test end-to-end flow Ở ghép + Concurrency Lock (gửi request & duyệt đồng thời)                  | **HÙNG (Task 2.8 tiếp):** `EventListener` (3 RabbitListeners), Component `NotificationBell.jsx`            | **HUY:** Triển khai Review 5 sao và Ticket bảo trì (`ReviewService`, `MaintenanceTicketService`)         | **HOÀNG (Task 4.7):** Viết Unit Test `PaymentServiceTest.java` (test webhook SePay), test full flow thanh toán        |
+| **Ngày 49–54** | **HẢO:** Đóng gói Docker Compose toàn bộ 4 Microservices + Gateway + Eureka + Frontend                   | **HÙNG:** Kiểm thử phân quyền 3 Role (`ADMIN`, `LANDLORD`, `USER`) trên giao diện                          | **HUY:** Kiểm thử toàn bộ luồng Diễn đàn, Đánh giá phòng, Báo cáo sự cố bảo trì                        | **HOÀNG:** Kiểm thử luồng quét VietQR SePay tự động gạch nợ & xuất hóa đơn tiền phòng                                 |
 | **Ngày 55–60** | **HẢO:** Tổng duyệt Kịch bản Demo, chuẩn bị Slide thuyết trình, hoàn thiện Báo cáo đồ án                 | **HÙNG:** Tổng duyệt Kịch bản Demo, chuẩn bị tài liệu API Postman Collection                               | **HUY:** Tổng duyệt Kịch bản Demo, hoàn thiện tài liệu hướng dẫn cài đặt                                | **HOÀNG:** Tổng duyệt Kịch bản Demo, chuẩn bị video demo dự phòng                                                     |
 
 ---
@@ -727,10 +662,8 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 
 1. **Admin Dashboard:** Admin đăng nhập, xem thống kê người dùng, chủ trọ, phòng trọ, danh sách chủ trọ chờ duyệt.
 2. **Đăng ký Landlord:**
-
 - Chủ trọ đăng ký tài khoản với thông tin cá nhân và tài khoản được tạo ở trạng thái `ACTIVE`.
 - Chủ trọ đăng nhập và bắt đầu quản lý khu trọ, phòng trọ.
-
 3. **Chủ trọ tạo phòng:** Đăng nhập Landlord, tạo khu trọ mới, thêm phòng P101 (sức chứa 2 người), upload ảnh thực tế của phòng.
 4. **Tìm kiếm & Thuê phòng:**
    - User A tìm kiếm theo bộ lọc (quận, tầm giá), xem chi tiết phòng P101 vừa tạo.
@@ -743,8 +676,14 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
      - **Redisson Distributed Lock** chặn ở critical section.
      - Request đầu tiên kiểm tra `current_occupants (1) < capacity (2)` → **Duyệt thành công (APPROVED)**, tăng occupants lên 2, cập nhật post sang `FULL`.
      - Request thứ hai sau khi vào lock thấy phòng đã đủ người (`current_occupants == capacity`) → **Tự động Từ chối (REJECTED)**.
-6. **Quản lý Hóa đơn:** Landlord tạo hóa đơn tháng cho phòng P101 → Event RabbitMQ bắn đi → User nhận được thông báo hóa đơn mới trong tài khoản.
-7. **Demo SOAP/WSDL:** Gọi test Web Service endpoint SOAP `/ws` tra cứu trạng thái mã giao dịch VNPay theo chuẩn XSD/WSDL môn học.
+6. **Diễn đàn & Đánh giá Review:**
+   - Người dùng đăng bài chia sẻ trên Diễn đàn, nhắn tin trực tiếp với chủ trọ.
+   - Người thuê gửi đánh giá 5 sao và tạo phiếu báo sự cố bảo trì khi phòng gặp sự cố hỏng hóc.
+7. **Quản lý Hóa đơn & Thanh toán Tự Động VietQR / SePay:**
+   - Landlord tạo hóa đơn tháng cho phòng P101 → Event RabbitMQ bắn đi → User nhận được thông báo hóa đơn mới trong tài khoản.
+   - User mở hóa đơn, hiển thị mã **VietQR động** với nội dung `BILL<id>`.
+   - Giả lập chuyển khoản quét mã VietQR -> **SePay Webhook** bắn về Server -> Hệ thống tự động đối soát, cập nhật hóa đơn sang `PAID` và bắn thông báo thành công.
+8. **Demo SOAP/WSDL:** Gọi test Web Service endpoint SOAP `/ws` tra cứu trạng thái mã giao dịch thanh toán theo chuẩn XSD/WSDL môn học.
 
 ---
 
@@ -753,4 +692,5 @@ _(Mỗi dòng tương ứng 1 file = 1 lần nhờ AI vibe code / Cursor / Claud
 1. **Thứ tự thực thi ticket:** Làm tuần tự theo từng task. Ticket sau cần class/interface của ticket trước tồn tại (Ví dụ: Entity → Repository → DTO → Service → Controller).
 2. **Build thử nghiệm liên tục:** Sau mỗi 1-2 ticket, chạy `mvn compile` hoặc khởi động ứng dụng ngay để phát hiện và sửa lỗi sớm.
 3. **Thống nhất chuẩn tên biến/cột:** Tuyệt đối không tự ý thay đổi tên trường database hoặc DTO khác với tài liệu này để tránh xung đột khi ghép nối các microservices.
-4. **Kiểm soát Scope:** Tập trung hoàn thiện trơn tru 4 Microservices cốt lõi, không mở rộng sang các công nghệ phức tạp chưa cần thiết (Chat, AI, Kafka, Kubernetes).
+4. **Kiểm soát Scope:** Tập trung hoàn thiện trơn tru 4 Microservices cốt lõi, không mở rộng sang các công nghệ phức tạp chưa cần thiết (Kafka, Kubernetes).
+

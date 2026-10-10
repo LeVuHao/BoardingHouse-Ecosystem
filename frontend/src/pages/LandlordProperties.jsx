@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { propertyApi, rentalApi } from '../api/apiClient';
-import { Plus, Home, Eye, Check, X, Edit2, Image } from 'lucide-react';
+import { propertyApi, rentalApi, billingApi } from '../api/apiClient';
+import { Plus, Home, Eye, Check, X, Edit2, Image, Receipt, Zap, Droplet, Users, CalendarDays, Wallet } from 'lucide-react';
 import AmenityPicker from '../components/AmenityPicker';
 import RoomLocationPicker from '../components/RoomLocationPicker';
 
@@ -43,6 +43,62 @@ const LandlordProperties = () => {
   // Requests
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [requests, setRequests] = useState([]);
+
+  // Quick Create Bill Modal
+  const [showQuickBill, setShowQuickBill] = useState(false);
+  const [quickBillRoom, setQuickBillRoom] = useState(null);
+  const [billMonthYear, setBillMonthYear] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [billRoomAmount, setBillRoomAmount] = useState('');
+  const [billElectricityAmount, setBillElectricityAmount] = useState('');
+  const [billWaterAmount, setBillWaterAmount] = useState('');
+  const [billOtherAmount, setBillOtherAmount] = useState('');
+  const [billDueDate, setBillDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 5);
+    return d.toISOString().split('T')[0];
+  });
+  const [isSubmittingBill, setIsSubmittingBill] = useState(false);
+
+  const openQuickBillModal = (room) => {
+    setQuickBillRoom(room);
+    setBillRoomAmount(room.price || '');
+    setBillElectricityAmount('');
+    setBillWaterAmount('');
+    setBillOtherAmount('');
+    setShowQuickBill(true);
+  };
+
+  const handleCreateQuickBill = async (e) => {
+    e.preventDefault();
+    if (!quickBillRoom?.activeContractId || !quickBillRoom?.activeTenantId) {
+      alert('Không tìm thấy thông tin hợp đồng đang hiệu lực cho phòng này để lập hóa đơn.');
+      return;
+    }
+
+    setIsSubmittingBill(true);
+    try {
+      await billingApi.createBill({
+        contractId: quickBillRoom.activeContractId,
+        roomId: quickBillRoom.id,
+        tenantId: quickBillRoom.activeTenantId,
+        monthYear: billMonthYear,
+        roomAmount: Number(billRoomAmount) || 0,
+        electricityAmount: Number(billElectricityAmount) || 0,
+        waterAmount: Number(billWaterAmount) || 0,
+        otherAmount: Number(billOtherAmount) || 0,
+        dueDate: billDueDate,
+      });
+      alert(`Đã xuất hóa đơn tháng ${billMonthYear} cho phòng ${quickBillRoom.roomNumber} thành công! Hệ thống đã gửi thông báo đến người thuê.`);
+      setShowQuickBill(false);
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Lỗi tạo hóa đơn');
+    } finally {
+      setIsSubmittingBill(false);
+    }
+  };
 
   const loadProperties = async () => {
     try {
@@ -318,6 +374,16 @@ const LandlordProperties = () => {
                           <Edit2 size={13} /> Sửa
                         </button>
                       </div>
+
+                      {r.activeContractId && (
+                        <button
+                          onClick={() => openQuickBillModal(r)}
+                          className="btn btn-primary"
+                          style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.35rem 0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+                        >
+                          <Receipt size={14} /> Xuất hóa đơn tháng
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -468,6 +534,115 @@ const LandlordProperties = () => {
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowEditRoom(false)} className="btn btn-outline">Hủy</button>
                 <button type="submit" className="btn btn-primary">Lưu thay đổi</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Quick Create Bill Modal */}
+      {showQuickBill && quickBillRoom && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.5rem', background: 'var(--primary-light)', borderRadius: '10px', color: 'var(--primary)' }}>
+                <Receipt size={22} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0 }}>Xuất Hóa Đơn Tháng</h3>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Phòng {quickBillRoom.roomNumber} · HĐ #{quickBillRoom.activeContractId}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateQuickBill}>
+              <div className="form-group">
+                <label><CalendarDays size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tháng thu tiền</label>
+                <input
+                  type="month"
+                  required
+                  value={billMonthYear}
+                  onChange={(e) => setBillMonthYear(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                <div className="form-group">
+                  <label><Home size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tiền phòng (đ)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={billRoomAmount}
+                    onChange={(e) => setBillRoomAmount(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label><Zap size={14} style={{ display: 'inline', marginRight: '4px', color: '#f59e0b' }} /> Tiền điện (đ)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={billElectricityAmount}
+                    onChange={(e) => setBillElectricityAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                <div className="form-group">
+                  <label><Droplet size={14} style={{ display: 'inline', marginRight: '4px', color: '#06b6d4' }} /> Tiền nước (đ)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={billWaterAmount}
+                    onChange={(e) => setBillWaterAmount(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label><Plus size={14} style={{ display: 'inline', marginRight: '4px' }} /> Phí khác (rác, wifi...)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={billOtherAmount}
+                    onChange={(e) => setBillOtherAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Hạn thanh toán</label>
+                <input
+                  type="date"
+                  required
+                  value={billDueDate}
+                  onChange={(e) => setBillDueDate(e.target.value)}
+                />
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '0.9rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--primary)' }}>
+                  <span>Tổng cộng:</span>
+                  <span>
+                    {(
+                      (Number(billRoomAmount) || 0) +
+                      (Number(billElectricityAmount) || 0) +
+                      (Number(billWaterAmount) || 0) +
+                      (Number(billOtherAmount) || 0)
+                    ).toLocaleString('vi-VN')} đ
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowQuickBill(false)} className="btn btn-outline" disabled={isSubmittingBill}>
+                  Hủy
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={isSubmittingBill}>
+                  {isSubmittingBill ? 'Đang gửi...' : 'Gửi hóa đơn cho khách'}
+                </button>
               </div>
             </form>
           </div>
