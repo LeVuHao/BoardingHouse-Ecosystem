@@ -34,6 +34,11 @@ public class RoomResponse {
     private List<String> images;
     private LocalDateTime createdAt;
 
+    // Thông tin hợp đồng / người thuê hiện tại (cho chủ trọ xuất hóa đơn trực tiếp)
+    private Long activeContractId;
+    private Long activeTenantId;
+    private String activeTenantName;
+
     public static RoomResponse fromEntity(Room r) {
         if (r == null) return null;
         List<String> imgUrls = r.getImages() != null ?
