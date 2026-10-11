@@ -86,7 +86,7 @@ const SearchRooms = () => {
       {showFilter && (
         <aside>
           <div style={{
-            background: 'white', borderRadius: '16px', padding: '1.5rem',
+            background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem',
             boxShadow: 'var(--shadow)', position: 'sticky', top: '5.5rem',
             maxHeight: 'calc(100vh - 7rem)', overflowY: 'auto'
           }}>
@@ -130,9 +130,9 @@ const SearchRooms = () => {
                 <label>Tình trạng phòng</label>
                 <select value={status} onChange={(e) => setStatus(e.target.value)} style={{
                   width: '100%', padding: '0.6rem', borderRadius: '8px',
-                  border: '1px solid var(--border)', fontSize: '0.9rem'
+                  border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.9rem'
                 }}>
-                  {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {STATUSES.map(s => <option key={s.value} value={s.value} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{s.label}</option>)}
                 </select>
               </div>
 

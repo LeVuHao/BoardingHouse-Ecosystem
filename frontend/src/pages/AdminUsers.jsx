@@ -9,20 +9,20 @@ import {
 
 const PAGE_SIZE = 10;
 
-const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" };
-const tdStyle = { padding: "12px 16px", fontSize: 14, color: "#334155", borderBottom: "1px solid #F1F5F9", verticalAlign: "middle" };
+const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "var(--bg-primary)", borderBottom: "1px solid var(--border-color)" };
+const tdStyle = { padding: "12px 16px", fontSize: 14, color: "var(--text-primary)", borderBottom: "1px solid var(--border-color)", verticalAlign: "middle" };
 
 const ROLE_LABEL = { ADMIN: "Quản trị viên", LANDLORD: "Chủ trọ", USER: "Người thuê" };
 const ROLE_COLOR = {
-  ADMIN: { color: "#6D28D9", bg: "#EDE9FE" },
-  LANDLORD: { color: "#1D4ED8", bg: "#DBEAFE" },
-  USER: { color: "#475569", bg: "#F1F5F9" },
+  ADMIN: { color: "#8B5CF6", bg: "rgba(139, 92, 246, 0.15)", border: "rgba(139, 92, 246, 0.3)" },
+  LANDLORD: { color: "#3B82F6", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)" },
+  USER: { color: "var(--text-secondary)", bg: "var(--bg-primary)", border: "var(--border-color)" },
 };
 
 const RoleBadge = ({ role }) => {
   const c = ROLE_COLOR[role] || ROLE_COLOR.USER;
   return (
-    <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, color: c.color, background: c.bg, whiteSpace: "nowrap" }}>
+    <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, color: c.color, background: c.bg, border: `1px solid ${c.border}`, whiteSpace: "nowrap" }}>
       {ROLE_LABEL[role] || role}
     </span>
   );
@@ -32,7 +32,7 @@ const Avatar = ({ user }) =>
   user.avatarUrl ? (
     <img src={user.avatarUrl} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
   ) : (
-    <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#EDE9FE", color: "#7C3AED", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(139, 92, 246, 0.15)", color: "#8B5CF6", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
       {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
     </div>
   );
@@ -118,13 +118,13 @@ const AdminUsers = () => {
       </div>
 
       <div style={{ ...cardStyle, padding: "16px 24px", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm theo họ tên hoặc email..."
-            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14 }}
+            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14, color: "var(--text-primary)" }}
           />
         </div>
         <select value={role} onChange={(e) => setRole(e.target.value)} style={{ ...inputStyle, width: 170 }}>
@@ -158,14 +158,14 @@ const AdminUsers = () => {
                       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                         <Avatar user={u} />
                         <div>
-                          <div style={{ fontWeight: 600, color: "#0F172A" }}>{u.fullName || "—"}</div>
-                          <div style={{ fontSize: 12, color: "#94A3B8" }}>ID: {u.id}</div>
+                          <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{u.fullName || "—"}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>ID: {u.id}</div>
                         </div>
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={13} color="#94A3B8" /> {u.email}</div>
-                      {u.phoneNumber && <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#64748B", marginTop: 2 }}><Phone size={13} color="#94A3B8" /> {u.phoneNumber}</div>}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={13} color="var(--text-secondary)" /> {u.email}</div>
+                      {u.phoneNumber && <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}><Phone size={13} color="var(--text-secondary)" /> {u.phoneNumber}</div>}
                     </td>
                     <td style={tdStyle}><RoleBadge role={u.role} /></td>
                     <td style={tdStyle}>

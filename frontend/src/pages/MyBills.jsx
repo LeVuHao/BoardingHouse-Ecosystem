@@ -66,38 +66,38 @@ const MyBills = () => {
 
       {/* Overview Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{ background: 'white', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <AlertCircle size={16} color="#f59e0b" /> Chưa thanh toán
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>
             {money(totalUnpaid)}
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
             {bills.filter((b) => b.status === 'UNPAID').length} hóa đơn cần đóng
           </div>
         </div>
 
-        <div style={{ background: 'white', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <CheckCircle size={16} color="#10b981" /> Đã thanh toán
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>
             {money(totalPaid)}
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
             {bills.filter((b) => b.status === 'PAID').length} hóa đơn đã hoàn tất
           </div>
         </div>
 
-        <div style={{ background: 'white', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Receipt size={16} color="var(--primary)" /> Tổng hóa đơn nhận được
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>
             {bills.length}
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
             Toàn bộ lịch sử các tháng
           </div>
         </div>
@@ -130,14 +130,14 @@ const MyBills = () => {
 
       {/* Bills List */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', color: 'var(--text-secondary)', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
           Đang tải hóa đơn của bạn...
         </div>
       ) : filteredBills.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '14px', border: '1px solid var(--border)' }}>
-          <Receipt size={40} style={{ opacity: 0.3, marginBottom: '0.8rem' }} />
-          <h4 style={{ margin: '0 0 0.3rem' }}>Chưa có hóa đơn nào</h4>
-          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', color: 'var(--text-secondary)', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+          <Receipt size={40} style={{ opacity: 0.3, marginBottom: '0.8rem', color: 'var(--text-secondary)' }} />
+          <h4 style={{ margin: '0 0 0.3rem', color: 'var(--text-primary)' }}>Chưa có hóa đơn nào</h4>
+          <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>
             Hàng tháng khi chủ trọ lập hóa đơn tiền phòng & điện nước, thông tin sẽ hiển thị tại đây.
           </p>
         </div>
@@ -149,11 +149,12 @@ const MyBills = () => {
               <div
                 key={bill.id}
                 style={{
-                  background: 'white',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
                   borderRadius: '16px',
-                  border: isPaid ? '1px solid var(--border)' : '1.5px solid #fde68a',
+                  border: isPaid ? '1px solid var(--border-color)' : '1.5px solid rgba(245, 158, 11, 0.4)',
                   padding: '1.4rem',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                  boxShadow: 'var(--shadow-card)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -177,8 +178,8 @@ const MyBills = () => {
                         fontWeight: 700,
                         padding: '0.3rem 0.7rem',
                         borderRadius: '20px',
-                        background: isPaid ? '#d1fae5' : '#fef3c7',
-                        color: isPaid ? '#065f46' : '#92400e',
+                        background: isPaid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        color: isPaid ? '#10b981' : '#f59e0b',
                       }}
                     >
                       {isPaid ? '✓ ĐÃ THANH TOÁN' : '⏳ CHƯA THANH TOÁN'}
@@ -186,7 +187,7 @@ const MyBills = () => {
                   </div>
 
                   {/* Fee items breakdown */}
-                  <div style={{ background: '#f8fafc', padding: '0.9rem', borderRadius: '10px', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1rem' }}>
+                  <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '0.9rem', borderRadius: '10px', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Home size={14} /> Tiền phòng:

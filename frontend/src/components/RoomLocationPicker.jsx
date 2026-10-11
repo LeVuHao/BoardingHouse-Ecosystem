@@ -90,13 +90,41 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
   }, [onChange]);
 
   useEffect(() => {
+    const lat = Number(initialLocation?.latitude);
+    const lon = Number(initialLocation?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      const q = (addressQuery || "").trim();
+      setSelectedLocation({
+        query: q,
+        position: [lat, lon],
+      });
+      setGeocodeResult({ query: q, status: "found" });
+      if (onChangeRef.current) {
+        onChangeRef.current({
+          latitude: lat,
+          longitude: lon,
+          nearbyPlaces: [],
+        });
+      }
+    }
+  }, [initialLocation?.latitude, initialLocation?.longitude]);
+
+  useEffect(() => {
     let controller;
 
     if (!query) {
       return undefined;
     }
 
-    if (manualSelectionQueryRef.current !== query) {
+    // Nếu tọa độ đã được cung cấp từ initialLocation, không gọi lại Photon để tránh gián đoạn
+    const lat = Number(initialLocation?.latitude);
+    const lon = Number(initialLocation?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      setGeocodeResult({ query, status: "found" });
+      return undefined;
+    }
+
+    if (manualSelectionQueryRef.current === query) {
       manualSelectionQueryRef.current = null;
     }
 
@@ -107,35 +135,38 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
       setGeocodeResult({ query, status: "loading" });
 
       try {
-        const params = new URLSearchParams({
-          format: "jsonv2",
-          limit: "1",
-          countrycodes: "vn",
-          q: query,
+        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(
+          query
+        )}&limit=1`;
+        const response = await fetch(photonUrl, {
+          signal: controller.signal,
         });
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?${params}`,
-          { signal: controller.signal, headers: { "Accept-Language": "vi" } },
-        );
 
         if (!response.ok) {
-          throw new Error(`Nominatim trả về lỗi ${response.status}`);
+          throw new Error(`Photon trả về lỗi ${response.status}`);
         }
 
-        const results = await response.json();
-        if (results.length === 0) {
+        const data = await response.json();
+        const features = data.features || [];
+        if (features.length === 0) {
           setGeocodeResult({ query, status: "not-found" });
           return;
         }
 
-        const nextPosition = [Number(results[0].lat), Number(results[0].lon)];
+        const coords = features[0].geometry?.coordinates || [];
+        if (coords.length < 2) {
+          setGeocodeResult({ query, status: "not-found" });
+          return;
+        }
+
+        const nextPosition = [Number(coords[1]), Number(coords[0])];
         if (controller.signal.aborted) return;
         setSelectedLocation({ query, position: nextPosition });
         setGeocodeResult({ query, status: "found" });
       } catch (error) {
         if (error.name === "AbortError") return;
-        console.error("Không thể tìm tọa độ địa chỉ:", error);
-        setGeocodeResult({ query, status: "error" });
+        console.warn("Không thể tìm tọa độ địa chỉ:", error);
+        setGeocodeResult({ query, status: "not-found" });
       }
     }, GEOCODE_DEBOUNCE_MS);
 
@@ -146,7 +177,7 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
         geocodeControllerRef.current = null;
       }
     };
-  }, [query]);
+  }, [query, initialLocation?.latitude, initialLocation?.longitude]);
 
   useEffect(() => {
     if (!position) return undefined;
@@ -275,11 +306,11 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
           <span><LoaderCircle size={14} className="room-location-spinner" /> Đang tìm tọa độ địa chỉ...</span>
         )}
         {geocodeStatus === "found" && (
-          <span>Đã tìm thấy vị trí. Kéo ghim hoặc bấm lên bản đồ để chỉnh lại.</span>
+          <span style={{ color: "#16a34a", fontWeight: 600 }}>✓ Đã xác định vị trí trên bản đồ. Kéo ghim hoặc bấm lên bản đồ để chỉnh lại nếu cần.</span>
         )}
-        {geocodeStatus === "not-found" && "Không tìm thấy địa chỉ; hãy thử thêm phường, quận và thành phố."}
-        {geocodeStatus === "error" && "Không thể tra cứu địa chỉ lúc này. Bạn vẫn có thể chọn vị trí trực tiếp trên bản đồ."}
-        {geocodeStatus === "idle" && "Nhập địa chỉ để tìm vị trí, hoặc bấm lên bản đồ để chọn thủ công."}
+        {geocodeStatus === "not-found" && "Chưa tìm thấy tọa độ tự động. Bạn hãy bấm trực tiếp lên bản đồ để ghim vị trí."}
+        {geocodeStatus === "error" && "Không thể tra cứu địa chỉ tự động lúc này. Bạn hãy bấm trực tiếp lên bản đồ để ghim vị trí."}
+        {geocodeStatus === "idle" && "Chọn địa chỉ gợi ý ở trên hoặc bấm lên bản đồ để chọn vị trí phòng."}
       </div>
 
       <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>

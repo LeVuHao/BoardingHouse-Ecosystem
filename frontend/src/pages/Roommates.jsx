@@ -129,9 +129,9 @@ const Roommates = () => {
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', background: 'white', borderRadius: '16px', border: '1px solid var(--border)' }}>
-          <h3>Chưa có bài đăng tìm người ở ghép nào</h3>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Hãy là người đầu tiên đăng bài để tìm bạn cùng chia sẻ tiền phòng!</p>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+          <h3 style={{ color: 'var(--text-primary)' }}>Chưa có bài đăng tìm người ở ghép nào</h3>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Hãy là người đầu tiên đăng bài để tìm bạn cùng chia sẻ tiền phòng!</p>
           {user && (
             <button onClick={() => setShowCreateModal(true)} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
               <Plus size={18} /> Đăng bài ngay

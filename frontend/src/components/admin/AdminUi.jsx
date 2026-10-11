@@ -4,32 +4,34 @@ import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 export const PURPLE = "#8B5CF6";
 
 export const cardStyle = {
-  background: "white",
+  background: "var(--bg-card, white)",
+  color: "var(--text-primary, #0F172A)",
   borderRadius: 12,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+  boxShadow: "var(--shadow-card, 0 1px 3px rgba(0,0,0,0.05))",
+  border: "1px solid var(--border-color, #E2E8F0)",
 };
 
 export const inputStyle = {
   width: "100%",
   boxSizing: "border-box",
   padding: "10px 12px",
-  border: "1px solid #E2E8F0",
+  border: "1px solid var(--border-color, #E2E8F0)",
   borderRadius: 8,
   fontSize: 14,
   outline: "none",
   fontFamily: "inherit",
-  background: "white",
-  color: "#0F172A",
+  background: "var(--bg-card, white)",
+  color: "var(--text-primary, #0F172A)",
 };
 
 export const buttonStyle = (variant = "default", extra = {}) => {
   const variants = {
-    default: { background: "white", color: "#334155", border: "1px solid #E2E8F0" },
+    default: { background: "var(--bg-card, white)", color: "var(--text-primary, #334155)", border: "1px solid var(--border-color, #E2E8F0)" },
     primary: { background: PURPLE, color: "white", border: `1px solid ${PURPLE}` },
     success: { background: "#16A34A", color: "white", border: "1px solid #16A34A" },
     danger: { background: "#DC2626", color: "white", border: "1px solid #DC2626" },
     warning: { background: "#F59E0B", color: "white", border: "1px solid #F59E0B" },
-    ghostDanger: { background: "#FEF2F2", color: "#B91C1C", border: "1px solid #FECACA" },
+    ghostDanger: { background: "rgba(239, 68, 68, 0.15)", color: "#EF4444", border: "1px solid rgba(239, 68, 68, 0.3)" },
   };
   return {
     display: "inline-flex",
@@ -49,22 +51,22 @@ export const buttonStyle = (variant = "default", extra = {}) => {
 
 const BADGES = {
   // Khu trọ
-  ACTIVE: { label: "Hoạt động", color: "#15803D", bg: "#DCFCE7" },
-  HIDDEN: { label: "Đang ẩn", color: "#B45309", bg: "#FEF3C7" },
+  ACTIVE: { label: "Hoạt động", color: "#10B981", bg: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)" },
+  HIDDEN: { label: "Đang ẩn", color: "#F59E0B", bg: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)" },
   // Kiểm duyệt bài đăng
-  PENDING: { label: "Chờ duyệt", color: "#B45309", bg: "#FEF3C7" },
-  APPROVED: { label: "Đã duyệt", color: "#15803D", bg: "#DCFCE7" },
-  REJECTED: { label: "Bị từ chối", color: "#B91C1C", bg: "#FEE2E2" },
+  PENDING: { label: "Chờ duyệt", color: "#F59E0B", bg: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)" },
+  APPROVED: { label: "Đã duyệt", color: "#10B981", bg: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)" },
+  REJECTED: { label: "Bị từ chối", color: "#EF4444", bg: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)" },
   // Bài đăng do chủ trọ đóng
-  CLOSED: { label: "Đã đóng", color: "#475569", bg: "#F1F5F9" },
+  CLOSED: { label: "Đã đóng", color: "var(--text-secondary, #64748B)", bg: "var(--bg-primary, rgba(148, 163, 184, 0.15))", border: "1px solid var(--border-color, #334155)" },
   // Trạng thái phòng
-  AVAILABLE: { label: "Trống", color: "#15803D", bg: "#DCFCE7" },
-  OCCUPIED: { label: "Đang thuê", color: "#1D4ED8", bg: "#DBEAFE" },
-  MAINTENANCE: { label: "Bảo trì", color: "#B45309", bg: "#FEF3C7" },
+  AVAILABLE: { label: "Trống", color: "#10B981", bg: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)" },
+  OCCUPIED: { label: "Đang thuê", color: "#3B82F6", bg: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)" },
+  MAINTENANCE: { label: "Bảo trì", color: "#F59E0B", bg: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)" },
 };
 
 export const StatusBadge = ({ status, label }) => {
-  const b = BADGES[status] || { label: status, color: "#475569", bg: "#F1F5F9" };
+  const b = BADGES[status] || { label: status, color: "var(--text-secondary, #64748B)", bg: "var(--bg-primary, rgba(148, 163, 184, 0.15))", border: "1px solid var(--border-color, #334155)" };
   return (
     <span
       style={{
@@ -75,6 +77,7 @@ export const StatusBadge = ({ status, label }) => {
         fontWeight: 600,
         color: b.color,
         backgroundColor: b.bg,
+        border: b.border || "none",
         whiteSpace: "nowrap",
       }}
     >
@@ -86,11 +89,11 @@ export const StatusBadge = ({ status, label }) => {
 export const PageHeader = ({ icon, title, subtitle, action }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
     <div>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#0F172A", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary, #0F172A)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
         {icon}
         {title}
       </h1>
-      {subtitle && <p style={{ color: "#64748B", margin: "4px 0 0 0", fontSize: 14 }}>{subtitle}</p>}
+      {subtitle && <p style={{ color: "var(--text-secondary, #64748B)", margin: "4px 0 0 0", fontSize: 14 }}>{subtitle}</p>}
     </div>
     {action}
   </div>
@@ -105,7 +108,7 @@ export const Spinner = ({ label = "Đang tải..." }) => (
 );
 
 export const EmptyState = ({ message = "Không có dữ liệu" }) => (
-  <div style={{ padding: 40, textAlign: "center", color: "#94A3B8", fontSize: 14 }}>{message}</div>
+  <div style={{ padding: 40, textAlign: "center", color: "var(--text-secondary, #94A3B8)", fontSize: 14 }}>{message}</div>
 );
 
 /** Modal nền mờ, đóng bằng Esc hoặc click nền. */
@@ -122,26 +125,26 @@ export const Modal = ({ open, onClose, title, width = 560, children, footer }) =
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)", zIndex: 1000,
+        position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", zIndex: 1000,
         display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "white", borderRadius: 14, width: "100%", maxWidth: width, maxHeight: "92vh",
-          display: "flex", flexDirection: "column", boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+          background: "var(--bg-card, white)", color: "var(--text-primary, #0F172A)", borderRadius: 14, width: "100%", maxWidth: width, maxHeight: "92vh",
+          display: "flex", flexDirection: "column", boxShadow: "0 20px 50px rgba(0,0,0,0.35)", border: "1px solid var(--border-color, #E2E8F0)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid #E2E8F0" }}>
-          <h3 style={{ margin: 0, fontSize: 18, color: "#0F172A" }}>{title}</h3>
-          <button onClick={onClose} aria-label="Đóng" style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B", display: "flex" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid var(--border-color, #E2E8F0)" }}>
+          <h3 style={{ margin: 0, fontSize: 18, color: "var(--text-primary, #0F172A)" }}>{title}</h3>
+          <button onClick={onClose} aria-label="Đóng" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary, #64748B)", display: "flex" }}>
             <X size={20} />
           </button>
         </div>
         <div style={{ padding: 22, overflowY: "auto" }}>{children}</div>
         {footer && (
-          <div style={{ padding: "14px 22px", borderTop: "1px solid #E2E8F0", display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <div style={{ padding: "14px 22px", borderTop: "1px solid var(--border-color, #E2E8F0)", display: "flex", justifyContent: "flex-end", gap: 10 }}>
             {footer}
           </div>
         )}
@@ -178,10 +181,10 @@ export const ConfirmDialog = ({
         </>
       }
     >
-      <p style={{ margin: 0, color: "#334155", lineHeight: 1.6, fontSize: 14 }}>{message}</p>
+      <p style={{ margin: 0, color: "var(--text-primary, #0F172A)", lineHeight: 1.6, fontSize: 14 }}>{message}</p>
       {reasonLabel && (
         <div style={{ marginTop: 16 }}>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "#334155" }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--text-primary, #0F172A)" }}>
             {reasonLabel} {reasonRequired && <span style={{ color: "#DC2626" }}>*</span>}
           </label>
           <textarea
@@ -209,8 +212,8 @@ export const Pagination = ({ page, totalPages, totalElements, onChange }) => {
     buttonStyle(active ? "primary" : "default", { padding: "6px 11px", opacity: disabled ? 0.5 : 1, cursor: disabled ? "not-allowed" : "pointer" });
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid #E2E8F0", flexWrap: "wrap", gap: 10 }}>
-      <span style={{ fontSize: 13, color: "#64748B" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid var(--border-color, #E2E8F0)", flexWrap: "wrap", gap: 10 }}>
+      <span style={{ fontSize: 13, color: "var(--text-secondary, #64748B)" }}>
         Trang {page + 1} / {totalPages} · Tổng {totalElements ?? 0} mục
       </span>
       <div style={{ display: "flex", gap: 6 }}>

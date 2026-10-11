@@ -68,3 +68,98 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Theme Toggle Button & Rotation Animations
+   ========================================================================== */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px rgba(217, 127, 46, 0.25);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-icon-wrap {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+
+.sun-icon {
+  color: #f59e0b;
+}
+
+.moon-icon {
+  color: #38bdf8;
+}
+
+/* Light Mode State: Sun is visible, Moon is hidden & rotated */
+.theme-toggle-icon-wrap.is-light .sun-icon {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+.theme-toggle-icon-wrap.is-light .moon-icon {
+  transform: rotate(90deg) scale(0);
+  opacity: 0;
+}
+
+/* Dark Mode State: Moon is visible, Sun is hidden & rotated */
+.theme-toggle-icon-wrap.is-dark {
+  transform: rotate(360deg);
+}
+.theme-toggle-icon-wrap.is-dark .sun-icon {
+  transform: rotate(-90deg) scale(0);
+  opacity: 0;
+}
+.theme-toggle-icon-wrap.is-dark .moon-icon {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+

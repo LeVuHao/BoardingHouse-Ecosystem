@@ -273,10 +273,10 @@ const ForumMessages = () => {
                       {(activeConv.otherUserName || "U").charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--ink)" }}>
+                      <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--text-primary)" }}>
                         {activeConv.otherUserName}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.82rem", color: "var(--text-secondary)" }}>
                         {activeConv.otherUserPhone && (
                           <span>
                             <Phone size={12} style={{ verticalAlign: "middle" }} /> {activeConv.otherUserPhone}
@@ -291,7 +291,7 @@ const ForumMessages = () => {
                     <Link 
                       to={`/forum/${activeConv.postId}`} 
                       className="btn btn-outline" 
-                      style={{ fontSize: "0.82rem", padding: "6px 12px" }}
+                      style={{ fontSize: "0.82rem", padding: "6px 12px", color: "var(--text-primary)", borderColor: "var(--border-color)" }}
                     >
                       <Eye size={14} /> Xem bài đăng
                     </Link>

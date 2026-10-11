@@ -161,11 +161,11 @@ const LandlordBills = ({ embedded = false }) => {
       
       {/* TOP HEADER */}
       <div style={{
-        background: '#ffffff',
+        background: 'var(--bg-card)',
         borderRadius: '16px',
         padding: '24px 28px',
-        border: '1px solid var(--border)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+        border: '1px solid var(--border-color)',
+        boxShadow: 'var(--shadow-card)',
         marginBottom: '24px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -174,10 +174,10 @@ const LandlordBills = ({ embedded = false }) => {
         gap: '16px'
       }}>
         <div>
-          <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: 'var(--ink)' }}>
+          <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
             Quản Lý Hóa Đơn & Thu Phí
           </h2>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13.5px' }}>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13.5px' }}>
             Theo dõi trạng thái thanh toán hàng tháng, xác nhận thu tiền và xuất hóa đơn cho người thuê.
           </p>
         </div>
@@ -186,14 +186,14 @@ const LandlordBills = ({ embedded = false }) => {
           <button
             onClick={() => setViewMode(viewMode === 'list' ? 'create' : 'list')}
             className="btn btn-primary"
-            style={{ padding: '9px 18px', fontWeight: 700, fontSize: '13.5px' }}
+            style={{ padding: '9px 18px', fontWeight: 700, fontSize: '13.5px', background: 'var(--primary)', color: '#ffffff' }}
           >
             {viewMode === 'list' ? '+ Tạo hóa đơn mới' : 'Quay lại danh sách'}
           </button>
           <button
             onClick={loadData}
             className="btn btn-outline"
-            style={{ padding: '9px 16px', fontWeight: 600, fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', fontWeight: 600, fontSize: '13.5px', background: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             title="Làm mới dữ liệu"
           >
             Làm mới
@@ -204,15 +204,16 @@ const LandlordBills = ({ embedded = false }) => {
       {/* VIEW: CREATE BILL */}
       {viewMode === 'create' && (
         <div style={{
-          background: '#ffffff',
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
           borderRadius: '16px',
           padding: '28px',
-          border: '1px solid var(--border)',
+          border: '1px solid var(--border-color)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
           maxWidth: '780px',
           margin: '0 auto 30px'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--ink)' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--text-primary)' }}>
             Lập hóa đơn tiền trọ tháng mới
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', margin: '0 0 20px 0' }}>
@@ -222,7 +223,7 @@ const LandlordBills = ({ embedded = false }) => {
           <form onSubmit={handleCreateSubmit}>
             {/* Chọn hợp đồng */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                 Chọn phòng / Hợp đồng đang thuê *
               </label>
               <select
@@ -231,7 +232,7 @@ const LandlordBills = ({ embedded = false }) => {
                 required
                 style={{
                   width: '100%', padding: '10px 14px', borderRadius: 8,
-                  border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                  border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                 }}
               >
                 <option value="">-- Chọn hợp đồng cần lập hóa đơn --</option>
@@ -251,8 +252,8 @@ const LandlordBills = ({ embedded = false }) => {
             {/* Thông tin tự động từ hợp đồng */}
             {selectedContract && (
               <div style={{
-                background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
-                padding: '12px 16px', marginBottom: 16, fontSize: 13, lineHeight: 1.6
+                background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 10,
+                padding: '12px 16px', marginBottom: 16, fontSize: 13, lineHeight: 1.6, color: 'var(--text-primary)'
               }}>
                 <div><strong>Khu trọ:</strong> {selectedContract.propertyTitle}</div>
                 <div><strong>Mã phòng:</strong> MP-{selectedContract.roomId} (Phòng: {selectedContract.roomNumber})</div>
@@ -264,7 +265,7 @@ const LandlordBills = ({ embedded = false }) => {
             {/* Kỳ thu & Hạn nộp */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Kỳ thanh toán (Tháng/Năm) *
                 </label>
                 <input
@@ -275,13 +276,13 @@ const LandlordBills = ({ embedded = false }) => {
                   required
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Hạn thanh toán *
                 </label>
                 <input
@@ -291,7 +292,7 @@ const LandlordBills = ({ embedded = false }) => {
                   required
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
@@ -300,7 +301,7 @@ const LandlordBills = ({ embedded = false }) => {
             {/* Các khoản tiền */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Tiền phòng (VNĐ) *
                 </label>
                 <input
@@ -311,13 +312,13 @@ const LandlordBills = ({ embedded = false }) => {
                   required
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Tiền điện (VNĐ)
                 </label>
                 <input
@@ -327,7 +328,7 @@ const LandlordBills = ({ embedded = false }) => {
                   onChange={e => setForm({ ...form, electricityAmount: e.target.value })}
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
@@ -335,7 +336,7 @@ const LandlordBills = ({ embedded = false }) => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Tiền nước (VNĐ)
                 </label>
                 <input
@@ -345,13 +346,13 @@ const LandlordBills = ({ embedded = false }) => {
                   onChange={e => setForm({ ...form, waterAmount: e.target.value })}
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--text-primary)' }}>
                   Chi phí khác (Rác, WiFi, Xe...)
                 </label>
                 <input
@@ -361,7 +362,7 @@ const LandlordBills = ({ embedded = false }) => {
                   onChange={e => setForm({ ...form, otherAmount: e.target.value })}
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1px solid var(--border)', fontSize: 14, outline: 'none'
+                    border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 14, outline: 'none'
                   }}
                 />
               </div>
@@ -369,19 +370,19 @@ const LandlordBills = ({ embedded = false }) => {
 
             {/* Tổng cộng */}
             <div style={{
-              background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12,
+              background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 12,
               padding: '16px 20px', display: 'flex', justifyContent: 'space-between',
               alignItems: 'center', marginBottom: 24
             }}>
               <div>
-                <div style={{ fontSize: 12, color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Tổng tiền hóa đơn:
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: '#15803d' }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#10b981' }}>
                   {money(createTotal)}
                 </div>
               </div>
-              <div style={{ fontSize: 12.5, color: '#166534' }}>
+              <div style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
                 Trạng thái ban đầu: <strong>CHƯA THANH TOÁN (UNPAID)</strong>
               </div>
             </div>
@@ -391,7 +392,7 @@ const LandlordBills = ({ embedded = false }) => {
                 type="button"
                 onClick={() => setViewMode('list')}
                 className="btn btn-outline"
-                style={{ padding: '10px 20px', fontWeight: 600 }}
+                style={{ padding: '10px 20px', fontWeight: 600, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
               >
                 Hủy bỏ
               </button>
@@ -399,7 +400,7 @@ const LandlordBills = ({ embedded = false }) => {
                 type="submit"
                 disabled={submitting}
                 className="btn btn-primary"
-                style={{ padding: '10px 24px', fontWeight: 700 }}
+                style={{ padding: '10px 24px', fontWeight: 700, background: 'var(--primary)', color: '#ffffff' }}
               >
                 {submitting ? 'Đang tạo...' : 'Xác nhận tạo hóa đơn'}
               </button>
@@ -418,49 +419,49 @@ const LandlordBills = ({ embedded = false }) => {
             gap: '16px',
             marginBottom: '24px'
           }}>
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 22px', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '18px 22px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-card)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
                 Tổng số hóa đơn
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--ink)' }}>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
                 {stats.totalCount} hóa đơn
               </div>
-              <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Tổng giá trị: <strong>{money(stats.totalAmount)}</strong>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Tổng giá trị: <strong style={{ color: 'var(--text-primary)' }}>{money(stats.totalAmount)}</strong>
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 22px', border: '1px solid #bbf7d0' }}>
-              <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '18px 22px', border: '1px solid rgba(16, 185, 129, 0.3)', boxShadow: 'var(--shadow-card)' }}>
+              <div style={{ fontSize: '12px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
                 Đã thanh toán ({stats.collectionRate}%)
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#16a34a' }}>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#10b981' }}>
                 {stats.paidCount} hóa đơn
               </div>
-              <div style={{ fontSize: '12.5px', color: '#166534', marginTop: '4px' }}>
-                Đã thu về: <strong>{money(stats.totalPaidAmount)}</strong>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Đã thu về: <strong style={{ color: '#10b981' }}>{money(stats.totalPaidAmount)}</strong>
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 22px', border: '1px solid #fecaca' }}>
-              <div style={{ fontSize: '12px', color: '#b91c1c', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '18px 22px', border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: 'var(--shadow-card)' }}>
+              <div style={{ fontSize: '12px', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
                 Chưa thanh toán
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#dc2626' }}>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#ef4444' }}>
                 {stats.unpaidCount} hóa đơn
               </div>
-              <div style={{ fontSize: '12.5px', color: '#991b1b', marginTop: '4px' }}>
-                Còn phải thu: <strong>{money(stats.totalUnpaidAmount)}</strong>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Còn phải thu: <strong style={{ color: '#ef4444' }}>{money(stats.totalUnpaidAmount)}</strong>
               </div>
             </div>
           </div>
 
           {/* FILTER & SEARCH BAR */}
           <div style={{
-            background: '#ffffff',
+            background: 'var(--bg-card)',
             borderRadius: '16px',
             padding: '16px 20px',
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border-color)',
             marginBottom: '20px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -482,9 +483,9 @@ const LandlordBills = ({ embedded = false }) => {
                     padding: '7px 16px',
                     borderRadius: '8px',
                     border: '1px solid',
-                    borderColor: filterStatus === tab.id ? '#2563eb' : 'var(--border)',
-                    background: filterStatus === tab.id ? '#2563eb' : '#ffffff',
-                    color: filterStatus === tab.id ? '#ffffff' : 'var(--ink)',
+                    borderColor: filterStatus === tab.id ? 'var(--primary)' : 'var(--border-color)',
+                    background: filterStatus === tab.id ? 'var(--primary)' : 'var(--bg-primary)',
+                    color: filterStatus === tab.id ? '#ffffff' : 'var(--text-primary)',
                     fontSize: '13px',
                     fontWeight: 700,
                     cursor: 'pointer'
@@ -506,7 +507,9 @@ const LandlordBills = ({ embedded = false }) => {
                   width: '100%',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  border: '1px solid var(--border)',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
                   fontSize: '13px',
                   outline: 'none',
                   boxSizing: 'border-box'
@@ -522,37 +525,37 @@ const LandlordBills = ({ embedded = false }) => {
             </div>
           ) : filteredBills.length === 0 ? (
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-card)',
               borderRadius: '16px',
               padding: '60px 20px',
               textAlign: 'center',
-              border: '1px solid var(--border)'
+              border: '1px solid var(--border-color)'
             }}>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800 }}>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)' }}>
                 {search ? 'Không tìm thấy hóa đơn phù hợp với từ khóa' : 'Chưa có hóa đơn nào trong danh mục này'}
               </h4>
-              <p style={{ margin: '0 0 16px 0', color: 'var(--text-muted)', fontSize: '13.5px' }}>
+              <p style={{ margin: '0 0 16px 0', color: 'var(--text-secondary)', fontSize: '13.5px' }}>
                 Bạn có thể tạo hóa đơn mới cho người thuê phòng hàng tháng.
               </p>
               <button
                 onClick={() => setViewMode('create')}
                 className="btn btn-primary"
-                style={{ padding: '8px 20px', fontWeight: 700 }}
+                style={{ padding: '8px 20px', fontWeight: 700, background: 'var(--primary)', color: '#ffffff' }}
               >
                 + Lập hóa đơn ngay
               </button>
             </div>
           ) : (
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-card)',
               borderRadius: '16px',
-              border: '1px solid var(--border)',
+              border: '1px solid var(--border-color)',
               overflowX: 'auto',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+              boxShadow: 'var(--shadow-card)'
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase' }}>
+                  <tr style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase' }}>
                     <th style={{ padding: '14px 18px', fontWeight: 700 }}>Mã HĐN</th>
                     <th style={{ padding: '14px 18px', fontWeight: 700 }}>Phòng</th>
                     <th style={{ padding: '14px 18px', fontWeight: 700 }}>Khách thuê</th>
@@ -568,41 +571,41 @@ const LandlordBills = ({ embedded = false }) => {
                   {filteredBills.map((b) => {
                     const isPaid = b.status === 'PAID';
                     return (
-                      <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '14px 18px', fontWeight: 800, color: 'var(--ink)' }}>
+                      <tr key={b.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: 800, color: 'var(--text-primary)' }}>
                           #HDN-{b.id}
                         </td>
                         <td style={{ padding: '14px 18px' }}>
-                          <div style={{ fontWeight: 700 }}>Mã phòng: MP-{b.roomId}</div>
-                          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>HĐ: #HD-{b.contractId}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Mã phòng: MP-{b.roomId}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>HĐ: #HD-{b.contractId}</div>
                         </td>
                         <td style={{ padding: '14px 18px' }}>
-                          <span style={{ fontWeight: 600 }}>ID #{b.tenantId}</span>
+                          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>ID #{b.tenantId}</span>
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: 700, color: '#2563eb' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--primary)' }}>
                           Tháng {b.monthYear}
                         </td>
-                        <td style={{ padding: '14px 18px', fontSize: '12px', lineHeight: 1.5 }}>
+                        <td style={{ padding: '14px 18px', fontSize: '12px', lineHeight: 1.5, color: 'var(--text-primary)' }}>
                           <div>Phòng: {money(b.roomAmount)}</div>
                           {(Number(b.electricityAmount) > 0 || Number(b.waterAmount) > 0) && (
-                            <div style={{ color: 'var(--text-muted)' }}>
+                            <div style={{ color: 'var(--text-secondary)' }}>
                               Điện: {money(b.electricityAmount)} · Nước: {money(b.waterAmount)}
                             </div>
                           )}
                           {Number(b.otherAmount) > 0 && (
-                            <div style={{ color: 'var(--text-muted)' }}>Khác: {money(b.otherAmount)}</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Khác: {money(b.otherAmount)}</div>
                           )}
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: 900, color: isPaid ? '#16a34a' : '#dc2626', fontSize: '14.5px' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: 900, color: isPaid ? '#10b981' : '#ef4444', fontSize: '14.5px' }}>
                           {money(b.totalAmount)}
                         </td>
-                        <td style={{ padding: '14px 18px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                        <td style={{ padding: '14px 18px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                           {b.dueDate ? new Date(b.dueDate).toLocaleDateString('vi-VN') : '—'}
                         </td>
                         <td style={{ padding: '14px 18px' }}>
                           {isPaid ? (
                             <span style={{
-                              background: '#dcfce7', color: '#15803d',
+                              background: 'rgba(16, 185, 129, 0.15)', color: '#10b981',
                               padding: '4px 10px', borderRadius: '12px',
                               fontSize: '11.5px', fontWeight: 800, display: 'inline-block'
                             }}>
@@ -610,7 +613,7 @@ const LandlordBills = ({ embedded = false }) => {
                             </span>
                           ) : (
                             <span style={{
-                              background: '#fee2e2', color: '#b91c1c',
+                              background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444',
                               padding: '4px 10px', borderRadius: '12px',
                               fontSize: '11.5px', fontWeight: 800, display: 'inline-block'
                             }}>

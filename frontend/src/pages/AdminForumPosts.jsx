@@ -28,11 +28,11 @@ const PostCard = ({ post, onOpen, onApprove, onReject, onDelete }) => {
   const canReject = post.moderationStatus !== "REJECTED";
   return (
     <div style={{ ...cardStyle, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div onClick={() => onOpen(post)} style={{ cursor: "pointer", position: "relative", height: 170, background: "#F1F5F9" }}>
+      <div onClick={() => onOpen(post)} style={{ cursor: "pointer", position: "relative", height: 170, background: "var(--bg-primary)" }}>
         {img ? (
           <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
-          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8" }}>
+          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}>
             <ImageIcon size={30} />
           </div>
         )}
@@ -48,15 +48,15 @@ const PostCard = ({ post, onOpen, onApprove, onReject, onDelete }) => {
       </div>
 
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-        <h3 onClick={() => onOpen(post)} style={{ margin: 0, fontSize: 16, color: "#0F172A", cursor: "pointer", lineHeight: 1.35 }}>{post.title}</h3>
-        <div style={{ fontSize: 13, color: "#64748B" }}>
-          <b style={{ color: "#334155" }}>{post.landlordName || `Chủ trọ #${post.landlordId}`}</b> · <Clock size={12} style={{ verticalAlign: -1 }} /> {formatDateTime(post.createdAt)}
+        <h3 onClick={() => onOpen(post)} style={{ margin: 0, fontSize: 16, color: "var(--text-primary)", cursor: "pointer", lineHeight: 1.35 }}>{post.title}</h3>
+        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+          <b style={{ color: "var(--text-primary)" }}>{post.landlordName || `Chủ trọ #${post.landlordId}`}</b> · <Clock size={12} style={{ verticalAlign: -1 }} /> {formatDateTime(post.createdAt)}
         </div>
-        <p style={{ margin: 0, fontSize: 13.5, color: "#475569", lineHeight: 1.55, flex: 1 }}>{summarize(post.description) || "Không có mô tả"}</p>
+        <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.55, flex: 1 }}>{summarize(post.description) || "Không có mô tả"}</p>
         <div style={{ fontSize: 13, color: "#8B5CF6", fontWeight: 700 }}>{formatVnd(post.price)}/tháng</div>
 
         {post.moderationStatus === "REJECTED" && post.rejectReason && (
-          <div style={{ background: "#FEF2F2", color: "#991B1B", borderRadius: 8, padding: "8px 10px", fontSize: 12.5 }}>
+          <div style={{ background: "rgba(239, 68, 68, 0.15)", color: "#EF4444", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "8px 10px", fontSize: 12.5 }}>
             Lý do từ chối: {post.rejectReason}
           </div>
         )}
@@ -119,11 +119,11 @@ const PostDetailModal = ({ post, onClose, onApprove, onReject, onDelete }) => {
           </div>
         )}
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <h2 style={{ margin: 0, fontSize: 20, color: "#0F172A" }}>{post.title}</h2>
+          <h2 style={{ margin: 0, fontSize: 20, color: "var(--text-primary)" }}>{post.title}</h2>
           <StatusBadge status={post.moderationStatus} />
           {post.status === "CLOSED" && <StatusBadge status="CLOSED" />}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, fontSize: 14, color: "#334155" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, fontSize: 14, color: "var(--text-primary)" }}>
           <div><b>Người đăng:</b> {post.landlordName || `#${post.landlordId}`}</div>
           <div><Phone size={13} style={{ verticalAlign: -2 }} /> {post.contactPhone || "—"}</div>
           <div><b>Giá:</b> {formatVnd(post.price)}/tháng</div>
@@ -133,13 +133,13 @@ const PostDetailModal = ({ post, onClose, onApprove, onReject, onDelete }) => {
           {post.roommateNeeded && (
             <div style={{ gridColumn: "1 / -1" }}><Users size={13} style={{ verticalAlign: -2 }} /> Tìm {post.roommateCount || 1} người ở ghép{post.roommateNote ? ` — ${post.roommateNote}` : ""}</div>
           )}
-          <div style={{ color: "#94A3B8", fontSize: 12.5, gridColumn: "1 / -1" }}>Đăng lúc {formatDateTime(post.createdAt)}{post.moderatedAt ? ` · Kiểm duyệt lúc ${formatDateTime(post.moderatedAt)}` : ""}</div>
+          <div style={{ color: "var(--text-secondary)", fontSize: 12.5, gridColumn: "1 / -1" }}>Đăng lúc {formatDateTime(post.createdAt)}{post.moderatedAt ? ` · Kiểm duyệt lúc ${formatDateTime(post.moderatedAt)}` : ""}</div>
         </div>
-        <div style={{ whiteSpace: "pre-wrap", fontSize: 14, color: "#475569", lineHeight: 1.65, background: "#F8FAFC", borderRadius: 10, padding: 14 }}>
+        <div style={{ whiteSpace: "pre-wrap", fontSize: 14, color: "var(--text-primary)", lineHeight: 1.65, background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: 14 }}>
           {post.description || "Không có mô tả"}
         </div>
         {post.moderationStatus === "REJECTED" && post.rejectReason && (
-          <div style={{ background: "#FEF2F2", color: "#991B1B", borderRadius: 8, padding: "10px 12px", fontSize: 13.5 }}>
+          <div style={{ background: "rgba(239, 68, 68, 0.15)", color: "#EF4444", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "10px 12px", fontSize: 13.5 }}>
             Lý do từ chối: {post.rejectReason}
           </div>
         )}
@@ -245,14 +245,14 @@ const AdminForumPosts = () => {
               >
                 {t.label}
                 {count !== undefined && (
-                  <span style={{ background: active ? "rgba(255,255,255,.25)" : "#F1F5F9", color: active ? "white" : "#475569", borderRadius: 999, padding: "0 7px", fontSize: 12 }}>{count}</span>
+                  <span style={{ background: active ? "rgba(255,255,255,.25)" : "var(--bg-primary)", color: active ? "white" : "var(--text-secondary)", borderRadius: 999, padding: "0 7px", fontSize: 12 }}>{count}</span>
                 )}
               </button>
             );
           })}
         </div>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", width: 300, maxWidth: "100%" }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "0 14px", width: 300, maxWidth: "100%" }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}

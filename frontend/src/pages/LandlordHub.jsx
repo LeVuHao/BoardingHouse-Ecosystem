@@ -19,14 +19,14 @@ import MyContracts from './MyContracts';
 const formatVnd = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
 const ACTION_MAP = {
-  LANDLORD_CREATE_PROPERTY: { label: 'Thêm khu trọ', color: '#16a34a', bg: '#dcfce7', icon: '🏢' },
-  LANDLORD_UPDATE_PROPERTY: { label: 'Sửa khu trọ', color: '#2563eb', bg: '#eff6ff', icon: '✏️' },
-  LANDLORD_DELETE_PROPERTY: { label: 'Xóa khu trọ', color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },
-  LANDLORD_CREATE_ROOM: { label: 'Thêm phòng mới', color: '#16a34a', bg: '#dcfce7', icon: '🚪' },
-  LANDLORD_UPDATE_ROOM: { label: 'Sửa phòng', color: '#2563eb', bg: '#eff6ff', icon: '🛠️' },
-  LANDLORD_DELETE_ROOM: { label: 'Xóa phòng', color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },
-  APPROVE_POST: { label: 'Admin duyệt bài', color: '#059669', bg: '#ecfdf5', icon: '✅' },
-  REJECT_POST: { label: 'Admin từ chối bài', color: '#dc2626', bg: '#fef2f2', icon: '❌' },
+  LANDLORD_CREATE_PROPERTY: { label: 'Thêm khu trọ', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', icon: '🏢' },
+  LANDLORD_UPDATE_PROPERTY: { label: 'Sửa khu trọ', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', icon: '✏️' },
+  LANDLORD_DELETE_PROPERTY: { label: 'Xóa khu trọ', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: '🗑️' },
+  LANDLORD_CREATE_ROOM: { label: 'Thêm phòng mới', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', icon: '🚪' },
+  LANDLORD_UPDATE_ROOM: { label: 'Sửa phòng', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', icon: '🛠️' },
+  LANDLORD_DELETE_ROOM: { label: 'Xóa phòng', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: '🗑️' },
+  APPROVE_POST: { label: 'Admin duyệt bài', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', icon: '✅' },
+  REJECT_POST: { label: 'Admin từ chối bài', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', icon: '❌' },
 };
 
 const formatRealTime = (dateStr) => {
@@ -330,53 +330,61 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
       label: 'Trọ của tôi (Khu & Phòng)',
       badge: totalProperties > 0 ? totalProperties : null,
       badgeColor: '#2563eb',
+      icon: Building2,
     },
     {
       id: 'posts',
       label: 'Tin đăng & Quản lý tin',
       badge: pendingModerationCount > 0 ? `${pendingModerationCount} chờ duyệt` : (myForumPosts.length > 0 ? myForumPosts.length : null),
       badgeColor: pendingModerationCount > 0 ? '#ea580c' : '#2563eb',
+      icon: MessageSquare,
     },
     {
       id: 'occupied',
       label: 'Trọ đã cho thuê',
       badge: occupiedRoomsCount > 0 ? occupiedRoomsCount : null,
       badgeColor: '#059669',
+      icon: CheckCircle2,
     },
     {
       id: 'requests',
       label: 'Khách thuê & Yêu cầu',
       badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} mới` : null,
       badgeColor: '#ea580c',
+      icon: Users,
     },
     {
       id: 'contracts',
       label: 'Hợp đồng thuê (In PDF)',
       badge: contracts.length > 0 ? contracts.length : null,
       badgeColor: '#7c3aed',
+      icon: FileText,
+    },
+    {
+      id: 'bills',
+      label: 'Quản lý hóa đơn',
+      badge: 'Thu tiền',
+      badgeColor: '#059669',
+      icon: Receipt,
     },
     {
       id: 'tickets',
       label: 'Sự cố & Báo hỏng',
       badge: ticketStats.urgentCount > 0 ? `${ticketStats.urgentCount} khẩn` : (ticketStats.activeCount > 0 ? ticketStats.activeCount : null),
       badgeColor: '#ef4444',
-    },
-    {
-      id: 'bills',
-      label: 'Quản lý hóa đơn',
-      badge: null,
-      badgeColor: null,
+      icon: Wrench,
     },
     {
       id: 'activity',
       label: 'Nhật ký hoạt động',
       badge: activities.length > 0 ? activities.length : null,
       badgeColor: '#0ea5e9',
+      icon: Activity,
     },
   ];
 
   return (
-    <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '70px' }}>
+    <div style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh', paddingBottom: '70px', transition: 'background-color 0.3s ease' }}>
       
       {/* ─────────────────────────────────────────────────────────────
           MASTER HERO HEADER
@@ -404,6 +412,27 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
             </div>
 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => switchTab('bills')}
+                className="btn"
+                style={{
+                  color: activeTab === 'bills' ? '#fff' : '#1e3a8a',
+                  background: activeTab === 'bills' ? '#1d4ed8' : '#ffffff',
+                  border: '1.5px solid #93c5fd',
+                  padding: '10px 18px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '13.5px',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
+                  cursor: 'pointer',
+                  borderRadius: '10px'
+                }}
+              >
+                <Receipt size={17} color={activeTab === 'bills' ? '#fff' : '#2563eb'} />
+                Quản Lý Hóa Đơn
+              </button>
               <button
                 onClick={loadSummaryData}
                 className="btn btn-outline"
@@ -512,16 +541,16 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
         )}
         
         <div style={{
-          background: '#ffffff',
+          background: 'var(--bg-card)',
           borderRadius: '18px',
-          padding: '8px',
-          border: '1px solid var(--border)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+          padding: '10px',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-soft)',
           marginBottom: '26px',
           display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none'
+          gap: '8px',
+          flexWrap: 'wrap',
+          alignItems: 'center'
         }}>
           {tabsConfig.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -533,19 +562,20 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '11px 18px',
+                  padding: '10px 18px',
                   borderRadius: '12px',
-                  border: 'none',
-                  background: isActive ? '#2563eb' : 'transparent',
-                  color: isActive ? '#ffffff' : 'var(--ink)',
+                  border: isActive ? '1.5px solid #2563eb' : '1px solid var(--border-color)',
+                  background: isActive ? '#2563eb' : 'var(--bg-primary)',
+                  color: isActive ? '#ffffff' : 'var(--text-primary)',
                   fontWeight: isActive ? 800 : 600,
-                  fontSize: '14px',
+                  fontSize: '13.5px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.18s ease',
-                  flexShrink: 0
+                  boxShadow: isActive ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none'
                 }}
               >
+                {tab.icon && <tab.icon size={15} color={isActive ? '#ffffff' : '#64748b'} />}
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span style={{
@@ -581,11 +611,11 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
           <div>
             {/* Top Bar Filter */}
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-card)',
               borderRadius: '20px',
               padding: '20px 24px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--shadow-card)',
               marginBottom: '24px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -594,11 +624,11 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
               gap: '16px'
             }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--ink)' }}>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
                   Danh Sách Trọ Đã Cho Thuê ({occupiedContracts.length} phòng)
                 </h3>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: '13.5px' }}>
-                  Tổng tiền cọc đang quản lý: <strong>{formatVnd(totalDepositHeld)}</strong> • Doanh thu phòng: <strong>{formatVnd(monthlyRevenue)}/tháng</strong>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13.5px' }}>
+                  Tổng tiền cọc đang quản lý: <strong style={{ color: 'var(--text-primary)' }}>{formatVnd(totalDepositHeld)}</strong> • Doanh thu phòng: <strong style={{ color: 'var(--text-primary)' }}>{formatVnd(monthlyRevenue)}/tháng</strong>
                 </p>
               </div>
 
@@ -615,7 +645,9 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                       width: '100%',
                       padding: '9px 12px 9px 36px',
                       borderRadius: '10px',
-                      border: '1px solid var(--border)',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
                       fontSize: '13.5px',
                       outline: 'none',
                       boxSizing: 'border-box'
@@ -627,23 +659,23 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
 
             {filteredOccupiedContracts.length === 0 ? (
               <div style={{
-                background: '#ffffff',
+                background: 'var(--bg-card)',
                 borderRadius: '20px',
                 padding: '60px 20px',
                 textAlign: 'center',
-                border: '1px solid var(--border)'
+                border: '1px solid var(--border-color)'
               }}>
-                <div style={{ width: 70, height: 70, borderRadius: '50%', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <CheckCircle2 size={36} />
                 </div>
-                <h3 style={{ fontSize: '19px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--ink)' }}>
+                <h3 style={{ fontSize: '19px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
                   {occupiedSearch ? 'Không tìm thấy phòng đã thuê phù hợp với từ khóa' : 'Chưa có phòng trọ nào được cho thuê'}
                 </h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '440px', margin: '0 auto 20px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '440px', margin: '0 auto 20px' }}>
                   Khi bạn phê duyệt yêu cầu thuê phòng từ khách thuê, phòng và hợp đồng sẽ tự động hiển thị trong danh sách này.
                 </p>
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                  <button onClick={() => switchTab('requests')} className="btn btn-primary" style={{ padding: '9px 20px', fontWeight: 700 }}>
+                  <button onClick={() => switchTab('requests')} className="btn btn-primary" style={{ padding: '9px 20px', fontWeight: 700, background: 'var(--primary)', color: '#ffffff' }}>
                     Xem yêu cầu thuê phòng
                   </button>
                   <button onClick={() => switchTab('properties')} className="btn btn-outline" style={{ padding: '9px 20px', fontWeight: 700 }}>
@@ -659,11 +691,11 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                     <div
                       key={c.id}
                       style={{
-                        background: '#ffffff',
+                        background: 'var(--bg-card)',
                         borderRadius: '20px',
-                        border: '1px solid var(--border)',
+                        border: '1px solid var(--border-color)',
                         overflow: 'hidden',
-                        boxShadow: '0 6px 24px rgba(0,0,0,0.04)',
+                        boxShadow: 'var(--shadow-card)',
                         display: 'flex',
                         flexDirection: 'column'
                       }}
@@ -693,44 +725,44 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                       <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                            <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                            <span style={{ background: 'rgba(37, 99, 235, 0.15)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
                               {c.roomNumber ? `PHÒNG ${c.roomNumber}` : `PHÒNG #${c.roomId}`}
                             </span>
-                            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                               {c.roomArea || 25} m²
                             </span>
                           </div>
 
-                          <h4 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--ink)' }}>
+                          <h4 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
                             {c.propertyTitle || `Phòng trọ tiện nghi #${c.roomNumber || c.roomId}`}
                           </h4>
 
-                          <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                          <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                             📍 {c.address ? `${c.address}, ${c.ward || ''}, ${c.district || ''}` : 'Khu trọ Roomily'}
                           </p>
 
                           {/* Price & Deposit Strip */}
-                          <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '12px', border: '1px solid #edf2f7', marginBottom: '14px' }}>
+                          <div style={{ background: 'var(--bg-primary)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '14px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                              <span style={{ color: 'var(--text-muted)' }}>Giá thuê mỗi tháng:</span>
-                              <strong style={{ color: '#2563eb' }}>{formatVnd(c.rentalPrice)}</strong>
+                              <span style={{ color: 'var(--text-secondary)' }}>Giá thuê mỗi tháng:</span>
+                              <strong style={{ color: 'var(--primary)' }}>{formatVnd(c.rentalPrice)}</strong>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                              <span style={{ color: 'var(--text-muted)' }}>Tiền cọc an toàn:</span>
-                              <strong style={{ color: '#059669' }}>{formatVnd(c.depositAmount || c.rentalPrice)}</strong>
+                              <span style={{ color: 'var(--text-secondary)' }}>Tiền cọc an toàn:</span>
+                              <strong style={{ color: '#10b981' }}>{formatVnd(c.depositAmount || c.rentalPrice)}</strong>
                             </div>
                           </div>
 
                           {/* Tenant Info Box */}
-                          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '10px 14px', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '12px', padding: '10px 14px', marginBottom: '16px' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '4px' }}>
                               👤 Khách thuê đang lưu trú:
                             </div>
-                            <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--ink)' }}>
+                            <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)' }}>
                               {c.tenantName || `Khách thuê (ID #${c.tenantId})`}
                             </div>
                             {c.tenantPhone && (
-                              <div style={{ fontSize: '12.5px', color: '#166534', marginTop: '2px' }}>
+                              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                 SĐT: {c.tenantPhone}
                               </div>
                             )}
@@ -738,11 +770,11 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                         </div>
 
                         {/* Card Action Buttons */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
                           <button
                             onClick={() => handlePrintContractDirect(c)}
                             className="btn btn-outline"
-                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: '#1d4ed8', borderColor: '#bfdbfe', background: '#eff6ff' }}
+                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: 'var(--primary)', borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}
                           >
                             <Printer size={13} /> In PDF (A4)
                           </button>
@@ -756,7 +788,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                           <button
                             onClick={() => switchTab('bills')}
                             className="btn btn-primary"
-                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', gridColumn: 'span 2' }}
+                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', gridColumn: 'span 2', background: 'var(--primary)', color: '#ffffff', fontWeight: 700 }}
                           >
                             <Receipt size={13} /> Tạo Hóa Đơn Điện Nước
                           </button>
@@ -826,7 +858,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
             </div>
 
             {myForumPosts.length === 0 ? (
-              <div style={{ background: '#fff', padding: '50px 20px', borderRadius: 16, textAlign: 'center', border: '1px solid var(--border)' }}>
+              <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', padding: '50px 20px', borderRadius: 16, textAlign: 'center', border: '1px solid var(--border-color)' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
                 <h3 style={{ margin: 0 }}>Bạn chưa có bài đăng trọ nào</h3>
                 <p style={{ color: 'var(--text-muted)', margin: '8px 0 16px 0' }}>Đăng tin để quảng bá phòng trọ đến hàng nghìn sinh viên và người thuê.</p>
@@ -844,10 +876,10 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                     <div
                       key={post.id}
                       style={{
-                        background: '#ffffff',
+                        background: 'var(--bg-card)',
                         borderRadius: 16,
-                        border: isPending ? '1.5px solid #fde68a' : isRejected ? '1.5px solid #fca5a5' : '1px solid var(--border)',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                        border: isPending ? '1.5px solid #fde68a' : isRejected ? '1.5px solid #fca5a5' : '1px solid var(--border-color)',
+                        boxShadow: 'var(--shadow-card)',
                         padding: '18px 20px',
                         display: 'grid',
                         gridTemplateColumns: '120px 1fr auto',
@@ -855,13 +887,13 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                         alignItems: 'center',
                       }}
                     >
-                      <div style={{ width: 120, height: 90, borderRadius: 10, overflow: 'hidden', background: '#f1f5f9' }}>
+                      <div style={{ width: 120, height: 90, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-primary)' }}>
                         <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
 
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
                             Mã #{post.id} · {new Date(post.createdAt).toLocaleDateString('vi-VN')}
                           </span>
                           {isPending && (
@@ -870,38 +902,38 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                             </span>
                           )}
                           {isApproved && (
-                            <span style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
+                            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
                               ĐÃ HIỂN THỊ CÔNG KHAI
                             </span>
                           )}
                           {isRejected && (
-                            <span style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
                               BỊ TỪ CHỐI
                             </span>
                           )}
                           {post.isRented && !post.roommateNeeded && (
-                            <span style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 700 }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 700 }}>
                               ĐÃ CÓ NGƯỜI THUÊ (Tự động ẩn khỏi tìm kiếm)
                             </span>
                           )}
                           {post.isRented && post.roommateNeeded && (
-                            <span style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
+                            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 800 }}>
                               ĐANG TÌM NGƯỜI Ở GHÉP (Hiển thị công khai)
                             </span>
                           )}
                           {!post.isRented && (
-                            <span style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 700 }}>
+                            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: 20, fontSize: 11.5, fontWeight: 700 }}>
                               PHÒNG TRỐNG (Hiển thị công khai)
                             </span>
                           )}
                         </div>
 
-                        <h3 style={{ margin: '0 0 6px 0', fontSize: '16.5px', fontWeight: 800, color: 'var(--ink)' }}>
+                        <h3 style={{ margin: '0 0 6px 0', fontSize: '16.5px', fontWeight: 800, color: 'var(--text-primary)' }}>
                           {post.title}
                         </h3>
 
-                        <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span style={{ color: '#dc2626', fontWeight: 800, fontSize: 14.5 }}>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ color: '#ef4444', fontWeight: 800, fontSize: 14.5 }}>
                             {formatVnd(post.price)}/tháng
                           </span>
                           {post.roomArea && <span>{post.roomArea} m²</span>}
@@ -914,9 +946,9 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                             onClick={() => handleToggleRentalStatus(post)}
                             className="btn"
                             style={{
-                              background: post.isRented ? '#f0fdf4' : '#f8fafc',
-                              color: post.isRented ? '#16a34a' : '#475569',
-                              border: '1px solid #cbd5e1',
+                              background: post.isRented ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-primary)',
+                              color: post.isRented ? '#10b981' : 'var(--text-secondary)',
+                              border: '1px solid var(--border-color)',
                               padding: '5px 10px',
                               fontSize: 12,
                               fontWeight: 700,
@@ -931,9 +963,9 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                             onClick={() => handleToggleRoommateStatus(post)}
                             className="btn"
                             style={{
-                              background: post.roommateNeeded ? '#fef3c7' : '#f8fafc',
-                              color: post.roommateNeeded ? '#b45309' : '#475569',
-                              border: '1px solid #cbd5e1',
+                              background: post.roommateNeeded ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-primary)',
+                              color: post.roommateNeeded ? '#f59e0b' : 'var(--text-secondary)',
+                              border: '1px solid var(--border-color)',
                               padding: '5px 10px',
                               fontSize: 12,
                               fontWeight: 700,
@@ -947,12 +979,12 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                         </div>
 
                         {isRejected && post.rejectReason && (
-                          <div style={{ marginTop: 8, background: '#fef2f2', color: '#991b1b', padding: '6px 10px', borderRadius: 8, fontSize: 12 }}>
+                          <div style={{ marginTop: 8, background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '6px 10px', borderRadius: 8, fontSize: 12 }}>
                             <strong>Lý do từ chối:</strong> {post.rejectReason}
                           </div>
                         )}
                         {isPending && (
-                          <div style={{ marginTop: 6, fontSize: 12, color: '#92400e' }}>
+                          <div style={{ marginTop: 6, fontSize: 12, color: '#f59e0b' }}>
                             Bài đăng đã được gửi tới Quản trị viên. Trong lúc chờ duyệt, bài viết chưa hiển thị công khai ngoài diễn đàn.
                           </div>
                         )}
@@ -971,7 +1003,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                         <Link
                           to={`/rooms`}
                           className="btn"
-                          style={{ background: '#f1f5f9', color: 'var(--ink)', padding: '7px 12px', fontSize: 12.5, fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                          style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '7px 12px', fontSize: 12.5, fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                         >
                           Ra diễn đàn
                         </Link>
@@ -990,11 +1022,11 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
         {activeTab === 'activity' && (
           <div>
             <div style={{
-              background: '#ffffff',
+              background: 'var(--bg-card)',
               borderRadius: '20px',
               padding: '22px 24px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--shadow-card)',
               marginBottom: '24px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -1003,10 +1035,10 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
               gap: '16px'
             }}>
               <div>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, color: 'var(--ink)' }}>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
                   Nhật Ký Hoạt Động (Thời Gian Thực)
                 </h3>
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13.5px' }}>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13.5px' }}>
                   Hệ thống tự động ghi nhận mọi thao tác thêm, sửa, xóa khu trọ & phòng trọ theo thời gian thực chính xác từng giây.
                 </p>
               </div>
@@ -1022,52 +1054,55 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
             </div>
 
             {loadingActivities && activities.length === 0 ? (
-              <div style={{ background: '#fff', padding: 50, borderRadius: 16, textAlign: 'center', border: '1px solid var(--border)' }}>
+              <div style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', padding: 50, borderRadius: 16, textAlign: 'center', border: '1px solid var(--border-color)' }}>
                 Đang tải nhật ký hoạt động thời gian thực...
               </div>
             ) : activities.length === 0 ? (
-              <div style={{ background: '#fff', padding: '60px 20px', borderRadius: 20, textAlign: 'center', border: '1px solid var(--border)' }}>
-                <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '60px 20px', borderRadius: 20, textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(37, 99, 235, 0.15)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <Activity size={32} />
                 </div>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: 18, fontWeight: 800 }}>Chưa có hoạt động nào được ghi nhận</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13.5, maxWidth: 450, margin: '0 auto 16px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Chưa có hoạt động nào được ghi nhận</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, maxWidth: 450, margin: '0 auto 16px' }}>
                   Khi bạn thêm khu trọ, sửa phòng hoặc xóa phòng, các thao tác sẽ xuất hiện ở đây theo thời gian thực.
                 </p>
               </div>
             ) : (
               <div style={{
-                background: '#ffffff',
+                background: 'var(--bg-card)',
                 borderRadius: '20px',
-                border: '1px solid var(--border)',
+                border: '1px solid var(--border-color)',
                 overflow: 'hidden',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+                boxShadow: 'var(--shadow-card)'
               }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px', background: 'var(--bg-card)' }}>
                   <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)', color: '#64748b', fontSize: '12.5px', textTransform: 'uppercase' }}>
+                    <tr style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '12.5px', textTransform: 'uppercase' }}>
                       <th style={{ padding: '14px 20px', textAlign: 'left' }}>Thời gian thực</th>
                       <th style={{ padding: '14px 20px', textAlign: 'left' }}>Loại thao tác</th>
                       <th style={{ padding: '14px 20px', textAlign: 'left' }}>Chi tiết nội dung</th>
                       <th style={{ padding: '14px 20px', textAlign: 'left' }}>Địa chỉ IP</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ background: 'var(--bg-card)' }}>
                     {activities.map((act, index) => {
                       const timeInfo = formatRealTime(act.createdAt);
-                      const actMeta = ACTION_MAP[act.action] || { label: act.action, color: '#475569', bg: '#f1f5f9', icon: '📌' };
+                      const actMeta = ACTION_MAP[act.action] || { label: act.action, color: '#475569', bg: 'rgba(100, 116, 139, 0.15)', icon: '📌' };
 
                       return (
                         <tr
                           key={act.id || index}
                           style={{
-                            borderBottom: '1px solid #f1f5f9',
+                            background: 'var(--bg-card)',
+                            borderBottom: '1px solid var(--border-color)',
                             transition: 'background 0.15s'
                           }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-primary)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-card)')}
                         >
                           <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
-                            <div style={{ fontWeight: 800, color: 'var(--ink)' }}>{timeInfo.relative}</div>
-                            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: 2 }}>{timeInfo.exact}</div>
+                            <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{timeInfo.relative}</div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: 2 }}>{timeInfo.exact}</div>
                           </td>
                           <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
                             <span style={{
@@ -1085,10 +1120,10 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                               <span>{actMeta.label}</span>
                             </span>
                           </td>
-                          <td style={{ padding: '16px 20px', color: 'var(--ink)', fontWeight: 600 }}>
+                          <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 600 }}>
                             {act.details || 'Không có mô tả'}
                           </td>
-                          <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '16px 20px', color: 'var(--text-secondary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                             {act.ipAddress || '127.0.0.1'}
                           </td>
                         </tr>

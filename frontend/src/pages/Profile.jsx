@@ -219,7 +219,7 @@ const Profile = () => {
                       name="email"
                       value={formData.email}
                       disabled
-                      style={{ opacity: 0.7, cursor: "not-allowed", background: "var(--bg-subtle, #f8fafc)" }}
+                      style={{ opacity: 0.7, cursor: "not-allowed", background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border-color)" }}
                     />
                   </div>
 
@@ -287,7 +287,7 @@ const Profile = () => {
                 {isLandlord ? (
                   <>
                     <Link to="/landlord/requests" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#e0f2fe", color: "#0284c7" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8" }}>
                         <CheckCircle2 size={24} />
                       </div>
                       <div>
@@ -299,7 +299,7 @@ const Profile = () => {
                     </Link>
 
                     <Link to="/forum/messages" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#fef3c7", color: "#d97706" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" }}>
                         <Mail size={24} />
                       </div>
                       <div>
@@ -311,7 +311,7 @@ const Profile = () => {
                     </Link>
 
                     <Link to="/landlord/properties" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#dcfce7", color: "#16a34a" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
                         <Building2 size={24} />
                       </div>
                       <div>
@@ -323,7 +323,7 @@ const Profile = () => {
                     </Link>
 
                     <Link to="/landlord/create-bill" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#ede9fe", color: "#7c3aed" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(168, 85, 247, 0.15)", color: "#c084fc" }}>
                         <FileText size={24} />
                       </div>
                       <div>
@@ -337,7 +337,7 @@ const Profile = () => {
                 ) : (
                   <>
                     <Link to="/my-contracts" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#e0f2fe", color: "#0284c7" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8" }}>
                         <FileText size={24} />
                       </div>
                       <div>
@@ -349,7 +349,7 @@ const Profile = () => {
                     </Link>
 
                     <Link to="/my-bills" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#fef3c7", color: "#d97706" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" }}>
                         <Building2 size={24} />
                       </div>
                       <div>
@@ -361,7 +361,7 @@ const Profile = () => {
                     </Link>
 
                     <Link to="/forum" className="profile-shortcut-card">
-                      <div className="profile-shortcut-icon" style={{ background: "#dcfce7", color: "#16a34a" }}>
+                      <div className="profile-shortcut-icon" style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
                         <Sparkles size={24} />
                       </div>
                       <div>

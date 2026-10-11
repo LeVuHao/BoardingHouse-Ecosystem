@@ -161,7 +161,7 @@ const RegisterLandlord = () => {
         </div>
 
         {/* Tab Selection */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 28, background: "#FFFFFF", padding: 6, borderRadius: 16, border: "1px solid #E2E8F0", width: "fit-content", boxShadow: "0 2px 6px rgba(0,0,0,0.03)" }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 28, background: "var(--bg-card)", padding: 6, borderRadius: 16, border: "1px solid var(--border)", width: "fit-content", boxShadow: "var(--shadow-soft)" }}>
           <button
             onClick={() => setActiveTab("online")}
             style={{
@@ -176,7 +176,7 @@ const RegisterLandlord = () => {
               cursor: "pointer",
               transition: "all 0.2s ease",
               background: activeTab === "online" ? "#4F46E5" : "transparent",
-              color: activeTab === "online" ? "#FFFFFF" : "#64748B",
+              color: activeTab === "online" ? "#FFFFFF" : "var(--text-muted)",
               boxShadow: activeTab === "online" ? "0 4px 12px rgba(79, 70, 229, 0.25)" : "none",
             }}
           >
@@ -197,7 +197,7 @@ const RegisterLandlord = () => {
               cursor: "pointer",
               transition: "all 0.2s ease",
               background: activeTab === "offline" ? "#4F46E5" : "transparent",
-              color: activeTab === "offline" ? "#FFFFFF" : "#64748B",
+              color: activeTab === "offline" ? "#FFFFFF" : "var(--text-muted)",
               boxShadow: activeTab === "offline" ? "0 4px 12px rgba(79, 70, 229, 0.25)" : "none",
             }}
           >
@@ -211,20 +211,20 @@ const RegisterLandlord = () => {
             {!submittedData ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 28 }}>
                 {/* Form Registration */}
-                <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 32, border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
+                <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 32, border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EEF2FF", color: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Building size={20} />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0F172A" }}>Điền thông tin tài khoản</h3>
-                      <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>Nhập thông tin và mật khẩu bạn mong muốn tạo</p>
+                      <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>Điền thông tin tài khoản</h3>
+                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>Nhập thông tin và mật khẩu bạn mong muốn tạo</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleRegisterOnline} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <div>
-                      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
                         Họ và tên chủ trọ <span style={{ color: "#EF4444" }}>*</span>
                       </label>
                       <input
@@ -232,13 +232,13 @@ const RegisterLandlord = () => {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Nguyễn Văn A"
-                        style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                       />
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
                           Email đăng nhập <span style={{ color: "#EF4444" }}>*</span>
                         </label>
                         <input
@@ -247,11 +247,11 @@ const RegisterLandlord = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="chutro@gmail.com"
-                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
                           Số điện thoại Zalo <span style={{ color: "#EF4444" }}>*</span>
                         </label>
                         <input
@@ -259,25 +259,25 @@ const RegisterLandlord = () => {
                           value={phoneNumber}
                           onChange={(e) => setPhoneNumber(e.target.value)}
                           placeholder="0912345678"
-                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                         />
                       </div>
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
                           Số CCCD / CMND
                         </label>
                         <input
                           value={idCardNumber}
                           onChange={(e) => setIdCardNumber(e.target.value)}
                           placeholder="077099xxxxxx"
-                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 6 }}>
+                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
                           Mật khẩu mong muốn <span style={{ color: "#EF4444" }}>*</span>
                         </label>
                         <input
@@ -286,13 +286,13 @@ const RegisterLandlord = () => {
                           value={desiredPassword}
                           onChange={(e) => setDesiredPassword(e.target.value)}
                           placeholder="Mật khẩu từ 6 ký tự"
-                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                         />
                       </div>
                     </div>
 
-                    <div style={{ background: "#F8FAFC", padding: "14px 16px", borderRadius: 12, border: "1px dashed #CBD5E1", fontSize: 13, color: "#475569", display: "flex", gap: 10 }}>
-                      <Info size={18} color="#4F46E5" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ background: "var(--bg-primary)", padding: "14px 16px", borderRadius: 12, border: "1px dashed var(--border)", fontSize: 13, color: "var(--ink-2)", display: "flex", gap: 10 }}>
+                      <Info size={18} color="var(--primary)" style={{ flexShrink: 0, marginTop: 2 }} />
                       <div>
                         Sau khi bấm <strong>"Tiếp tục thanh toán VietQR"</strong>, hệ thống sẽ tự sinh mã QR thanh toán chuẩn ngân hàng kèm mã định danh duy nhất của bạn.
                       </div>
@@ -329,11 +329,11 @@ const RegisterLandlord = () => {
 
                 {/* Benefits / Guide Column */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0" }}>
-                    <h3 style={{ margin: "0 0 16px 0", fontSize: "1.15rem", fontWeight: 700, color: "#0F172A", display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 28, border: "1px solid var(--border)" }}>
+                    <h3 style={{ margin: "0 0 16px 0", fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
                       <ShieldCheck size={22} color="#10B981" /> Quyền lợi khi kích hoạt Chủ trọ
                     </h3>
-                    <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, color: "#334155", fontSize: 14 }}>
+                    <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, color: "var(--ink-2)", fontSize: 14 }}>
                       <li><strong>Tích xanh Xác thực:</strong> Bài đăng được ưu tiên top đầu diễn đàn và bản đồ tìm kiếm.</li>
                       <li><strong>Quản lý phòng trọ:</strong> Tự do thêm phòng, sửa thông tin, giá điện nước, tiện ích.</li>
                       <li><strong>Tạo hóa đơn & Hợp đồng:</strong> Hỗ trợ lập hóa đơn tiền phòng trực tuyến nhanh gọn.</li>
@@ -341,10 +341,10 @@ const RegisterLandlord = () => {
                     </ul>
                   </div>
 
-                  <div style={{ background: "#F1F5F9", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0" }}>
-                    <h4 style={{ margin: "0 0 10px 0", color: "#0F172A", fontSize: "1rem" }}>Đã có tài khoản?</h4>
-                    <p style={{ margin: "0 0 16px 0", fontSize: 13.5, color: "#64748B" }}>Nếu bạn đã được Admin cấp tài khoản hoặc đăng ký trước đó, hãy đăng nhập ngay.</p>
-                    <Link to="/login" style={{ display: "inline-block", padding: "10px 18px", borderRadius: 10, background: "#FFFFFF", border: "1px solid #CBD5E1", color: "#0F172A", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+                  <div style={{ background: "var(--bg-primary)", borderRadius: 20, padding: 24, border: "1px solid var(--border)" }}>
+                    <h4 style={{ margin: "0 0 10px 0", color: "var(--ink)", fontSize: "1rem" }}>Đã có tài khoản?</h4>
+                    <p style={{ margin: "0 0 16px 0", fontSize: 13.5, color: "var(--text-muted)" }}>Nếu bạn đã được Admin cấp tài khoản hoặc đăng ký trước đó, hãy đăng nhập ngay.</p>
+                    <Link to="/login" style={{ display: "inline-block", padding: "10px 18px", borderRadius: 10, background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
                       Đăng nhập ngay
                     </Link>
                   </div>
@@ -352,18 +352,18 @@ const RegisterLandlord = () => {
               </div>
             ) : (
               /* SUBMITTED STEP: VIETQR DISPLAY & PAYMENT INSTRUCTIONS */
-              <div style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 32px", border: "1px solid #E2E8F0", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
+              <div style={{ background: "var(--bg-card)", borderRadius: 24, padding: "36px 32px", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
                 {submittedData.status === "APPROVED" && (
-                  <div style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "1px solid #A7F3D0", borderRadius: 16, padding: "20px 24px", marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+                  <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 16, padding: "20px 24px", marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#10B981", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <CheckCircle2 size={24} />
                       </div>
                       <div>
-                        <h4 style={{ margin: "0 0 2px 0", fontSize: "1.1rem", fontWeight: 800, color: "#065F46" }}>
+                        <h4 style={{ margin: "0 0 2px 0", fontSize: "1.1rem", fontWeight: 800, color: "#10B981" }}>
                           KÍCH HOẠT TÀI KHOẢN CHỦ TRỌ THÀNH CÔNG!
                         </h4>
-                        <p style={{ margin: 0, fontSize: 13.5, color: "#047857" }}>
+                        <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink-2)" }}>
                           Admin đã xác nhận thanh toán. Bạn có thể sử dụng email <strong>{submittedData.email}</strong> và mật khẩu đã đặt để đăng nhập ngay bây giờ.
                         </p>
                       </div>
@@ -389,12 +389,12 @@ const RegisterLandlord = () => {
                   </div>
                 )}
 
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #E2E8F0", paddingBottom: 20, marginBottom: 28, gap: 16 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)", paddingBottom: 20, marginBottom: 28, gap: 16 }}>
                   <div>
                     <span style={{
                       display: "inline-block",
-                      background: submittedData.status === "APPROVED" ? "#D1FAE5" : submittedData.status === "REJECTED" ? "#FEE2E2" : "#FEF3C7",
-                      color: submittedData.status === "APPROVED" ? "#065F46" : submittedData.status === "REJECTED" ? "#DC2626" : "#B45309",
+                      background: submittedData.status === "APPROVED" ? "rgba(16, 185, 129, 0.2)" : submittedData.status === "REJECTED" ? "rgba(239, 68, 68, 0.2)" : "rgba(245, 158, 11, 0.2)",
+                      color: submittedData.status === "APPROVED" ? "#10B981" : submittedData.status === "REJECTED" ? "#EF4444" : "#F59E0B",
                       padding: "4px 12px",
                       borderRadius: 20,
                       fontSize: 12.5,
@@ -403,7 +403,7 @@ const RegisterLandlord = () => {
                     }}>
                       {submittedData.status === "APPROVED" ? "✅ ĐÃ ĐƯỢC DUYỆT & KÍCH HOẠT" : submittedData.status === "REJECTED" ? "❌ ĐÃ BỊ TỪ CHỐI" : "⏳ CHỜ THANH TOÁN & ĐỐI SOÁT"}
                     </span>
-                    <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800, color: "#0F172A" }}>
+                    <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800, color: "var(--ink)" }}>
                       Thanh toán kích hoạt tài khoản Chủ Trọ
                     </h2>
                   </div>
@@ -418,9 +418,9 @@ const RegisterLandlord = () => {
                         gap: 6,
                         padding: "8px 16px",
                         borderRadius: 10,
-                        border: "1px solid #CBD5E1",
-                        background: "#F8FAFC",
-                        color: "#0F172A",
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-primary)",
+                        color: "var(--ink)",
                         fontWeight: 600,
                         fontSize: 13,
                         cursor: "pointer",
@@ -452,80 +452,80 @@ const RegisterLandlord = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 36, alignItems: "start" }}>
                   {/* QR Image Frame */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#F8FAFC", padding: 24, borderRadius: 20, border: "1px solid #E2E8F0" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "var(--bg-primary)", padding: 24, borderRadius: 20, border: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
                       Quét mã VietQR bằng App Ngân hàng
                     </div>
-                    <div style={{ background: "#FFFFFF", padding: 12, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: "1px solid #E2E8F0" }}>
+                    <div style={{ background: "#FFFFFF", padding: 12, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: "1px solid var(--border)" }}>
                       <img
                         src={submittedData.qrImageUrl}
                         alt="VietQR SePay"
                         style={{ width: 280, height: 280, objectFit: "contain", display: "block" }}
                       />
                     </div>
-                    <div style={{ marginTop: 14, fontSize: 12.5, color: "#64748B", textAlign: "center", maxWidth: 280 }}>
+                    <div style={{ marginTop: 14, fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 280 }}>
                       Mở ứng dụng ngân hàng bất kỳ (BIDV, Vietcombank, MB, Techcombank,...) và quét mã trên.
                     </div>
                   </div>
 
                   {/* Transfer Details & Manual Info */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: -4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: -4 }}>
                       Hoặc chuyển khoản thủ công theo thông tin:
                     </div>
 
-                    <div style={{ background: "#F8FAFC", borderRadius: 14, padding: "14px 18px", border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "var(--bg-primary)", borderRadius: 14, padding: "14px 18px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#64748B" }}>Ngân hàng thụ hưởng</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{submittedData.bankName}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Ngân hàng thụ hưởng</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{submittedData.bankName}</div>
                       </div>
-                      <span style={{ background: "#DBEAFE", color: "#1D4ED8", padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>BIDV</span>
+                      <span style={{ background: "var(--primary-light)", color: "var(--primary)", padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>BIDV</span>
                     </div>
 
-                    <div style={{ background: "#F8FAFC", borderRadius: 14, padding: "14px 18px", border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "var(--bg-primary)", borderRadius: 14, padding: "14px 18px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#64748B" }}>Số tài khoản</div>
-                        <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", letterSpacing: 0.5 }}>{submittedData.bankAccount}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Số tài khoản</div>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", letterSpacing: 0.5 }}>{submittedData.bankAccount}</div>
                       </div>
                       <button
                         onClick={() => copyToClipboard(submittedData.bankAccount, "Số tài khoản")}
-                        style={{ background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                        style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                       >
                         <Copy size={13} /> {copiedField === "Số tài khoản" ? "Đã chép" : "Sao chép"}
                       </button>
                     </div>
 
-                    <div style={{ background: "#F8FAFC", borderRadius: 14, padding: "14px 18px", border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "var(--bg-primary)", borderRadius: 14, padding: "14px 18px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#64748B" }}>Tên chủ tài khoản</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{submittedData.accountHolder}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Tên chủ tài khoản</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{submittedData.accountHolder}</div>
                       </div>
                       <CheckCircle2 size={18} color="#10B981" />
                     </div>
 
-                    <div style={{ background: "#FEF2F2", borderRadius: 14, padding: "14px 18px", border: "1px solid #FECACA", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "rgba(239, 68, 68, 0.1)", borderRadius: 14, padding: "14px 18px", border: "1px solid rgba(239, 68, 68, 0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#DC2626", fontWeight: 600 }}>Nội dung chuyển khoản (Bắt buộc chính xác)</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: "#991B1B", fontFamily: "monospace" }}>{submittedData.paymentCode}</div>
+                        <div style={{ fontSize: 12, color: "#EF4444", fontWeight: 600 }}>Nội dung chuyển khoản (Bắt buộc chính xác)</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: "#EF4444", fontFamily: "monospace" }}>{submittedData.paymentCode}</div>
                       </div>
                       <button
                         onClick={() => copyToClipboard(submittedData.paymentCode, "Nội dung chuyển khoản")}
-                        style={{ background: "#FFFFFF", border: "1px solid #FCA5A5", color: "#DC2626", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                        style={{ background: "var(--bg-card)", border: "1px solid rgba(239, 68, 68, 0.4)", color: "#EF4444", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                       >
                         <Copy size={13} /> {copiedField === "Nội dung chuyển khoản" ? "Đã chép" : "Sao chép"}
                       </button>
                     </div>
 
-                    <div style={{ background: "#ECFDF5", borderRadius: 14, padding: "14px 18px", border: "1px solid #A7F3D0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "rgba(16, 185, 129, 0.1)", borderRadius: 14, padding: "14px 18px", border: "1px solid rgba(16, 185, 129, 0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#065F46" }}>Số tiền thanh toán</div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: "#047857" }}>
+                        <div style={{ fontSize: 12, color: "#10B981" }}>Số tiền thanh toán</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: "#10B981" }}>
                           {Number(submittedData.amount || 199000).toLocaleString("vi-VN")} đ
                         </div>
                       </div>
                       <button
                         onClick={() => copyToClipboard(String(submittedData.amount || 199000), "Số tiền")}
-                        style={{ background: "#FFFFFF", border: "1px solid #6EE7B7", color: "#047857", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                        style={{ background: "var(--bg-card)", border: "1px solid rgba(16, 185, 129, 0.4)", color: "#10B981", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                       >
                         <Copy size={13} /> {copiedField === "Số tiền" ? "Đã chép" : "Sao chép"}
                       </button>
@@ -534,7 +534,7 @@ const RegisterLandlord = () => {
                     <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                       <button
                         onClick={() => setSubmittedData(null)}
-                        style={{ flex: 1, padding: "10px", borderRadius: 10, border: "1px solid #CBD5E1", background: "#FFFFFF", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "#475569" }}
+                        style={{ flex: 1, padding: "10px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-card)", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--ink)" }}
                       >
                         Đăng ký đơn khác
                       </button>
@@ -550,20 +550,20 @@ const RegisterLandlord = () => {
         {activeTab === "offline" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 28 }}>
             {/* Form gửi yêu cầu tạo trực tiếp */}
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 32, border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
+            <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 32, border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#FEF2F2", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(239, 68, 68, 0.15)", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <PhoneCall size={22} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0F172A" }}>Gửi Yêu Cầu Hỗ Trợ Tạo Trực Tiếp</h3>
-                  <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>Admin sẽ liên hệ gọi điện / Zalo và kích hoạt tài khoản theo yêu cầu</p>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>Gửi Yêu Cầu Hỗ Trợ Tạo Trực Tiếp</h3>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>Admin sẽ liên hệ gọi điện / Zalo và kích hoạt tài khoản theo yêu cầu</p>
                 </div>
               </div>
 
               <form onSubmit={handleRegisterOnline} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>
                     Họ và tên của bạn <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <input
@@ -571,13 +571,13 @@ const RegisterLandlord = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Nguyễn Văn A"
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>
                       Số điện thoại Zalo <span style={{ color: "#EF4444" }}>*</span>
                     </label>
                     <input
@@ -585,11 +585,11 @@ const RegisterLandlord = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="0912345678"
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>
                       Email muốn đăng ký <span style={{ color: "#EF4444" }}>*</span>
                     </label>
                     <input
@@ -598,14 +598,14 @@ const RegisterLandlord = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="chutro@gmail.com"
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>
                       Mật khẩu mong muốn <span style={{ color: "#EF4444" }}>*</span>
                     </label>
                     <input
@@ -614,23 +614,23 @@ const RegisterLandlord = () => {
                       value={desiredPassword}
                       onChange={(e) => setDesiredPassword(e.target.value)}
                       placeholder="Tùy chọn mật khẩu"
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 4 }}>
                       Số CCCD / CMND
                     </label>
                     <input
                       value={idCardNumber}
                       onChange={(e) => setIdCardNumber(e.target.value)}
                       placeholder="077099xxxxxx"
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                     />
                   </div>
                 </div>
 
-                <div style={{ background: "#EFF6FF", padding: "12px 16px", borderRadius: 12, border: "1px solid #BFDBFE", fontSize: 13, color: "#1E40AF" }}>
+                <div style={{ background: "rgba(99, 102, 241, 0.12)", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(99, 102, 241, 0.3)", fontSize: 13, color: "var(--ink)" }}>
                   Sau khi bấm gửi, yêu cầu sẽ được gửi tới bảng điều khiển của Admin. Admin sẽ gọi điện xác nhận và hỗ trợ tạo theo ý bạn.
                 </div>
 
@@ -661,34 +661,34 @@ const RegisterLandlord = () => {
 
             {/* Thông tin hotline & liên hệ Admin */}
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0" }}>
-                <h4 style={{ margin: "0 0 14px 0", color: "#0F172A", fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 28, border: "1px solid var(--border)" }}>
+                <h4 style={{ margin: "0 0 14px 0", color: "var(--ink)", fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
                   <PhoneCall size={20} color="#EF4444" /> Hotline Gọi Điện Trực Tiếp
                 </h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F8FAFC", padding: "10px 14px", borderRadius: 10 }}>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>Số Hotline Admin:</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-primary)", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Số Hotline Admin:</span>
                     <a href="tel:0348108630" style={{ fontSize: 15, fontWeight: 800, color: "#EF4444", textDecoration: "none" }}>0348.108.630</a>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F8FAFC", padding: "10px 14px", borderRadius: 10 }}>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>Zalo hỗ trợ:</span>
-                    <a href="https://zalo.me/0348108630" target="_blank" rel="noreferrer" style={{ fontSize: 13.5, fontWeight: 700, color: "#0F172A", textDecoration: "none" }}>0348.108.630 (Lê Vũ Hảo)</a>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-primary)", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Zalo hỗ trợ:</span>
+                    <a href="https://zalo.me/0348108630" target="_blank" rel="noreferrer" style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)", textDecoration: "none" }}>0348.108.630 (Lê Vũ Hảo)</a>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F8FAFC", padding: "10px 14px", borderRadius: 10 }}>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>Email quản trị:</span>
-                    <a href="mailto:levuhao10jq@gmail.com" style={{ fontSize: 13.5, fontWeight: 600, color: "#4F46E5", textDecoration: "none" }}>levuhao10jq@gmail.com</a>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-primary)", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Email quản trị:</span>
+                    <a href="mailto:levuhao10jq@gmail.com" style={{ fontSize: 13.5, fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}>levuhao10jq@gmail.com</a>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#EEF2FF", color: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+              <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 28, border: "1px solid var(--border)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                   <KeyRound size={26} />
                 </div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0F172A", margin: "0 0 6px 0" }}>
+                <h4 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: "0 0 6px 0" }}>
                   Bạn là Quản Trị Viên (Admin)?
                 </h4>
-                <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 16px 0" }}>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 16px 0" }}>
                   Vào trang quản trị nội bộ để tạo tài khoản Chủ trọ trực tiếp hoặc duyệt đơn từ khách hàng.
                 </p>
                 <Link
@@ -699,12 +699,12 @@ const RegisterLandlord = () => {
                     gap: 8,
                     padding: "10px 20px",
                     borderRadius: 10,
-                    background: "#4F46E5",
+                    background: "var(--primary)",
                     color: "#FFFFFF",
                     fontWeight: 700,
                     fontSize: 13.5,
                     textDecoration: "none",
-                    boxShadow: "0 4px 12px rgba(79, 70, 229, 0.25)",
+                    boxShadow: "var(--shadow-soft)",
                   }}
                 >
                   Vào Duyệt Đăng Ký Chủ Trọ <ExternalLink size={15} />

@@ -350,11 +350,11 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {!embedded && (
-            <Link to="/contracts" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 700, color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}>
+            <Link to="/contracts" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 700, color: 'var(--primary)', borderColor: 'var(--border-color)', background: 'var(--bg-card)' }}>
               <FileText size={18} /> Quản lý Hợp đồng ({contracts.length})
             </Link>
           )}
-          <button onClick={() => { resetPropertyForm(); setShowAddProperty(true); }} className="btn btn-primary" style={{ fontWeight: 700 }}>
+          <button onClick={() => { resetPropertyForm(); setShowAddProperty(true); }} className="btn btn-primary" style={{ fontWeight: 700, background: 'var(--primary)', color: '#ffffff' }}>
             + Thêm Khu Trọ Mới
           </button>
         </div>
@@ -370,43 +370,43 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
             marginBottom: '2rem',
           }}
         >
-          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(37, 99, 235, 0.15)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Building size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Khu trọ / Số phòng</div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--ink)' }}>{totalProperties} khu · {totalRoomsCount} phòng</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Khu trọ / Số phòng</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>{totalProperties} khu · {totalRoomsCount} phòng</div>
             </div>
           </div>
 
-          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <CheckCircle2 size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng đang thuê</div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: '#059669' }}>{occupiedRoomsCount} phòng</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng đang thuê</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#10b981' }}>{occupiedRoomsCount} phòng</div>
             </div>
           </div>
 
-          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fff7ed', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Sparkles size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng còn trống</div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: '#ea580c' }}>{availableRoomsCount} phòng</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng còn trống</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#f59e0b' }}>{availableRoomsCount} phòng</div>
             </div>
           </div>
 
-          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(124, 58, 237, 0.15)', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <TrendingUp size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Lấp đầy & Doanh thu</div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#7c3aed' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Lấp đầy & Doanh thu</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#a78bfa' }}>
                 {occupancyRate}% {monthlyRevenue > 0 ? `· ${Number(monthlyRevenue).toLocaleString('vi-VN')}đ` : ''}
               </div>
             </div>
@@ -417,10 +417,10 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
         {/* Properties List */}
         <div>
-          <h3>Danh sách Khu trọ ({properties.length})</h3>
+          <h3 style={{ color: 'var(--text-primary)' }}>Danh sách Khu trọ ({properties.length})</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
             {properties.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', background: 'white', borderRadius: '12px' }}>
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
                 <Home size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
                 <p>Chưa có khu trọ nào. Hãy thêm khu trọ đầu tiên!</p>
               </div>
@@ -430,16 +430,17 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                 key={p.id}
                 onClick={() => handleSelectProperty(p)}
                 style={{
-                  background: selectedProperty?.id === p.id ? 'var(--primary-light)' : 'white',
-                  border: selectedProperty?.id === p.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                  background: selectedProperty?.id === p.id ? 'var(--primary-light)' : 'var(--bg-card)',
+                  border: selectedProperty?.id === p.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
                   padding: '1.2rem',
                   borderRadius: '12px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  boxShadow: 'var(--shadow-soft)'
                 }}
               >
-                <h4 style={{ margin: '0 0 0.3rem' }}>{p.title}</h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0 0 0.5rem' }}>{p.address}, {p.district}, {p.city}</p>
+                <h4 style={{ margin: '0 0 0.3rem', color: 'var(--text-primary)' }}>{p.title}</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0 0 0.5rem' }}>{p.address}, {p.district}, {p.city}</p>
                 <div style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                   Số phòng: {p.totalRooms}
                 </div>
@@ -451,9 +452,9 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
         {/* Rooms Details */}
         <div>
           {selectedProperty ? (
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
+            <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-card)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3>Các phòng: {selectedProperty.title}</h3>
+                <h3 style={{ color: 'var(--text-primary)' }}>Các phòng: {selectedProperty.title}</h3>
                 <div style={{ display: 'flex', gap: '0.6rem' }}>
                   <button onClick={openEditProperty} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                     Sửa khu trọ
@@ -461,12 +462,12 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                   <button
                     onClick={() => handleDeleteProperty(selectedProperty)}
                     className="btn btn-outline"
-                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#dc2626', borderColor: '#fca5a5', background: '#fff1f2' }}
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' }}
                     title="Xóa khu trọ"
                   >
                     Xóa khu trọ
                   </button>
-                  <button onClick={() => { resetRoomForm(); setShowAddRoom(true); }} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 700 }}>
+                  <button onClick={() => { resetRoomForm(); setShowAddRoom(true); }} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 700, background: 'var(--primary)', color: '#ffffff' }}>
                     + Thêm phòng
                   </button>
                 </div>
@@ -476,23 +477,23 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                 {rooms.map((r) => {
                   const st = statusColor(r.status);
                   return (
-                    <div key={r.id} style={{ border: '1px solid var(--border)', padding: '1rem', borderRadius: '10px' }}>
+                    <div key={r.id} style={{ border: '1px solid var(--border-color)', background: 'var(--bg-primary)', padding: '1rem', borderRadius: '10px' }}>
                       {r.images?.[0] && (
                         <img src={r.images[0]} alt={r.roomNumber} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.6rem' }} />
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                        <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>Phòng {r.roomNumber}</span>
-                        <span style={{ background: '#e0e7ff', color: '#3730a3', fontSize: '0.75rem', fontWeight: 800, padding: '2px 7px', borderRadius: '6px' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--text-primary)' }}>Phòng {r.roomNumber}</span>
+                        <span style={{ background: 'rgba(99, 102, 241, 0.18)', color: '#818cf8', fontSize: '0.75rem', fontWeight: 800, padding: '2px 7px', borderRadius: '6px' }}>
                           Mã: MP-{r.id}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.3rem' }}>
-                        Mã phòng sự cố: <strong>MP-{r.id}</strong>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                        Mã phòng sự cố: <strong style={{ color: 'var(--text-primary)' }}>MP-{r.id}</strong>
                       </div>
                       <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.2rem' }}>
                         {Number(r.price).toLocaleString('vi-VN')} đ
                       </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
                         {r.area} m² · {r.currentOccupants}/{r.capacity} người
                       </div>
                       <span style={{ background: st.bg, color: st.color, fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: '600' }}>
@@ -516,7 +517,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                         <button
                           onClick={() => handleDeleteRoom(r)}
                           className="btn btn-outline"
-                          style={{ fontSize: '0.78rem', padding: '0.35rem 0.6rem', color: '#dc2626', borderColor: '#fca5a5', background: '#fff1f2' }}
+                          style={{ fontSize: '0.78rem', padding: '0.35rem 0.6rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)' }}
                           title="Xóa phòng"
                         >
                           Xóa
@@ -527,7 +528,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                         <button
                           onClick={() => openQuickBillModal(r)}
                           className="btn btn-primary"
-                          style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.35rem 0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+                          style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.35rem 0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', background: 'var(--primary)', color: '#ffffff', fontWeight: 700 }}
                         >
                           <Receipt size={14} /> Xuất hóa đơn tháng
                         </button>
@@ -569,9 +570,9 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
               )}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', background: 'white', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
-              <Home size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-              <p>Vui lòng chọn 1 khu trọ bên trái để xem danh sách phòng.</p>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', boxShadow: 'var(--shadow-soft)' }}>
+              <Home size={48} style={{ opacity: 0.3, marginBottom: '1rem', color: 'var(--text-secondary)' }} />
+              <p style={{ color: 'var(--text-secondary)' }}>Vui lòng chọn 1 khu trọ bên trái để xem danh sách phòng.</p>
             </div>
           )}
         </div>
@@ -580,27 +581,27 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       {/* Add Property Modal */}
       {showAddProperty && (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
-          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Thêm Khu Trọ Mới</h3>
+          <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Thêm Khu Trọ Mới</h3>
             <form onSubmit={handleAddProperty} style={{ marginTop: '1rem' }}>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tên khu trọ</label>
-                <input required value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tên khu trọ</label>
+                <input required value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Mô tả</label>
-                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Mô tả</label>
+                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
               </div>
               {/* Autocomplete Gợi ý địa chỉ tự động */}
-              <div style={{ marginBottom: '14px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: '#166534' }}>
+              <div style={{ marginBottom: '14px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--border-color)', padding: '12px 14px', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--success)' }}>
                   ✨ Gợi ý & Tự động điền nhanh địa chỉ:
                 </label>
                 <AddressAutocomplete
                   placeholder="Gõ số nhà, tên đường, chợ, trường ĐH để tự động điền các ô..."
                   onSelectAddress={(result) => {
                     if (result.address) setAddress(result.address);
-                    if (result.ward) setWard(result.ward);
+                    setWard(result.ward || '');
                     if (result.district) setDistrict(result.district);
                     if (result.city) setCity(result.city);
                     if (result.latitude) setLatitude(result.latitude);
@@ -610,33 +611,34 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Địa chỉ cụ thể</label>
-                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Địa chỉ cụ thể</label>
+                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Thành phố</label>
-                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Thành phố</label>
+                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Quận/Huyện</label>
-                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Quận/Huyện</label>
+                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Phường/Xã</label>
-                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Phường/Xã</label>
+                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               </div>
               <RoomLocationPicker
                 addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
+                initialLocation={latitude && longitude ? { latitude, longitude } : null}
                 onChange={handlePropertyLocationChange}
               />
               <div className="form-group" style={{ marginTop: '14px', marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tiện ích</label>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tiện ích</label>
                 <AmenityPicker value={utilities} onChange={setUtilities} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
-                <button type="button" onClick={() => setShowAddProperty(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="button" onClick={() => setShowAddProperty(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu khu trọ</button>
               </div>
             </form>
@@ -647,27 +649,27 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       {/* Edit Property Modal */}
       {showEditProperty && (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
-          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Chỉnh Sửa Khu Trọ</h3>
+          <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Chỉnh Sửa Khu Trọ</h3>
             <form onSubmit={handleEditProperty} style={{ marginTop: '1rem' }}>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tên khu trọ</label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tên khu trọ</label>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Mô tả</label>
-                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Mô tả</label>
+                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
               </div>
               {/* Autocomplete Gợi ý địa chỉ tự động */}
-              <div style={{ marginBottom: '14px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: '#166534' }}>
+              <div style={{ marginBottom: '14px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--border-color)', padding: '12px 14px', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--success)' }}>
                   ✨ Gợi ý & Tự động đổi nhanh địa chỉ:
                 </label>
                 <AddressAutocomplete
                   placeholder="Gõ số nhà, tên đường, chợ, trường ĐH để tự động điền các ô..."
                   onSelectAddress={(result) => {
                     if (result.address) setAddress(result.address);
-                    if (result.ward) setWard(result.ward);
+                    setWard(result.ward || '');
                     if (result.district) setDistrict(result.district);
                     if (result.city) setCity(result.city);
                     if (result.latitude) setLatitude(result.latitude);
@@ -677,34 +679,34 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Địa chỉ cụ thể</label>
-                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Địa chỉ cụ thể</label>
+                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Thành phố</label>
-                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Thành phố</label>
+                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Quận/Huyện</label>
-                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Quận/Huyện</label>
+                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Phường/Xã</label>
-                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Phường/Xã</label>
+                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               </div>
               <RoomLocationPicker
                 addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
-                initialLocation={selectedProperty}
+                initialLocation={latitude && longitude ? { latitude, longitude } : selectedProperty}
                 onChange={handlePropertyLocationChange}
               />
               <div className="form-group" style={{ marginTop: '14px', marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tiện ích</label>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tiện ích</label>
                 <AmenityPicker value={utilities} onChange={setUtilities} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
-                <button type="button" onClick={() => setShowEditProperty(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="button" onClick={() => setShowEditProperty(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cập nhật</button>
               </div>
             </form>
@@ -715,33 +717,33 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       {/* Add Room Modal */}
       {showAddRoom && (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
-          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Thêm phòng mới cho {selectedProperty.title}</h3>
+          <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Thêm phòng mới cho {selectedProperty.title}</h3>
             <form onSubmit={handleAddRoom} style={{ marginTop: '1rem' }}>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Số phòng (VD: P101)</label>
-                <input required value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Số phòng (VD: P101)</label>
+                <input required value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Giá thuê (đ/tháng)</label>
-                  <input type="number" required value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Giá thuê (đ/tháng)</label>
+                  <input type="number" required value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Diện tích (m²)</label>
-                  <input type="number" required value={area} onChange={(e) => setArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Diện tích (m²)</label>
+                  <input type="number" required value={area} onChange={(e) => setArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Sức chứa tối đa (người)</label>
-                <input type="number" required value={capacity} onChange={(e) => setCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Sức chứa tối đa (người)</label>
+                <input type="number" required value={capacity} onChange={(e) => setCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Link ảnh phòng</label>
-                <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Link ảnh phòng</label>
+                <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
-                <button type="button" onClick={() => setShowAddRoom(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="button" onClick={() => setShowAddRoom(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu phòng</button>
               </div>
             </form>
@@ -752,40 +754,40 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       {/* Edit Room Modal */}
       {showEditRoom && editingRoom && (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
-          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Chỉnh sửa Phòng {editingRoom.roomNumber}</h3>
+          <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Chỉnh sửa Phòng {editingRoom.roomNumber}</h3>
             <form onSubmit={handleEditRoom} style={{ marginTop: '1rem' }}>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Số phòng</label>
-                <input value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Số phòng</label>
+                <input value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Giá thuê (đ/tháng)</label>
-                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Giá thuê (đ/tháng)</label>
+                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Diện tích (m²)</label>
-                  <input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Diện tích (m²)</label>
+                  <input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Sức chứa</label>
-                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Sức chứa</label>
+                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Trạng thái phòng</label>
-                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Trạng thái phòng</label>
+                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
                   <option value="AVAILABLE">Còn trống</option>
                   <option value="MAINTENANCE">Bảo trì</option>
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Thêm ảnh mới (URL)</label>
-                <input value={addImageUrl} onChange={(e) => setAddImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Thêm ảnh mới (URL)</label>
+                <input value={addImageUrl} onChange={(e) => setAddImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
-                <button type="button" onClick={() => setShowEditRoom(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="button" onClick={() => setShowEditRoom(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu thay đổi</button>
               </div>
             </form>
@@ -875,7 +877,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                 />
               </div>
 
-              <div style={{ background: '#f8fafc', padding: '0.9rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1rem' }}>
+              <div style={{ background: 'var(--bg-primary)', padding: '0.9rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--primary)' }}>
                   <span>Tổng cộng:</span>
                   <span>

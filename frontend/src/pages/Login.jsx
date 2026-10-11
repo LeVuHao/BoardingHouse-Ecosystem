@@ -37,7 +37,7 @@ const Login = () => {
 
   return (
     <div className="container" style={{ maxWidth: '450px', marginTop: '3rem' }}>
-      <div style={{ background: 'white', padding: '2.5rem', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', padding: '2.5rem', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary)' }}>Đăng nhập Roomily</h2>
         {error && <div style={{ color: 'var(--danger)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
 

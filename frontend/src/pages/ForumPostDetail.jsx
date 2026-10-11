@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import { forumApi, rentalApi, reviewApi } from "../api/apiClient";
 import ReviewSection from "../components/ReviewSection";
 import WishlistButton from "../components/WishlistButton";
+import ImageGalleryGrid from "../components/ImageGalleryGrid";
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const timeAgo = (dateStr) => {
@@ -394,6 +395,9 @@ const ForumPostDetail = () => {
           </div>
         )}
 
+        {/* Bộ sưu tập ảnh 5 khung chuẩn Airbnb & Fullscreen Lightbox */}
+        <ImageGalleryGrid images={post.images} title={post.title} />
+
         <div className="forum-detail-layout">
           {/* Main content */}
           <div className="forum-detail-main">
@@ -521,27 +525,7 @@ const ForumPostDetail = () => {
               </div>
             )}
 
-            {/* Gallery */}
-            {post.images && post.images.length > 0 && (
-              <div className="forum-detail-gallery">
-                <div className="forum-detail-main-img">
-                  <img src={post.images[selectedImg]} alt="Ảnh phòng trọ" />
-                </div>
-                {post.images.length > 1 && (
-                  <div className="forum-detail-thumbs">
-                    {post.images.map((img, i) => (
-                      <button
-                        key={i}
-                        className={`forum-thumb ${i === selectedImg ? "active" : ""}`}
-                        onClick={() => setSelectedImg(i)}
-                      >
-                        <img src={img} alt={`Ảnh ${i + 1}`} />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+
 
             {/* Messages Section */}
             <div className="forum-messages-section">
@@ -673,10 +657,10 @@ const ForumPostDetail = () => {
               </div>
 
               {/* Mã định danh trọ */}
-              <div style={{ marginBottom: 16, background: "#f8fafc", padding: "8px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                <Tag size={14} color="#2563eb" />
+              <div style={{ marginBottom: 16, background: "var(--bg-primary)", border: "1px solid var(--border)", padding: "8px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                <Tag size={14} color="var(--primary)" />
                 <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
-                  Mã định danh trọ: <span style={{ color: "#2563eb" }}>#POST-{post.id}</span>
+                  Mã định danh trọ: <span style={{ color: "var(--primary)" }}>#POST-{post.id}</span>
                 </span>
               </div>
 
@@ -713,7 +697,7 @@ const ForumPostDetail = () => {
                 </button>
 
                 {/* Tertiary CTA: Yêu thích / Lưu phòng */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#f8fafc", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "var(--bg-card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
                   <WishlistButton post={post} style={{ fontSize: "15px", fontWeight: "600", width: "100%", justifyContent: "center" }} showText={true} />
                 </div>
 
@@ -729,7 +713,7 @@ const ForumPostDetail = () => {
                 </button>
                 <button
                   className="btn-block btn-outline"
-                  style={{ color: "#EF4444", borderColor: "#FECACA", backgroundColor: "#FEF2F2", marginTop: "10px" }}
+                  style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)", backgroundColor: "rgba(239, 68, 68, 0.1)", marginTop: "10px" }}
                   onClick={() => setReportModalOpen(true)}
                 >
                   <AlertCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />

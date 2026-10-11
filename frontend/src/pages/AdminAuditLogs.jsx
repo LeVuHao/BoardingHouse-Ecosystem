@@ -33,14 +33,15 @@ const ACTION_LABELS = {
 const thStyle = { padding: "16px 24px", fontWeight: 600, textAlign: "left" };
 
 const ActionBadge = ({ action }) => {
-  let color = "#64748B";
-  let bg = "#F1F5F9";
-  if (/CREATE|APPROVE|SHOW|UNLOCK/.test(action)) { color = "#15803D"; bg = "#DCFCE7"; }
-  else if (/UPDATE|RESET/.test(action)) { color = "#0369A1"; bg = "#E0F2FE"; }
-  else if (/LOCK|DELETE|REJECT/.test(action)) { color = "#B91C1C"; bg = "#FEE2E2"; }
-  else if (/HIDE/.test(action)) { color = "#B45309"; bg = "#FEF3C7"; }
+  let color = "var(--text-secondary)";
+  let bg = "var(--bg-primary)";
+  let border = "var(--border-color)";
+  if (/CREATE|APPROVE|SHOW|UNLOCK/.test(action)) { color = "#10B981"; bg = "rgba(16, 185, 129, 0.15)"; border = "rgba(16, 185, 129, 0.3)"; }
+  else if (/UPDATE|RESET/.test(action)) { color = "#0EA5E9"; bg = "rgba(14, 165, 233, 0.15)"; border = "rgba(14, 165, 233, 0.3)"; }
+  else if (/LOCK|DELETE|REJECT/.test(action)) { color = "#EF4444"; bg = "rgba(239, 68, 68, 0.15)"; border = "rgba(239, 68, 68, 0.3)"; }
+  else if (/HIDE/.test(action)) { color = "#F59E0B"; bg = "rgba(245, 158, 11, 0.15)"; border = "rgba(245, 158, 11, 0.3)"; }
   return (
-    <span title={action} style={{ padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, color, backgroundColor: bg, whiteSpace: "nowrap" }}>
+    <span title={action} style={{ padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, color, backgroundColor: bg, border: `1px solid ${border}`, whiteSpace: "nowrap" }}>
       {ACTION_LABELS[action] || action}
     </span>
   );
@@ -115,26 +116,26 @@ const AdminAuditLogs = () => {
       />
 
       <div style={{ ...cardStyle, padding: "16px 24px", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", flex: "1 1 260px", maxWidth: 340, height: 40 }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "0 14px", flex: "1 1 260px", maxWidth: 340, height: 40 }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm theo admin, hành động, chi tiết..."
-            style={{ border: "none", background: "transparent", outline: "none", padding: "0 8px", width: "100%", fontSize: 14 }}
+            style={{ border: "none", background: "transparent", outline: "none", padding: "0 8px", width: "100%", fontSize: 14, color: "var(--text-primary)" }}
           />
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: 12, color: "#64748B", marginBottom: 4 }}>Từ ngày</label>
+          <label style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Từ ngày</label>
           <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} style={{ ...inputStyle, width: 160, height: 40 }} />
         </div>
         <div>
-          <label style={{ display: "block", fontSize: 12, color: "#64748B", marginBottom: 4 }}>Đến ngày</label>
+          <label style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Đến ngày</label>
           <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} style={{ ...inputStyle, width: 160, height: 40 }} />
         </div>
         <div>
-          <label style={{ display: "block", fontSize: 12, color: "#64748B", marginBottom: 4 }}>Loại hành động</label>
+          <label style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>Loại hành động</label>
           <select value={action} onChange={(e) => setAction(e.target.value)} style={{ ...inputStyle, width: 210, height: 40 }}>
             <option value="">Tất cả hành động</option>
             {actionOptions.map((a) => <option key={a} value={a}>{ACTION_LABELS[a] || a}</option>)}
@@ -158,7 +159,7 @@ const AdminAuditLogs = () => {
           <div style={{ overflowX: "auto", opacity: loading ? 0.6 : 1, transition: "opacity .15s" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: 820 }}>
               <thead>
-                <tr style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0", color: "#64748B", fontSize: 13, textTransform: "uppercase" }}>
+                <tr style={{ backgroundColor: "var(--bg-primary)", borderBottom: "1px solid var(--border-color)", color: "var(--text-secondary)", fontSize: 13, textTransform: "uppercase" }}>
                   <th style={thStyle}>Thời gian</th>
                   <th style={thStyle}>Admin</th>
                   <th style={thStyle}>Hành động</th>
@@ -171,27 +172,27 @@ const AdminAuditLogs = () => {
                   const t = fmt(log.createdAt);
                   const name = log.adminName || log.adminEmail || "—";
                   return (
-                    <tr key={log.id} style={{ borderBottom: "1px solid #F1F5F9" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8FAFC")}
+                    <tr key={log.id} style={{ borderBottom: "1px solid var(--border-color)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-primary)")}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
-                      <td style={{ padding: "16px 24px", fontSize: 14, color: "#334155", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "16px 24px", fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
                         <div style={{ fontWeight: 500 }}>{t.time}</div>
-                        <div style={{ fontSize: 12, color: "#94A3B8" }}>{t.date}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{t.date}</div>
                       </td>
                       <td style={{ padding: "16px 24px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EDE9FE", color: "#8B5CF6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(139, 92, 246, 0.15)", color: "#8B5CF6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
                             {name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A" }}>{name}</div>
-                            {log.adminEmail && log.adminEmail !== name && <div style={{ fontSize: 12, color: "#64748B" }}>{log.adminEmail}</div>}
+                            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{name}</div>
+                            {log.adminEmail && log.adminEmail !== name && <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{log.adminEmail}</div>}
                           </div>
                         </div>
                       </td>
                       <td style={{ padding: "16px 24px" }}><ActionBadge action={log.action} /></td>
-                      <td style={{ padding: "16px 24px", fontSize: 14, color: "#334155", maxWidth: 360, wordBreak: "break-word" }}>{log.details}</td>
-                      <td style={{ padding: "16px 24px", fontSize: 13, color: "#64748B", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "16px 24px", fontSize: 14, color: "var(--text-primary)", maxWidth: 360, wordBreak: "break-word" }}>{log.details}</td>
+                      <td style={{ padding: "16px 24px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}><MapPin size={14} /> {log.ipAddress || "—"}</div>
                       </td>
                     </tr>
