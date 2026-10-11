@@ -14,6 +14,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     List<Contract> findByLandlordId(Long landlordId);
     List<Contract> findByRoomId(Long roomId);
     boolean existsByRoomIdInAndStatus(Collection<Long> roomIds, String status);
+    boolean existsByRoomIdAndStatus(Long roomId, String status);
     Optional<Contract> findByRoomIdAndTenantIdAndStatus(Long roomId, Long tenantId, String status);
 
     default List<Contract> findByUserId(Long userId) {

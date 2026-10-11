@@ -20,8 +20,10 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
 
     Page<ForumPost> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    /** Bài đăng hiển thị công khai: đang mở, đã được Admin duyệt, và khu trọ không bị ẩn/xóa. */
+    /** Bài đăng hiển thị công khai: đang mở, đã được Admin duyệt, khu trọ không bị ẩn/xóa,
+     *  và NẾU phòng đã có người thuê (isRented = true) thì CHỈ HIỂN THỊ khi đang cần tìm người ở ghép (roommateNeeded = true). */
     @Query("SELECT p FROM ForumPost p WHERE p.status = 'ACTIVE' AND p.moderationStatus = 'APPROVED' " +
+           "AND (p.isRented = false OR p.roommateNeeded = true) " +
            "AND (p.roomId IS NULL OR p.roomId NOT IN " +
            "(SELECT r.id FROM Room r WHERE r.property.status <> 'ACTIVE')) " +
            "ORDER BY p.createdAt DESC")

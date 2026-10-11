@@ -12,6 +12,10 @@ import com.roomily.property.entity.RoomImage;
 import com.roomily.property.repository.PropertyRepository;
 import com.roomily.property.repository.RoomImageRepository;
 import com.roomily.property.repository.RoomRepository;
+import com.roomily.property.entity.ForumPost;
+import com.roomily.property.repository.ContractRepository;
+import com.roomily.property.repository.ForumPostRepository;
+import com.roomily.property.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +33,9 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final RoomRepository roomRepository;
     private final RoomImageRepository roomImageRepository;
+    private final ContractRepository contractRepository;
+    private final TenantRepository tenantRepository;
+    private final ForumPostRepository forumPostRepository;
 
     @Transactional
     public PropertyResponse createProperty(Long landlordId, CreatePropertyRequest req) {
@@ -188,7 +195,77 @@ public class PropertyService {
 
     public List<RoomResponse> getRoomsByProperty(Long propertyId) {
         return roomRepository.findByPropertyId(propertyId).stream()
+                .filter(r -> !"DELETED".equals(r.getStatus()))
                 .map(RoomResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Chủ trọ xóa khu trọ (kiểm tra hợp đồng và người đang ở trước khi xóa)
+     */
+    @Transactional
+    public String deleteProperty(Long landlordId, Long propertyId) {
+        Property p = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khu trọ"));
+        if (!p.getLandlordId().equals(landlordId)) {
+            throw new BadRequestException("Bạn không có quyền xóa khu trọ này");
+        }
+        if ("DELETED".equals(p.getStatus())) {
+            throw new BadRequestException("Khu trọ này đã bị xóa trước đó");
+        }
+
+        List<Long> roomIds = p.getRooms().stream()
+                .filter(r -> !"DELETED".equals(r.getStatus()))
+                .map(Room::getId)
+                .collect(Collectors.toList());
+        if (!roomIds.isEmpty()) {
+            if (contractRepository.existsByRoomIdInAndStatus(roomIds, "ACTIVE")
+                    || tenantRepository.existsByRoomIdInAndIsStayingTrue(roomIds)) {
+                throw new BadRequestException("Khu trọ đang có phòng có hợp đồng thuê còn hiệu lực hoặc người đang ở. Không thể xóa!");
+            }
+            // Đóng các bài đăng diễn đàn gắn với khu trọ này
+            for (ForumPost post : forumPostRepository.findByRoomIdIn(roomIds)) {
+                if (!"DELETED".equals(post.getStatus())) {
+                    post.setStatus("CLOSED");
+                }
+            }
+            for (Room room : p.getRooms()) {
+                room.setStatus("DELETED");
+            }
+        }
+
+        p.setStatus("DELETED");
+        propertyRepository.save(p);
+        return p.getTitle();
+    }
+
+    /**
+     * Chủ trọ xóa phòng trọ (kiểm tra hợp đồng và người đang ở trước khi xóa)
+     */
+    @Transactional
+    public String deleteRoom(Long landlordId, Long roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng trọ"));
+        if (!room.getProperty().getLandlordId().equals(landlordId)) {
+            throw new BadRequestException("Bạn không có quyền xóa phòng này");
+        }
+        if ("DELETED".equals(room.getStatus())) {
+            throw new BadRequestException("Phòng này đã bị xóa trước đó");
+        }
+        if (contractRepository.existsByRoomIdAndStatus(roomId, "ACTIVE")
+                || tenantRepository.existsByRoomIdAndIsStayingTrue(roomId)) {
+            throw new BadRequestException("Phòng đang có hợp đồng thuê hoạt động hoặc có người đang ở. Không thể xóa!");
+        }
+
+        // Đóng bài đăng diễn đàn gắn với phòng này
+        for (ForumPost post : forumPostRepository.findByRoomIdIn(List.of(roomId))) {
+            if (!"DELETED".equals(post.getStatus())) {
+                post.setStatus("CLOSED");
+            }
+        }
+
+        room.setStatus("DELETED");
+        roomRepository.save(room);
+        return "Phòng " + room.getRoomNumber() + " (Khu: " + room.getProperty().getTitle() + ")";
     }
 }

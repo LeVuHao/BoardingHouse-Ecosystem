@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   LogOut, MessageSquare, User, ChevronDown, Building2, 
-  FileText, CheckCircle2, Shield, Sparkles, Wrench, AlertTriangle, Heart
+  FileText, CheckCircle2, Shield, Sparkles, Wrench, AlertTriangle, Heart, Home, Users
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { forumApi, maintenanceApi } from "../api/apiClient";
@@ -85,32 +85,28 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <nav className="site-nav-links">
-          <Link to="/rooms" className={`site-nav-link ${location.pathname === "/rooms" ? "active" : ""}`}>
-            Tìm phòng
+          <Link to="/rooms" className={`site-nav-link ${location.pathname === "/rooms" || location.pathname === "/forum" ? "active" : ""}`}>
+            Tìm phòng & Diễn đàn
           </Link>
           <Link to="/roommates" className={`site-nav-link ${location.pathname === "/roommates" ? "active" : ""}`}>
             Ở ghép
           </Link>
-          <Link to="/forum" className={`site-nav-link ${location.pathname === "/forum" ? "active" : ""}`}>
-            Diễn đàn
-          </Link>
           
           {user?.role === "LANDLORD" && (
             <>
-              <Link to="/forum/create" className={`site-nav-link ${location.pathname === "/forum/create" ? "active" : ""}`} style={{ color: location.pathname === "/forum/create" ? "var(--ink)" : "#059669", fontWeight: 600 }}>
+              <Link 
+                to="/forum/create" 
+                className={`site-nav-link ${location.pathname === "/forum/create" ? "active" : ""}`} 
+                style={{ color: location.pathname === "/forum/create" ? "var(--ink)" : "#059669", fontWeight: 600 }}
+              >
                 + Đăng tin trọ
               </Link>
-              <Link to="/landlord/properties" className={`site-nav-link ${location.pathname.startsWith("/landlord/properties") ? "active" : ""}`}>
-                Khu trọ
-              </Link>
-              <Link to="/landlord/requests" className={`site-nav-link ${location.pathname.startsWith("/landlord/requests") ? "active" : ""}`}>
-                Yêu cầu thuê
-              </Link>
-              <Link to="/landlord/create-bill" className={`site-nav-link ${location.pathname.startsWith("/landlord/create-bill") ? "active" : ""}`}>
-                Tạo hóa đơn
-              </Link>
-              <Link to="/landlord/tickets" className={`site-nav-link ${location.pathname.startsWith("/landlord/tickets") ? "active" : ""}`} style={{ position: "relative" }}>
-                Sự cố
+              <Link 
+                to="/landlord/management" 
+                className={`site-nav-link ${location.pathname.startsWith("/landlord") ? "active" : ""}`}
+                style={{ fontWeight: 700, position: "relative" }}
+              >
+                Quản lý trọ của tôi
                 {ticketUrgentCount > 0 && (
                   <span style={{
                     position: "absolute", top: -6, right: -12,
@@ -133,7 +129,7 @@ const Navbar = () => {
           {user?.role === "USER" && (
             <>
               <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" ? "active" : ""}`}>
-                Trọ của tôi
+                Hợp đồng thuê
               </Link>
               <Link to="/my-bills" className={`site-nav-link ${location.pathname === "/my-bills" ? "active" : ""}`}>
                 Hóa đơn
@@ -238,22 +234,38 @@ const Navbar = () => {
 
                     {isLandlord && (
                       <>
-                        <Link to="/landlord/requests" className="nav-menu-item">
-                          <CheckCircle2 size={16} />
-                          <span>Yêu cầu thuê phòng</span>
+                        <Link to="/landlord/management" className="nav-menu-item" style={{ fontWeight: 800, color: '#2563eb' }}>
+                          <Home size={16} />
+                          <span>Quản lý trọ của tôi</span>
                         </Link>
-                        <Link to="/landlord/properties" className="nav-menu-item">
-                          <Building2 size={16} />
-                          <span>Quản lý khu trọ</span>
+                        <Link to="/landlord/management?tab=properties" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <Building2 size={14} />
+                          <span>Khu trọ & Phòng</span>
                         </Link>
-                        <Link to="/landlord/tickets" className="nav-menu-item">
-                          <Wrench size={16} />
+                        <Link to="/landlord/management?tab=occupied" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <CheckCircle2 size={14} />
+                          <span>Trọ đã cho thuê</span>
+                        </Link>
+                        <Link to="/landlord/management?tab=requests" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <Users size={14} />
+                          <span>Khách thuê & Yêu cầu</span>
+                        </Link>
+                        <Link to="/landlord/management?tab=contracts" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <FileText size={14} />
+                          <span>Hợp đồng điện tử</span>
+                        </Link>
+                        <Link to="/landlord/management?tab=tickets" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <Wrench size={14} />
                           <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
                           {ticketUrgentCount > 0 && (
                             <span className="nav-menu-pill" style={{ background: "#fef2f2", color: "#ef4444" }}>
                               {ticketUrgentCount} mới
                             </span>
                           )}
+                        </Link>
+                        <Link to="/landlord/management?tab=bills" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <FileText size={14} />
+                          <span>Tạo hóa đơn</span>
                         </Link>
                       </>
                     )}

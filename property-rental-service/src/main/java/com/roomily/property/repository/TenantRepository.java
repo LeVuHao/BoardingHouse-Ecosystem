@@ -14,5 +14,6 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
     List<Tenant> findByUserIdAndIsStayingTrue(Long userId);
     Optional<Tenant> findByUserIdAndRoomIdAndIsStayingTrue(Long userId, Long roomId);
     boolean existsByUserIdAndRoomIdAndIsStayingTrue(Long userId, Long roomId);
+    boolean existsByRoomIdAndIsStayingTrue(Long roomId);
     boolean existsByRoomIdInAndIsStayingTrue(Collection<Long> roomIds);
 }

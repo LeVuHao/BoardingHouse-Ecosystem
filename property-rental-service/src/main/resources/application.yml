@@ -4,8 +4,10 @@ server:
 spring:
   application:
     name: PROPERTY-RENTAL-SERVICE
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
   datasource:
-    url: jdbc:mysql://localhost:3307/db_property_rental?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3307/db_property_rental?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root
     password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver

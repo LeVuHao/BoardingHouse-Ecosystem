@@ -15,6 +15,7 @@ export const authApi = {
   updateProfile: (data) => api.put("/auth/profile", data),
   getUserInfo: (id) => api.get(`/auth/users/${id}`),
   getLandlordStatus: (userId) => api.get(`/auth/landlord/status/${userId}`),
+  getMyAuditLogs: (params) => api.get("/auth/my-audit-logs", { params }),
 };
 
 export const propertyApi = {
@@ -26,12 +27,14 @@ export const propertyApi = {
   createProperty: (data) => api.post("/properties", data),
   getMyProperties: () => api.get("/properties/my-properties"),
   updateProperty: (id, data) => api.put(`/properties/${id}`, data),
+  deleteProperty: (id) => api.delete(`/properties/${id}`),
   getPropertyDetail: (id) => api.get(`/properties/${id}`),
   getPropertyRooms: (id) => api.get(`/properties/${id}/rooms`),
 
   // Landlord: Phòng trọ
   createRoom: (data) => api.post("/rooms", data),
   updateRoom: (id, data) => api.put(`/rooms/${id}`, data),
+  deleteRoom: (id) => api.delete(`/rooms/${id}`),
   addRoomImages: (id, data) => api.post(`/rooms/${id}/images`, data),
 };
 
@@ -64,6 +67,8 @@ export const billingApi = {
   getMyBills: () => api.get("/bills/my-bills"),
   getLandlordBills: () => api.get("/bills/landlord-bills"),
   createBill: (data) => api.post("/bills", data),
+  updateBillStatus: (billId, status) =>
+    api.patch(`/bills/${billId}/status?status=${status}`),
   createBillPaymentUrl: (billId, amount) =>
     api.post(`/payments/create-bill-payment-url/${billId}?amount=${amount}`),
   // Public: xác nhận kết quả thanh toán VNPay trả về (dùng ở trang callback)

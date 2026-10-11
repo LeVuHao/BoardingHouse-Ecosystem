@@ -81,6 +81,23 @@ public class AuditLogService {
         return auditLogRepository.findDistinctActions();
     }
 
+    @Transactional(readOnly = true)
+    public Page<AuditLogResponse> searchByEmail(String email, Pageable pageable) {
+        if (email == null || email.isBlank()) {
+            return Page.empty(pageable);
+        }
+        Specification<AuditLog> spec = (root, query, cb) -> cb.equal(cb.lower(root.get("adminEmail")), email.trim().toLowerCase());
+        Page<AuditLog> page = auditLogRepository.findAll(spec, pageable);
+        return page.map(l -> AuditLogResponse.builder()
+                .id(l.getId())
+                .adminEmail(l.getAdminEmail())
+                .action(l.getAction())
+                .details(l.getDetails())
+                .ipAddress(l.getIpAddress())
+                .createdAt(l.getCreatedAt())
+                .build());
+    }
+
     @Transactional
     public void record(String adminEmail, String action, String details, String ipAddress) {
         auditLogRepository.save(AuditLog.builder()
