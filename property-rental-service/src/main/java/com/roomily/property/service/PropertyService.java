@@ -33,6 +33,7 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final RoomRepository roomRepository;
+    private final RoomImageRepository roomImageRepository;
     private final ContractRepository contractRepository;
     private final TenantRepository tenantRepository;
     private final ForumPostRepository forumPostRepository;
