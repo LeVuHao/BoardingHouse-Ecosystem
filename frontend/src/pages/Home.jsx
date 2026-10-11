@@ -119,12 +119,12 @@ const Home = () => {
                 <select
                   value={maxPrice}
                   onChange={(event) => setMaxPrice(event.target.value)}
-                  style={{ transition: 'all 0.3s ease' }}
+                  style={{ transition: 'all 0.3s ease', color: 'var(--text-primary)', background: 'transparent' }}
                 >
-                  <option value="">Tất cả mức giá</option>
-                  <option value="2000000">Dưới 2 triệu</option>
-                  <option value="4000000">Dưới 4 triệu</option>
-                  <option value="7000000">Dưới 7 triệu</option>
+                  <option style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }} value="">Tất cả mức giá</option>
+                  <option style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }} value="2000000">Dưới 2 triệu</option>
+                  <option style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }} value="4000000">Dưới 4 triệu</option>
+                  <option style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }} value="7000000">Dưới 7 triệu</option>
                 </select>
               </div>
               <div className="search-field">

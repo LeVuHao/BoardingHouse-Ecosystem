@@ -56,7 +56,7 @@ const NotificationBell = () => {
             alignItems: 'center',
             justifyContent: 'center',
             padding: '0 4px',
-            boxShadow: '0 0 0 2px white',
+            boxShadow: '0 0 0 2px var(--bg-card, #ffffff)',
           }}
         >
           {unreadCount > 9 ? '9+' : unreadCount}

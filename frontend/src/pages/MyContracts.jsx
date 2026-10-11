@@ -261,7 +261,7 @@ const MyContracts = ({ embedded = false }) => {
   }
 
   return (
-    <div className={embedded ? "" : "page-shell"} style={embedded ? { background: 'transparent', paddingBottom: '30px' } : { background: '#f8fafc', paddingBottom: '60px' }}>
+    <div className={embedded ? "" : "page-shell"} style={embedded ? { background: 'transparent', paddingBottom: '30px' } : { background: 'var(--bg-primary)', paddingBottom: '60px' }}>
       <div className={embedded ? "" : "wrap"} style={{ maxWidth: '1120px', margin: '0 auto' }}>
         
         {/* TOP HERO HEADER */}
@@ -297,23 +297,24 @@ const MyContracts = ({ embedded = false }) => {
 
         {contracts.length === 0 ? (
           <div style={{
-            background: 'white',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
             borderRadius: '20px',
             padding: '70px 24px',
             textAlign: 'center',
-            border: '1px solid var(--border)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--shadow-soft)'
           }}>
             <div style={{
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              background: '#eff6ff',
+              background: 'rgba(37, 99, 235, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px',
-              color: '#2563eb'
+              color: 'var(--primary)'
             }}>
               <Home size={40} />
             </div>
@@ -361,10 +362,10 @@ const MyContracts = ({ embedded = false }) => {
 
               return (
                 <div key={c.id} style={{
-                  background: 'white',
+                  background: 'var(--bg-card)',
                   borderRadius: '24px',
                   border: '1px solid var(--border)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                  boxShadow: 'var(--shadow-card)',
                   overflow: 'hidden'
                 }}>
                   
@@ -377,15 +378,15 @@ const MyContracts = ({ embedded = false }) => {
                     alignItems: 'center',
                     flexWrap: 'wrap',
                     gap: '12px',
-                    background: '#ffffff'
+                    background: 'var(--bg-card)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <span style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: '#dcfce7',
-                        color: '#15803d',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: '#10b981',
                         padding: '5px 12px',
                         borderRadius: '9999px',
                         fontSize: '0.82rem',
@@ -398,8 +399,8 @@ const MyContracts = ({ embedded = false }) => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: '#e0e7ff',
-                        color: '#3730a3',
+                        background: 'rgba(99, 102, 241, 0.18)',
+                        color: '#818cf8',
                         padding: '5px 12px',
                         borderRadius: '9999px',
                         fontSize: '0.82rem',
@@ -407,8 +408,8 @@ const MyContracts = ({ embedded = false }) => {
                       }}>
                         MÃ PHÒNG: MP-{c.roomId}
                       </span>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        Mã hợp đồng: <strong>#HD-{c.id}</strong>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        Mã hợp đồng: <strong style={{ color: 'var(--text-primary)' }}>#HD-{c.id}</strong>
                       </span>
                     </div>
 
@@ -417,7 +418,7 @@ const MyContracts = ({ embedded = false }) => {
                         <Link
                           to={`/maintenance-tickets?roomId=${c.roomId}`}
                           className="btn btn-outline"
-                          style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#b45309', borderColor: '#fde68a', background: '#fffbeb', fontWeight: 700 }}
+                          style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.1)', fontWeight: 700 }}
                           title="Gửi báo hỏng cho phòng này"
                         >
                           <Wrench size={14} /> Báo hỏng phòng này
@@ -426,7 +427,7 @@ const MyContracts = ({ embedded = false }) => {
                       <button
                         onClick={() => handlePrintContract(c)}
                         className="btn btn-outline"
-                        style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#1d4ed8', borderColor: '#93c5fd', background: '#eff6ff' }}
+                        style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', borderColor: 'var(--border-color)', background: 'var(--bg-primary)', fontWeight: 700 }}
                         title="In hoặc xuất hợp đồng ra file PDF"
                       >
                         <Printer size={14} /> In / Xuất PDF
@@ -434,7 +435,7 @@ const MyContracts = ({ embedded = false }) => {
                       <button
                         onClick={() => setContractModal(c)}
                         className="btn btn-outline"
-                        style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
                       >
                         <FileText size={14} /> Xem Hợp đồng điện tử
                       </button>
@@ -442,7 +443,7 @@ const MyContracts = ({ embedded = false }) => {
                         <Link
                           to="/landlord/create-bill"
                           className="btn btn-primary"
-                          style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                          style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
                         >
                           <Receipt size={14} /> Tạo hóa đơn
                         </Link>
@@ -450,7 +451,7 @@ const MyContracts = ({ embedded = false }) => {
                         <Link
                           to="/my-bills"
                           className="btn btn-primary"
-                          style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                          style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
                         >
                           <Receipt size={14} /> Hóa đơn phòng
                         </Link>
@@ -466,25 +467,25 @@ const MyContracts = ({ embedded = false }) => {
                     background: 'var(--border)',
                     borderBottom: '1px solid var(--border)'
                   }}>
-                    <div style={{ background: '#ffffff', padding: '18px 24px' }}>
+                    <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Tiền phòng mỗi tháng</div>
                       <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#2563eb', fontFamily: 'Manrope, sans-serif' }}>
                         {formatVnd(c.rentalPrice)}
                       </div>
                     </div>
-                    <div style={{ background: '#ffffff', padding: '18px 24px' }}>
+                    <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Tiền cọc an toàn</div>
                       <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#059669', fontFamily: 'Manrope, sans-serif' }}>
                         {formatVnd(c.depositAmount || c.rentalPrice)}
                       </div>
                     </div>
-                    <div style={{ background: '#ffffff', padding: '18px 24px' }}>
+                    <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Ngày bắt đầu ở</div>
                       <div style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--ink)' }}>
                         {c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'Đã dọn vào'}
                       </div>
                     </div>
-                    <div style={{ background: '#ffffff', padding: '18px 24px' }}>
+                    <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Thời hạn hợp đồng</div>
                       <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#7c3aed' }}>
                         {c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : '12 tháng (Dài hạn)'}
@@ -611,15 +612,15 @@ const MyContracts = ({ embedded = false }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                          <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '3px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>
+                          <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '3px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>
                             {c.roomNumber ? `PHÒNG ${c.roomNumber}` : 'PHÒNG TRỌ CAO CẤP'}
                           </span>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                             📐 {c.roomArea || 25} m² • Tối đa {c.capacity || 2} người
                           </span>
                         </div>
 
-                        <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--ink)', margin: '0 0 10px 0', lineHeight: 1.3 }}>
+                        <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)', margin: '0 0 10px 0', lineHeight: 1.3 }}>
                           {c.propertyTitle || `Phòng trọ tiện nghi #${c.roomNumber || c.roomId}`}
                         </h2>
 
@@ -635,7 +636,7 @@ const MyContracts = ({ embedded = false }) => {
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {(c.utilities ? c.utilities.split(',') : ['Wifi tốc độ cao', 'Máy giặt', 'Điều hòa', 'Chỗ để xe', 'Gác lửng', 'Giờ giấc tự do', 'Camera an ninh']).map((u, idx) => (
-                              <span key={idx} style={{ background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: '600' }}>
+                              <span key={idx} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: '600' }}>
                                 ✓ {u.trim()}
                               </span>
                             ))}
@@ -644,12 +645,12 @@ const MyContracts = ({ embedded = false }) => {
 
                         {/* Bạn cùng phòng */}
                         {c.roommates && c.roommates.length > 0 && (
-                          <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '18px' }}>
+                          <div style={{ background: 'var(--bg-primary)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '18px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--ink)', marginBottom: '4px' }}>
                               <Users size={16} color="#059669" />
                               <span>Bạn cùng phòng đang lưu trú ({c.roommates.length}):</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                               {c.roommates.join(', ')}
                             </div>
                           </div>
@@ -658,8 +659,8 @@ const MyContracts = ({ embedded = false }) => {
 
                       {/* CONTACT BOX: LANDLORD OR TENANT */}
                       <div style={{
-                        background: '#f8fafc',
-                        border: '1.5px solid #e2e8f0',
+                        background: 'var(--bg-primary)',
+                        border: '1.5px solid var(--border)',
                         borderRadius: '16px',
                         padding: '16px 20px',
                         display: 'flex',
@@ -710,7 +711,7 @@ const MyContracts = ({ embedded = false }) => {
                           <Link
                             to="/forum/messages"
                             className="btn btn-primary"
-                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                            style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
                           >
                             <MessageSquare size={14} /> Nhắn tin
                           </Link>
@@ -723,7 +724,7 @@ const MyContracts = ({ embedded = false }) => {
                   {/* 5-STAR RATING & REVIEW SECTION EMBEDDED DIRECTLY IN MY ROOM */}
                   <div style={{
                     padding: '24px 28px',
-                    background: '#fdfcfe',
+                    background: 'var(--bg-card)',
                     borderTop: '1px solid var(--border)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
@@ -751,16 +752,16 @@ const MyContracts = ({ embedded = false }) => {
 
                     {user?.role === 'LANDLORD' ? (
                       <div style={{
-                        background: 'white',
-                        border: '1.5px solid #e2e8f0',
+                        background: 'var(--bg-card)',
+                        border: '1.5px solid var(--border)',
                         borderRadius: '16px',
                         padding: '20px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                        boxShadow: 'var(--shadow-soft)'
                       }}>
                         {(reviewsMap[c.id] && reviewsMap[c.id].length > 0) ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             {reviewsMap[c.id].map((rev) => (
-                              <div key={rev.id} style={{ padding: '12px 14px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #edf2f7' }}>
+                              <div key={rev.id} style={{ padding: '12px 14px', background: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                                   <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--ink)' }}>
                                     {rev.reviewerName || 'Khách thuê trọ'}
@@ -769,7 +770,7 @@ const MyContracts = ({ embedded = false }) => {
                                     {'⭐'.repeat(rev.rating || 5)} ({rev.rating || 5}/5)
                                   </div>
                                 </div>
-                                <div style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                                   {rev.comment || 'Khách thuê không để lại nhận xét bằng lời.'}
                                 </div>
                               </div>
@@ -784,11 +785,11 @@ const MyContracts = ({ embedded = false }) => {
                     ) : (
                       /* Interactive review box for tenant */
                       <div style={{
-                        background: 'white',
-                        border: '1.5px solid #e0e7ff',
+                        background: 'var(--bg-card)',
+                        border: '1.5px solid var(--border)',
                         borderRadius: '16px',
                         padding: '20px',
-                        boxShadow: '0 2px 12px rgba(99, 102, 241, 0.05)'
+                        boxShadow: 'var(--shadow-soft)'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -818,7 +819,7 @@ const MyContracts = ({ embedded = false }) => {
 
                           {existingReview && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '700' }}>
+                              <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '3px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '700' }}>
                                 ✓ Đã có đánh giá của bạn
                               </span>
                               <button
@@ -842,7 +843,9 @@ const MyContracts = ({ embedded = false }) => {
                             width: '100%',
                             padding: '12px 14px',
                             borderRadius: '10px',
-                            border: '1px solid #cbd5e1',
+                            background: 'var(--bg-primary)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border)',
                             fontSize: '14px',
                             outline: 'none',
                             boxSizing: 'border-box'
@@ -885,7 +888,8 @@ const MyContracts = ({ embedded = false }) => {
             padding: '20px'
           }}>
             <div style={{
-              background: 'white',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
               borderRadius: '24px',
               maxWidth: '680px',
               width: '100%',
@@ -893,9 +897,10 @@ const MyContracts = ({ embedded = false }) => {
               overflowY: 'auto',
               padding: '32px',
               position: 'relative',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              border: '1px solid var(--border)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid var(--border)', paddingBottom: '16px', marginBottom: '20px' }}>
                 <div>
                   <div style={{ fontSize: '12px', fontWeight: '800', color: '#2563eb', letterSpacing: '0.5px' }}>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
                   <h3 style={{ margin: '4px 0 0', fontSize: '20px', fontWeight: '900', color: 'var(--ink)' }}>
@@ -905,25 +910,25 @@ const MyContracts = ({ embedded = false }) => {
                 </div>
                 <button
                   onClick={() => setContractModal(null)}
-                  style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: '700' }}
+                  style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: '700' }}
                 >
                   ✕
                 </button>
               </div>
 
-              <div style={{ fontSize: '14px', lineHeight: 1.7, color: '#334155' }}>
-                <p><strong>BÊN CHO THUÊ (BÊN A):</strong> {user?.role === 'LANDLORD' ? (user?.fullName || contractModal.landlordName || 'Chủ nhà trọ') : (contractModal.landlordName || 'Chủ nhà trọ')}</p>
-                <p><strong>BÊN THUÊ (BÊN B):</strong> {user?.role === 'LANDLORD' ? (contractModal.tenantName || 'Khách thuê phòng (ID #' + contractModal.tenantId + ')') : (user?.fullName || 'Người thuê phòng')} (CCCD/SĐT: {user?.role === 'LANDLORD' ? (contractModal.tenantPhone || 'Đã xác thực') : (user?.phoneNumber || 'Đã xác thực')})</p>
-                <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1', margin: '14px 0' }} />
-                <p><strong>ĐIỀU 1. ĐỐI TƯỢNG THUÊ:</strong></p>
-                <p>- Phòng số: <strong>{contractModal.roomNumber || contractModal.roomId}</strong></p>
+              <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                <p><strong style={{ color: 'var(--text-primary)' }}>BÊN CHO THUÊ (BÊN A):</strong> {user?.role === 'LANDLORD' ? (user?.fullName || contractModal.landlordName || 'Chủ nhà trọ') : (contractModal.landlordName || 'Chủ nhà trọ')}</p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>BÊN THUÊ (BÊN B):</strong> {user?.role === 'LANDLORD' ? (contractModal.tenantName || 'Khách thuê phòng (ID #' + contractModal.tenantId + ')') : (user?.fullName || 'Người thuê phòng')} (CCCD/SĐT: {user?.role === 'LANDLORD' ? (contractModal.tenantPhone || 'Đã xác thực') : (user?.phoneNumber || 'Đã xác thực')})</p>
+                <hr style={{ border: 'none', borderTop: '1px dashed var(--border)', margin: '14px 0' }} />
+                <p><strong style={{ color: 'var(--text-primary)' }}>ĐIỀU 1. ĐỐI TƯỢNG THUÊ:</strong></p>
+                <p>- Phòng số: <strong style={{ color: 'var(--text-primary)' }}>{contractModal.roomNumber || contractModal.roomId}</strong></p>
                 <p>- Địa chỉ: {contractModal.address || 'Khu trọ Roomily Ecosystem'}</p>
                 <p>- Diện tích: {contractModal.roomArea || 25} m²</p>
-                <p><strong>ĐIỀU 2. GIÁ THUÊ & PHƯƠNG THỨC THANH TOÁN:</strong></p>
-                <p>- Giá thuê cố định: <strong>{formatVnd(contractModal.rentalPrice)}/tháng</strong></p>
-                <p>- Tiền đặt cọc bảo đảm: <strong>{formatVnd(contractModal.depositAmount || contractModal.rentalPrice)}</strong></p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>ĐIỀU 2. GIÁ THUÊ & PHƯƠNG THỨC THANH TOÁN:</strong></p>
+                <p>- Giá thuê cố định: <strong style={{ color: '#2563eb' }}>{formatVnd(contractModal.rentalPrice)}/tháng</strong></p>
+                <p>- Tiền đặt cọc bảo đảm: <strong style={{ color: '#10b981' }}>{formatVnd(contractModal.depositAmount || contractModal.rentalPrice)}</strong></p>
                 <p>- Thời hạn thuê: Từ ngày {contractModal.startDate} đến ngày {contractModal.endDate || 'Gia hạn hàng năm'}.</p>
-                <p><strong>ĐIỀU 3. TRẠNG THÁI HIỆU LỰC:</strong></p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>ĐIỀU 3. TRẠNG THÁI HIỆU LỰC:</strong></p>
                 <p style={{ color: '#16a34a', fontWeight: '700' }}>✓ Hợp đồng đã được ký số và có giá trị pháp lý trên nền tảng Roomily.</p>
               </div>
 
@@ -932,14 +937,14 @@ const MyContracts = ({ embedded = false }) => {
                   type="button"
                   onClick={() => handlePrintContract(contractModal)}
                   className="btn btn-outline"
-                  style={{ padding: '8px 20px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#1d4ed8', borderColor: '#93c5fd', background: '#eff6ff' }}
+                  style={{ padding: '8px 20px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}
                 >
                   <Printer size={16} /> In / Xuất File PDF
                 </button>
                 <button
                   onClick={() => setContractModal(null)}
                   className="btn btn-primary"
-                  style={{ padding: '8px 24px', fontWeight: '700' }}
+                  style={{ padding: '8px 24px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
                 >
                   Đã hiểu & Đóng
                 </button>

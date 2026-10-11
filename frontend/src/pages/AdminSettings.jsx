@@ -32,11 +32,11 @@ const AdminSettings = () => {
     <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "900px", margin: "0 auto" }}>
       {/* Header */}
       <div>
-        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#0F172A", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+        <h1 style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-primary)", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
           <Settings size={28} color="#8B5CF6" />
           Cài Đặt Hệ Thống (Global Settings)
         </h1>
-        <p style={{ color: "#64748B", margin: "4px 0 0 0", fontSize: "14px" }}>
+        <p style={{ color: "var(--text-secondary)", margin: "4px 0 0 0", fontSize: "14px" }}>
           Quản lý các thông số cấu hình cốt lõi của nền tảng. Thay đổi sẽ có hiệu lực ngay lập tức.
         </p>
       </div>
@@ -44,19 +44,19 @@ const AdminSettings = () => {
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         
         {/* Section 1: Business Logic */}
-        <div style={{ background: "white", borderRadius: "16px", padding: "32px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-          <h2 style={{ fontSize: "18px", color: "#0F172A", margin: "0 0 24px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "16px", padding: "32px", boxShadow: "var(--shadow-soft)" }}>
+          <h2 style={{ fontSize: "18px", color: "var(--text-primary)", margin: "0 0 24px 0", display: "flex", alignItems: "center", gap: "8px" }}>
             <FileText size={20} color="#3B82F6" /> Cấu hình Nội dung & Phí
           </h2>
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
             {/* Input 1 */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
+              <label style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)" }}>
                 Số bài đăng miễn phí/tháng
               </label>
               <div style={{ position: "relative" }}>
-                <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}>
+                <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}>
                   <FileText size={18} />
                 </div>
                 <input
@@ -68,26 +68,27 @@ const AdminSettings = () => {
                     width: "100%",
                     padding: "12px 12px 12px 40px",
                     borderRadius: "8px",
-                    border: "1px solid #E2E8F0",
+                    border: "1px solid var(--border-color)",
+                    background: "var(--bg-primary)",
                     fontSize: "15px",
-                    color: "#0F172A",
+                    color: "var(--text-primary)",
                     outline: "none",
                     transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#8B5CF6"}
-                  onBlur={(e) => e.target.style.borderColor = "#E2E8F0"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--border-color)"}
                 />
               </div>
-              <p style={{ margin: 0, fontSize: "12px", color: "#64748B" }}>Áp dụng cho tài khoản Chủ trọ (Landlord) chưa nâng cấp VIP.</p>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--text-secondary)" }}>Áp dụng cho tài khoản Chủ trọ (Landlord) chưa nâng cấp VIP.</p>
             </div>
 
             {/* Input 2 */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
+              <label style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)" }}>
                 Phí hoa hồng nền tảng (%)
               </label>
               <div style={{ position: "relative" }}>
-                <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }}>
+                <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}>
                   <Percent size={18} />
                 </div>
                 <input
@@ -100,38 +101,39 @@ const AdminSettings = () => {
                     width: "100%",
                     padding: "12px 12px 12px 40px",
                     borderRadius: "8px",
-                    border: "1px solid #E2E8F0",
+                    border: "1px solid var(--border-color)",
+                    background: "var(--bg-primary)",
                     fontSize: "15px",
-                    color: "#0F172A",
+                    color: "var(--text-primary)",
                     outline: "none",
                     transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#8B5CF6"}
-                  onBlur={(e) => e.target.style.borderColor = "#E2E8F0"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--border-color)"}
                 />
               </div>
-              <p style={{ margin: 0, fontSize: "12px", color: "#64748B" }}>Phần trăm chiết khấu thu từ các giao dịch thanh toán qua cổng VNPay.</p>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--text-secondary)" }}>Phần trăm chiết khấu thu từ các giao dịch thanh toán qua cổng VNPay.</p>
             </div>
           </div>
         </div>
 
         {/* Section 2: System Status */}
-        <div style={{ background: "white", borderRadius: "16px", padding: "32px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-          <h2 style={{ fontSize: "18px", color: "#0F172A", margin: "0 0 24px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "16px", padding: "32px", boxShadow: "var(--shadow-soft)" }}>
+          <h2 style={{ fontSize: "18px", color: "var(--text-primary)", margin: "0 0 24px 0", display: "flex", alignItems: "center", gap: "8px" }}>
             <Wrench size={20} color="#F59E0B" /> Trạng thái Hệ thống
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             
             {/* Toggle 1 */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: settings.MAINTENANCE_MODE ? "#FEF2F2" : "#F8FAFC", borderRadius: "12px", border: `1px solid ${settings.MAINTENANCE_MODE ? "#FECACA" : "#E2E8F0"}`, transition: "all 0.3s ease" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: settings.MAINTENANCE_MODE ? "rgba(239, 68, 68, 0.15)" : "var(--bg-primary)", borderRadius: "12px", border: `1px solid ${settings.MAINTENANCE_MODE ? "rgba(239, 68, 68, 0.3)" : "var(--border-color)"}`, transition: "all 0.3s ease" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-                <div style={{ marginTop: "2px", color: settings.MAINTENANCE_MODE ? "#EF4444" : "#64748B" }}>
+                <div style={{ marginTop: "2px", color: settings.MAINTENANCE_MODE ? "#EF4444" : "var(--text-secondary)" }}>
                   <AlertTriangle size={24} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "16px", color: "#0F172A" }}>Chế độ Bảo trì (Maintenance Mode)</h3>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#64748B", maxWidth: "500px" }}>
+                  <h3 style={{ margin: 0, fontSize: "16px", color: "var(--text-primary)" }}>Chế độ Bảo trì (Maintenance Mode)</h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "var(--text-secondary)", maxWidth: "500px" }}>
                     Khi bật, toàn bộ người dùng và chủ trọ sẽ không thể truy cập hệ thống. Chỉ Admin mới có thể đăng nhập. Hãy cẩn thận khi sử dụng chức năng này.
                   </p>
                 </div>
@@ -148,7 +150,7 @@ const AdminSettings = () => {
                 />
                 <span style={{
                   position: "absolute", cursor: "pointer", top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: settings.MAINTENANCE_MODE ? "#EF4444" : "#CBD5E1",
+                  backgroundColor: settings.MAINTENANCE_MODE ? "#EF4444" : "var(--border-color)",
                   transition: ".4s",
                   borderRadius: "34px"
                 }}>
@@ -162,14 +164,14 @@ const AdminSettings = () => {
             </div>
 
             {/* Toggle 2 */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "#F8FAFC", borderRadius: "12px", border: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--bg-primary)", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
                 <div style={{ marginTop: "2px", color: "#3B82F6" }}>
                   <Info size={24} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "16px", color: "#0F172A" }}>Bắt buộc xác thực CMND/CCCD</h3>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#64748B", maxWidth: "500px" }}>
+                  <h3 style={{ margin: 0, fontSize: "16px", color: "var(--text-primary)" }}>Bắt buộc xác thực CMND/CCCD</h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "var(--text-secondary)", maxWidth: "500px" }}>
                     Yêu cầu Chủ trọ phải tải lên giấy tờ tùy thân và được Admin duyệt trước khi đăng bài đầu tiên.
                   </p>
                 </div>
@@ -185,7 +187,7 @@ const AdminSettings = () => {
                 />
                 <span style={{
                   position: "absolute", cursor: "pointer", top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: settings.REQUIRE_IDENTITY_VERIFICATION ? "#10B981" : "#CBD5E1",
+                  backgroundColor: settings.REQUIRE_IDENTITY_VERIFICATION ? "#10B981" : "var(--border-color)",
                   transition: ".4s",
                   borderRadius: "34px"
                 }}>
@@ -203,7 +205,7 @@ const AdminSettings = () => {
 
         {/* Action Buttons */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", marginTop: "10px" }}>
-          <button style={{ padding: "12px 24px", borderRadius: "8px", border: "1px solid #E2E8F0", background: "white", color: "#475569", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#F1F5F9"} onMouseLeave={e => e.currentTarget.style.background = "white"}>
+          <button style={{ padding: "12px 24px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-secondary)", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }}>
             Hủy Bỏ
           </button>
           <button 

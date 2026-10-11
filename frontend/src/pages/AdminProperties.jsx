@@ -11,14 +11,14 @@ import {
 
 const PAGE_SIZE = 10;
 
-const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" };
-const tdStyle = { padding: "12px 16px", fontSize: 14, color: "#334155", borderBottom: "1px solid #F1F5F9", verticalAlign: "middle" };
+const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "var(--bg-primary)", borderBottom: "1px solid var(--border-color)" };
+const tdStyle = { padding: "12px 16px", fontSize: 14, color: "var(--text-primary)", borderBottom: "1px solid var(--border-color)", verticalAlign: "middle" };
 
 const Gallery = ({ images }) => {
   const [idx, setIdx] = useState(0);
   if (!images || images.length === 0) {
     return (
-      <div style={{ height: 180, borderRadius: 10, background: "#F1F5F9", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#94A3B8", gap: 6 }}>
+      <div style={{ height: 180, borderRadius: 10, background: "var(--bg-primary)", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", gap: 6 }}>
         <ImageIcon size={28} />
         <span style={{ fontSize: 13 }}>Khu trọ chưa có hình ảnh</span>
       </div>
@@ -46,14 +46,14 @@ const Gallery = ({ images }) => {
           ))}
         </div>
       )}
-      <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>{Math.min(idx, images.length - 1) + 1} / {images.length} ảnh</div>
+      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{Math.min(idx, images.length - 1) + 1} / {images.length} ảnh</div>
     </div>
   );
 };
 
 const InfoRow = ({ icon, children }) => (
-  <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14, color: "#334155" }}>
-    <span style={{ color: "#94A3B8", marginTop: 2, display: "flex" }}>{icon}</span>
+  <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14, color: "var(--text-primary)" }}>
+    <span style={{ color: "var(--text-secondary)", marginTop: 2, display: "flex" }}>{icon}</span>
     <span>{children}</span>
   </div>
 );
@@ -111,37 +111,37 @@ const PropertyDetailModal = ({ propertyId, onClose, onAction }) => {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <h2 style={{ margin: 0, fontSize: 20, color: "#0F172A" }}>{data.title}</h2>
+                <h2 style={{ margin: 0, fontSize: 20, color: "var(--text-primary)" }}>{data.title}</h2>
                 <StatusBadge status={data.status} />
               </div>
               <InfoRow icon={<MapPin size={15} />}>
                 {[data.address, data.ward, data.district, data.city].filter(Boolean).join(", ")}
               </InfoRow>
               {data.utilities && <InfoRow icon={<Building2 size={15} />}>Tiện ích: {data.utilities}</InfoRow>}
-              {data.description && <p style={{ margin: "4px 0 0", fontSize: 13.5, color: "#64748B", lineHeight: 1.6 }}>{data.description}</p>}
-              <span style={{ fontSize: 12, color: "#94A3B8" }}>Tạo lúc {formatDateTime(data.createdAt)}</span>
+              {data.description && <p style={{ margin: "4px 0 0", fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.6 }}>{data.description}</p>}
+              <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Tạo lúc {formatDateTime(data.createdAt)}</span>
               {isHidden && data.statusReason && (
-                <div style={{ background: "#FEF3C7", color: "#92400E", borderRadius: 8, padding: "8px 12px", fontSize: 13 }}>
+                <div style={{ background: "rgba(245, 158, 11, 0.15)", color: "#F59E0B", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: 8, padding: "8px 12px", fontSize: 13 }}>
                   Lý do ẩn: {data.statusReason}
                 </div>
               )}
             </div>
 
-            <div style={{ border: "1px solid #E2E8F0", borderRadius: 10, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.4 }}>Chủ trọ</div>
+            <div style={{ border: "1px solid var(--border-color)", background: "var(--bg-primary)", borderRadius: 10, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 0.4 }}>Chủ trọ</div>
               <InfoRow icon={<User size={15} />}>
                 <b>{data.landlordName || `Chủ trọ #${data.landlordId}`}</b>
                 {data.landlordStatus === "SUSPENDED" && <span style={{ marginLeft: 8 }}><StatusBadge status="REJECTED" label="Tài khoản bị khóa" /></span>}
               </InfoRow>
               {data.landlordPhone && <InfoRow icon={<Phone size={15} />}>{data.landlordPhone}</InfoRow>}
               {data.landlordEmail && <InfoRow icon={<Mail size={15} />}>{data.landlordEmail}</InfoRow>}
-              {!data.landlordName && <span style={{ fontSize: 12, color: "#94A3B8" }}>Không lấy được thông tin chi tiết từ Auth-Service.</span>}
+              {!data.landlordName && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Không lấy được thông tin chi tiết từ Auth-Service.</span>}
             </div>
           </div>
 
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-              <h4 style={{ margin: 0, fontSize: 15, color: "#0F172A" }}>Danh sách phòng ({data.totalRooms})</h4>
+              <h4 style={{ margin: 0, fontSize: 15, color: "var(--text-primary)" }}>Danh sách phòng ({data.totalRooms})</h4>
               <div style={{ display: "flex", gap: 6 }}>
                 <StatusBadge status="AVAILABLE" label={`Trống: ${data.availableRooms}`} />
                 <StatusBadge status="OCCUPIED" label={`Đang thuê: ${data.occupiedRooms}`} />
@@ -257,13 +257,13 @@ const AdminProperties = () => {
       />
 
       <div style={{ ...cardStyle, padding: "16px 24px", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm theo tên hoặc địa chỉ khu trọ..."
-            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14 }}
+            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14, color: "var(--text-primary)" }}
           />
         </div>
         <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ ...inputStyle, width: 190 }}>
@@ -292,7 +292,7 @@ const AdminProperties = () => {
                     key={p.id}
                     onClick={() => setDetailId(p.id)}
                     style={{ cursor: "pointer" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-primary)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <td style={tdStyle}>
@@ -300,19 +300,19 @@ const AdminProperties = () => {
                         {p.thumbnail ? (
                           <img src={p.thumbnail} alt="" style={{ width: 52, height: 42, borderRadius: 6, objectFit: "cover" }} />
                         ) : (
-                          <div style={{ width: 52, height: 42, borderRadius: 6, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8" }}>
+                          <div style={{ width: 52, height: 42, borderRadius: 6, background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}>
                             <Building2 size={20} />
                           </div>
                         )}
                         <div>
-                          <div style={{ fontWeight: 600, color: "#0F172A" }}>{p.title}</div>
-                          <div style={{ fontSize: 12.5, color: "#64748B" }}>{[p.address, p.district, p.city].filter(Boolean).join(", ")}</div>
+                          <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.title}</div>
+                          <div style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{[p.address, p.district, p.city].filter(Boolean).join(", ")}</div>
                         </div>
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      <div style={{ fontWeight: 500 }}>{p.landlordName || `#${p.landlordId}`}</div>
-                      {p.landlordPhone && <div style={{ fontSize: 12.5, color: "#64748B" }}>{p.landlordPhone}</div>}
+                      <div style={{ fontWeight: 500, color: "var(--text-primary)" }}>{p.landlordName || `#${p.landlordId}`}</div>
+                      {p.landlordPhone && <div style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{p.landlordPhone}</div>}
                     </td>
                     <td style={tdStyle}>{p.availableRooms} / {p.totalRooms}</td>
                     <td style={tdStyle}><StatusBadge status={p.status} /></td>

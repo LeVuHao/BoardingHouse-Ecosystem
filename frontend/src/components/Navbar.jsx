@@ -7,6 +7,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { forumApi, maintenanceApi } from "../api/apiClient";
 import NotificationBell from "./NotificationBell";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -149,6 +150,9 @@ const Navbar = () => {
 
         {/* Right Side Navigation */}
         <div className="site-nav-right">
+          {/* Theme Switcher Toggle (Dark / Light Mode) */}
+          <ThemeToggle />
+
           {user ? (
             <>
               {/* Message Icon with Unread Badge */}
@@ -258,7 +262,7 @@ const Navbar = () => {
                           <Wrench size={14} />
                           <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
                           {ticketUrgentCount > 0 && (
-                            <span className="nav-menu-pill" style={{ background: "#fef2f2", color: "#ef4444" }}>
+                            <span className="nav-menu-pill" style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
                               {ticketUrgentCount} mới
                             </span>
                           )}

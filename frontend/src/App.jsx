@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
@@ -98,6 +99,7 @@ const AppContent = () => {
             <Route path="/landlord/properties" element={<LandlordHub defaultTab="properties" />} />
             <Route path="/landlord/occupied" element={<LandlordHub defaultTab="occupied" />} />
             <Route path="/landlord/requests" element={<LandlordHub defaultTab="requests" />} />
+            <Route path="/landlord/bills" element={<LandlordHub defaultTab="bills" />} />
             <Route path="/landlord/create-bill" element={<LandlordHub defaultTab="bills" />} />
             <Route path="/landlord/tickets" element={<LandlordHub defaultTab="tickets" />} />
             <Route path="/landlord/contracts" element={<LandlordHub defaultTab="contracts" />} />
@@ -132,12 +134,14 @@ const AppContent = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Toaster position="top-right" />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Toaster position="top-right" />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

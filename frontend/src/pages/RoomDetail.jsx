@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { propertyApi, rentalApi } from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
+import ImageGalleryGrid from "../components/ImageGalleryGrid";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1200",
@@ -130,26 +131,7 @@ const RoomDetail = () => {
       </div>
       <div className="wrap detail-layout">
         <main>
-          <div className="gallery">
-            <div className="gallery-main">
-              <img
-                src={images[activeImage]}
-                alt={room.propertyTitle || "Chi tiết phòng"}
-              />
-              <span className="verified">Chủ trọ đã xác thực</span>
-            </div>
-            <div className="gallery-thumbs">
-              {images.slice(0, 5).map((image, index) => (
-                <button
-                  className={index === activeImage ? "active" : ""}
-                  key={image}
-                  onClick={() => setActiveImage(index)}
-                >
-                  <img src={image} alt={`Ảnh phòng ${index + 1}`} />
-                </button>
-              ))}
-            </div>
-          </div>
+          <ImageGalleryGrid images={images} title={room.propertyTitle || `Phòng ${room.roomNumber || id}`} />
           <div className="title-block">
             <div>
               <h1>

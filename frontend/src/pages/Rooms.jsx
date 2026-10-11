@@ -758,7 +758,7 @@ const Rooms = () => {
   return (
     <div className="page-shell">
       {/* 1. TOP SEARCH BAR (Dải tìm kiếm nhanh trên cùng) */}
-      <section className="search-strip" style={{ background: "white", borderBottom: "1px solid var(--border)", padding: "18px 0" }}>
+      <section className="search-strip" style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border-color)", padding: "18px 0" }}>
         <div className="wrap">
           <form
             className="search-box"
@@ -815,18 +815,20 @@ const Rooms = () => {
                     setMaxPrice("");
                   }
                 }}
+                style={{ color: "var(--text-primary)", background: "transparent" }}
               >
-                <option value="">Tất cả mức giá</option>
-                <option value="u2">Dưới 2 triệu</option>
-                <option value="2-4">2 - 4 triệu</option>
-                <option value="4-7">4 - 7 triệu</option>
-                <option value="o7">Trên 7 triệu</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="">Tất cả mức giá</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="u2">Dưới 2 triệu</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="2-4">2 - 4 triệu</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="4-7">4 - 7 triệu</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="o7">Trên 7 triệu</option>
               </select>
             </div>
 
             <div className="search-field" style={{ flex: 1 }}>
               <label>Diện tích</label>
               <select
+                style={{ color: "var(--text-primary)", background: "transparent" }}
                 value={
                   !minArea && !maxArea
                     ? ""
@@ -855,10 +857,10 @@ const Rooms = () => {
                   }
                 }}
               >
-                <option value="">Tất cả diện tích</option>
-                <option value="u20">Dưới 20 m²</option>
-                <option value="20-30">20 - 30 m²</option>
-                <option value="o30">Trên 30 m²</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="">Tất cả diện tích</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="u20">Dưới 20 m²</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="20-30">20 - 30 m²</option>
+                <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="o30">Trên 30 m²</option>
               </select>
             </div>
 
@@ -897,17 +899,17 @@ const Rooms = () => {
                     style={{
                       padding: "5px 12px",
                       borderRadius: 20,
-                      border: isSelected ? "1.5px solid var(--ink)" : "1px solid var(--border)",
-                      background: isSelected ? "var(--ink)" : "#f8fafc",
-                      color: isSelected ? "#fff" : "var(--ink)",
+                      border: isSelected ? "1.5px solid var(--accent)" : "1px solid var(--border-color)",
+                      background: isSelected ? "var(--accent)" : "var(--bg-card)",
+                      color: isSelected ? "#fff" : "var(--text-primary)",
                       fontSize: 12,
-                      fontWeight: isSelected ? 700 : 500,
+                      fontWeight: isSelected ? 700 : 600,
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       gap: 4,
                       transition: "all 0.15s ease",
-                      boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.12)" : "none"
+                      boxShadow: isSelected ? "0 2px 8px rgba(245, 158, 11, 0.25)" : "none"
                     }}
                   >
                     <span>{lm.icon}</span>
@@ -1095,10 +1097,10 @@ const Rooms = () => {
         {/* NỘI DUNG CHÍNH (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
         <main className="rooms-list-pane">
           {/* Modern Header: Tabs (Tất cả / Của tôi / Người khác) & Bộ lọc sắp xếp */}
-          <div style={{ background: "#fff", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border)", marginBottom: 20, boxShadow: "var(--shadow-soft)" }}>
+          <div style={{ background: "var(--bg-card)", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border-color)", marginBottom: 20, boxShadow: "var(--shadow-soft)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
               {/* Tab phân loại bài đăng */}
-              <div style={{ display: "flex", gap: 8, background: "#f1f5f9", padding: 4, borderRadius: 12 }}>
+              <div style={{ display: "flex", gap: 8, background: "var(--bg-primary)", padding: 4, borderRadius: 12 }}>
                 <button
                   onClick={() => setPostTab("ALL")}
                   style={{
@@ -1108,9 +1110,9 @@ const Rooms = () => {
                     cursor: "pointer",
                     fontSize: 13.5,
                     fontWeight: postTab === "ALL" ? 700 : 500,
-                    background: postTab === "ALL" ? "#fff" : "transparent",
-                    color: postTab === "ALL" ? "var(--ink)" : "var(--text-muted)",
-                    boxShadow: postTab === "ALL" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                    background: postTab === "ALL" ? "var(--bg-card)" : "transparent",
+                    color: postTab === "ALL" ? "var(--text-primary)" : "var(--text-secondary)",
+                    boxShadow: postTab === "ALL" ? "var(--shadow-soft)" : "none",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
@@ -1132,9 +1134,9 @@ const Rooms = () => {
                         cursor: "pointer",
                         fontSize: 13.5,
                         fontWeight: postTab === "MY_POSTS" ? 700 : 500,
-                        background: postTab === "MY_POSTS" ? "#fff" : "transparent",
-                        color: postTab === "MY_POSTS" ? "var(--ink)" : "var(--text-muted)",
-                        boxShadow: postTab === "MY_POSTS" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                        background: postTab === "MY_POSTS" ? "var(--bg-card)" : "transparent",
+                        color: postTab === "MY_POSTS" ? "var(--text-primary)" : "var(--text-secondary)",
+                        boxShadow: postTab === "MY_POSTS" ? "var(--shadow-soft)" : "none",
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
@@ -1154,9 +1156,9 @@ const Rooms = () => {
                         cursor: "pointer",
                         fontSize: 13.5,
                         fontWeight: postTab === "OTHERS" ? 700 : 500,
-                        background: postTab === "OTHERS" ? "#fff" : "transparent",
-                        color: postTab === "OTHERS" ? "var(--ink)" : "var(--text-muted)",
-                        boxShadow: postTab === "OTHERS" ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
+                        background: postTab === "OTHERS" ? "var(--bg-card)" : "transparent",
+                        color: postTab === "OTHERS" ? "var(--text-primary)" : "var(--text-secondary)",
+                        boxShadow: postTab === "OTHERS" ? "var(--shadow-soft)" : "none",
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
@@ -1172,16 +1174,17 @@ const Rooms = () => {
 
               {/* Sắp xếp */}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>Sắp xếp:</span>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>Sắp xếp:</span>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   style={{
                     padding: "6px 12px",
                     borderRadius: 8,
-                    border: "1px solid var(--border)",
+                    border: "1px solid var(--border-color)",
                     fontSize: 13,
-                    background: "#fff",
+                    background: "var(--bg-card)",
+                    color: "var(--text-primary)",
                     fontWeight: 600,
                     outline: "none"
                   }}
@@ -1194,9 +1197,9 @@ const Rooms = () => {
               </div>
             </div>
 
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                Tìm thấy <strong style={{ color: "var(--ink)" }}>{visiblePosts.length}</strong> bài đăng phòng trọ phù hợp
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                Tìm thấy <strong style={{ color: "var(--accent)" }}>{visiblePosts.length}</strong> bài đăng phòng trọ phù hợp
               </span>
               <button 
                 onClick={() => setShowFullMap(true)}
@@ -1211,8 +1214,8 @@ const Rooms = () => {
           {/* Thông báo bài đăng đang chờ Admin duyệt của chủ trọ */}
           {user?.role === "LANDLORD" && landlordMyPosts.some((p) => p.moderationStatus === "PENDING") && (
             <div style={{
-              background: "#fffbeb",
-              border: "1.5px solid #fde68a",
+              background: "rgba(245, 158, 11, 0.12)",
+              border: "1.5px solid rgba(245, 158, 11, 0.3)",
               borderRadius: "14px",
               padding: "14px 18px",
               marginBottom: 20,
@@ -1224,7 +1227,7 @@ const Rooms = () => {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 20 }}>⏳</span>
                 <div>
-                  <strong style={{ color: "#92400e", fontSize: 14 }}>
+                  <strong style={{ color: "var(--accent, #f59e0b)", fontSize: 14 }}>
                     Bạn có {landlordMyPosts.filter((p) => p.moderationStatus === "PENDING").length} bài đăng trọ đang chờ Admin duyệt
                   </strong>
                   <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#b45309" }}>
@@ -1307,7 +1310,7 @@ const Rooms = () => {
               ))}
             </div>
           ) : currentItems.length === 0 ? (
-            <div className="empty-state" style={{ background: "white", borderRadius: 16, padding: "60px 20px", border: "1px solid var(--border)" }}>
+            <div className="empty-state" style={{ background: "var(--bg-card)", borderRadius: 16, padding: "60px 20px", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Không tìm thấy phòng phù hợp</h3>
               <p style={{ color: "var(--text-muted)", margin: "8px 0 16px 0", fontSize: 14 }}>
@@ -1498,7 +1501,7 @@ const Rooms = () => {
                         </Link>
                         
                         {/* 5. Yêu thích */}
-                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border)", background: "#fff" }} showText={false} />
+                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }} showText={false} />
                       </div>
                     </div>
                   </div>
@@ -1589,7 +1592,7 @@ const Rooms = () => {
             </div>
 
             {/* Quick search by location inside card */}
-            <div style={{ padding: "12px 14px", background: "#fff", borderTop: "1px solid var(--border)" }}>
+            <div style={{ padding: "12px 14px", background: "var(--bg-card)", borderTop: "1px solid var(--border-color)" }}>
               <div style={{ display: "flex", gap: 6 }}>
                 <input
                   value={proximityQuery}
@@ -1624,21 +1627,21 @@ const Rooms = () => {
           </div>
 
           {/* Banner thông tin hỗ trợ */}
-          <div style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)", borderRadius: 16, padding: "18px", border: "1px solid #bbf7d0" }}>
+          <div style={{ background: "var(--bg-card)", borderRadius: 16, padding: "18px", border: "1px solid var(--border-color)", boxShadow: "var(--shadow-card)" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <Sparkles size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+              <Sparkles size={20} color="var(--primary)" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
-                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#14532d" }}>
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
                   Đăng tin nhanh, tìm bạn dễ dàng
                 </h4>
-                <p style={{ margin: "4px 0 10px 0", fontSize: 12.5, color: "#166534", lineHeight: 1.4 }}>
+                <p style={{ margin: "4px 0 10px 0", fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.4 }}>
                   Mọi bài đăng đều được xác minh danh tính và hỗ trợ liên hệ chat trực tiếp.
                 </p>
                 {user?.role === "LANDLORD" ? (
                   <Link
                     to="/forum/create"
                     className="btn btn-primary"
-                    style={{ fontSize: 12.5, padding: "6px 12px", width: "100%", justifyContent: "center" }}
+                    style={{ fontSize: 12.5, padding: "7px 12px", width: "100%", justifyContent: "center", fontWeight: 700 }}
                   >
                     + Đăng bài trọ ngay
                   </Link>
@@ -1646,7 +1649,7 @@ const Rooms = () => {
                   <Link
                     to="/roommates"
                     className="btn btn-outline"
-                    style={{ fontSize: 12.5, padding: "6px 12px", width: "100%", justifyContent: "center", background: "#fff" }}
+                    style={{ fontSize: 12.5, padding: "7px 12px", width: "100%", justifyContent: "center" }}
                   >
                     Khám phá tìm bạn ở ghép
                   </Link>
@@ -1673,10 +1676,10 @@ const Rooms = () => {
               </button>
             </div>
 
-            <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: 10, marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{rentalModalPost.title}</div>
-              <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: 2 }}>
-                Chủ trọ: <strong>{rentalModalPost.landlordName}</strong> • Giá: <strong style={{ color: "#2563eb" }}>{formatVnd(rentalModalPost.price)}/tháng</strong>
+            <div style={{ background: "var(--bg-primary)", border: "1px solid var(--border-color)", padding: "10px 14px", borderRadius: 10, marginBottom: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{rentalModalPost.title}</div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginTop: 2 }}>
+                Chủ trọ: <strong>{rentalModalPost.landlordName}</strong> • Giá: <strong style={{ color: "var(--primary)" }}>{formatVnd(rentalModalPost.price)}/tháng</strong>
               </div>
             </div>
 
@@ -1790,11 +1793,11 @@ const Rooms = () => {
                   <select
                     value={roommateForm.gender}
                     onChange={(e) => setRoommateForm({ ...roommateForm, gender: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
                   >
-                    <option value="ALL">Nam hoặc Nữ</option>
-                    <option value="MALE">Chỉ Nam</option>
-                    <option value="FEMALE">Chỉ Nữ</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="ALL">Nam hoặc Nữ</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="MALE">Chỉ Nam</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="FEMALE">Chỉ Nữ</option>
                   </select>
                 </div>
               </div>
@@ -1852,7 +1855,7 @@ const Rooms = () => {
         <div className="full-map-modal" onClick={() => setShowFullMap(false)}>
           <div className="full-map-dialog" onClick={(e) => e.stopPropagation()}>
             {/* Header Dialog */}
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-card)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--success-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--success)" }}>
                   <MapPin size={20} />
@@ -1870,7 +1873,7 @@ const Rooms = () => {
               <button
                 onClick={() => setShowFullMap(false)}
                 style={{
-                  background: "#e2e8f0",
+                  background: "var(--border)",
                   border: "none",
                   borderRadius: "50%",
                   width: 32,
@@ -1889,7 +1892,7 @@ const Rooms = () => {
             {/* Content: Search Bar on top of map + Leaflet Map */}
             <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
               {/* Floating Proximity Search inside modal */}
-              <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1000, background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(6px)", padding: "10px 14px", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", gap: 8, alignItems: "center", maxWidth: 450, width: "calc(100% - 24px)" }}>
+              <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1000, background: "var(--bg-card)", border: "1px solid var(--border)", backdropFilter: "blur(6px)", padding: "10px 14px", borderRadius: 12, boxShadow: "var(--shadow-card)", display: "flex", gap: 8, alignItems: "center", maxWidth: 450, width: "calc(100% - 24px)" }}>
                 <MapPin size={16} color="var(--primary)" />
                 <input
                   value={proximityQuery}
@@ -1906,18 +1909,19 @@ const Rooms = () => {
                     border: "none",
                     outline: "none",
                     fontSize: 13,
-                    background: "transparent"
+                    background: "transparent",
+                    color: "var(--text)"
                   }}
                 />
                 <select
                   value={proximityRadius}
                   onChange={(e) => setProximityRadius(Number(e.target.value))}
-                  style={{ border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", fontSize: 12, background: "#fff" }}
+                  style={{ border: "1px solid var(--border-color)", borderRadius: 6, padding: "4px 8px", fontSize: 12, background: "var(--bg-card)", color: "var(--text-primary)" }}
                 >
-                  <option value={1}>1 km</option>
-                  <option value={3}>3 km</option>
-                  <option value={5}>5 km</option>
-                  <option value={10}>10 km</option>
+                  <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={1}>1 km</option>
+                  <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={3}>3 km</option>
+                  <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={5}>5 km</option>
+                  <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={10}>10 km</option>
                 </select>
                 <button
                   type="button"

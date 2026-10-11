@@ -18,18 +18,18 @@ const CATEGORIES = {
 };
 
 const URGENCY = {
-  LOW: { label: "Thấp", color: "#10b981", bg: "#ecfdf5", priority: 3 },
-  NORMAL: { label: "Bình thường", color: "#f59e0b", bg: "#fffbeb", priority: 2 },
-  HIGH: { label: "Cao", color: "#f97316", bg: "#fff7ed", priority: 1 },
-  URGENT: { label: "Khẩn cấp", color: "#ef4444", bg: "#fef2f2", priority: 0 },
+  LOW: { label: "Thấp", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", priority: 3 },
+  NORMAL: { label: "Bình thường", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", priority: 2 },
+  HIGH: { label: "Cao", color: "#f97316", bg: "rgba(249, 115, 22, 0.15)", priority: 1 },
+  URGENT: { label: "Khẩn cấp", color: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", priority: 0 },
 };
 
 const STATUS = {
-  OPEN: { label: "Chờ xử lý", color: "#f59e0b", bg: "#fffbeb", icon: <Clock size={14} /> },
-  IN_PROGRESS: { label: "Đang xử lý", color: "#3b82f6", bg: "#eff6ff", icon: <Wrench size={14} /> },
-  RESOLVED: { label: "Đã xử lý", color: "#10b981", bg: "#ecfdf5", icon: <CheckCircle2 size={14} /> },
-  CLOSED: { label: "Đã đóng", color: "#6b7280", bg: "#f9fafb", icon: <CheckCircle2 size={14} /> },
-  CANCELLED: { label: "Đã hủy", color: "#9ca3af", bg: "#f3f4f6", icon: <XCircle size={14} /> },
+  OPEN: { label: "Chờ xử lý", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", icon: <Clock size={14} /> },
+  IN_PROGRESS: { label: "Đang xử lý", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.15)", icon: <Wrench size={14} /> },
+  RESOLVED: { label: "Đã xử lý", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", icon: <CheckCircle2 size={14} /> },
+  CLOSED: { label: "Đã đóng", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", icon: <CheckCircle2 size={14} /> },
+  CANCELLED: { label: "Đã hủy", color: "#9ca3af", bg: "rgba(156, 163, 175, 0.15)", icon: <XCircle size={14} /> },
 };
 
 const timeAgo = (dateStr) => {
@@ -123,13 +123,13 @@ const LandlordTickets = ({ embedded = false }) => {
             {stats.urgentCount > 0 && (
               <div style={{
                 padding: "10px 18px", borderRadius: 12,
-                background: "#fef2f2", border: "1px solid #fecaca", textAlign: "center",
+                background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", textAlign: "center",
                 animation: "urgentPulse 2s ease-in-out infinite"
               }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: "#ef4444", fontFamily: "Manrope" }}>
                   {stats.urgentCount}
                 </div>
-                <div style={{ fontSize: 11, color: "#dc2626", fontWeight: 600 }}>Khẩn cấp</div>
+                <div style={{ fontSize: 11, color: "#ef4444", fontWeight: 600 }}>Khẩn cấp</div>
               </div>
             )}
           </div>
@@ -169,8 +169,8 @@ const LandlordTickets = ({ embedded = false }) => {
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{
                 padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
-                border: filter === f.key ? "1px solid var(--ink)" : "1px solid var(--border)",
-                background: filter === f.key ? "var(--ink)" : "var(--surface)",
+                border: filter === f.key ? "1.5px solid var(--accent)" : "1px solid var(--border)",
+                background: filter === f.key ? "var(--accent)" : "var(--surface)",
                 color: filter === f.key ? "#fff" : "var(--text)", cursor: "pointer"
               }}>
               {f.label}
@@ -235,7 +235,7 @@ const LandlordTickets = ({ embedded = false }) => {
                         {isUrgent && (
                           <span style={{
                             padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800,
-                            background: "#fef2f2", color: "#ef4444", letterSpacing: "0.04em",
+                            background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", letterSpacing: "0.04em",
                             animation: "pulse 2s ease-in-out infinite"
                           }}>
                             🔴 KHẨN CẤP
@@ -244,7 +244,7 @@ const LandlordTickets = ({ embedded = false }) => {
                         {ticket.urgency === "HIGH" && (
                           <span style={{
                             padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800,
-                            background: "#fff7ed", color: "#f97316"
+                            background: "rgba(249, 115, 22, 0.15)", color: "#f97316", border: "1px solid rgba(249, 115, 22, 0.3)"
                           }}>
                             ⚠️ ƯU TIÊN CAO
                           </span>
@@ -287,7 +287,11 @@ const LandlordTickets = ({ embedded = false }) => {
                     }}>
                       {/* Description */}
                       <div style={{
-                        padding: "12px 16px", background: "#f9fafb", borderRadius: 10,
+                        padding: "12px 16px",
+                        background: "var(--bg-primary)",
+                        color: "var(--text-primary)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 10,
                         marginBottom: 14, fontSize: 14, lineHeight: 1.7
                       }}>
                         {ticket.description}
@@ -308,10 +312,12 @@ const LandlordTickets = ({ embedded = false }) => {
                       {/* Action area */}
                       {["OPEN", "IN_PROGRESS"].includes(ticket.status) && (
                         <div style={{
-                          padding: "14px 16px", background: "#f0fdf4", borderRadius: 10,
-                          border: "1px solid #bbf7d0"
+                          padding: "14px 16px",
+                          background: "rgba(16, 185, 129, 0.08)",
+                          borderRadius: 10,
+                          border: "1px solid rgba(16, 185, 129, 0.25)"
                         }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, fontSize: 13, fontWeight: 700, color: "#16a34a" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, fontSize: 13, fontWeight: 700, color: "#10b981" }}>
                             <MessageSquare size={14} /> Ghi chú xử lý (tùy chọn)
                           </div>
                           <textarea
@@ -319,7 +325,10 @@ const LandlordTickets = ({ embedded = false }) => {
                             value={expandedId === ticket.id ? actionNote : ""}
                             onChange={e => setActionNote(e.target.value)}
                             style={{
-                              width: "100%", padding: "8px 12px", border: "1px solid #bbf7d0",
+                              width: "100%", padding: "8px 12px",
+                              border: "1px solid var(--border)",
+                              background: "var(--bg-card)",
+                              color: "var(--text-primary)",
                               borderRadius: 8, fontSize: 13, resize: "none", outline: "none",
                               marginBottom: 10
                             }}
@@ -351,12 +360,15 @@ const LandlordTickets = ({ embedded = false }) => {
                       {/* Resolved info */}
                       {ticket.status === "RESOLVED" && (
                         <div style={{
-                          padding: "12px 16px", background: "#ecfdf5", borderRadius: 10,
-                          border: "1px solid #a7f3d0", fontSize: 13, color: "#047857"
+                          padding: "12px 16px",
+                          background: "rgba(16, 185, 129, 0.12)",
+                          borderRadius: 10,
+                          border: "1px solid rgba(16, 185, 129, 0.3)",
+                          fontSize: 13, color: "#10b981"
                         }}>
                           ✅ Đã đánh dấu giải quyết — đang chờ người thuê xác nhận.
                           {ticket.landlordNote && (
-                            <div style={{ marginTop: 6, fontStyle: "italic" }}>
+                            <div style={{ marginTop: 6, fontStyle: "italic", color: "var(--text-secondary)" }}>
                               Ghi chú: "{ticket.landlordNote}"
                             </div>
                           )}
@@ -365,8 +377,11 @@ const LandlordTickets = ({ embedded = false }) => {
 
                       {ticket.status === "CLOSED" && (
                         <div style={{
-                          padding: "12px 16px", background: "#f9fafb", borderRadius: 10,
-                          border: "1px solid var(--border)", fontSize: 13, color: "var(--text-muted)"
+                          padding: "12px 16px",
+                          background: "var(--bg-primary)",
+                          borderRadius: 10,
+                          border: "1px solid var(--border)",
+                          fontSize: 13, color: "var(--text-secondary)"
                         }}>
                           ✅ Người thuê đã xác nhận. Ticket đã đóng.
                         </div>

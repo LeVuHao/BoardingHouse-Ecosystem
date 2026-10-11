@@ -27,7 +27,7 @@ const ResetPassword = () => {
 
   return (
     <div className="container" style={{ maxWidth: "450px", marginTop: "3rem" }}>
-      <div style={{ background: "white", padding: "2.5rem", borderRadius: "16px", boxShadow: "var(--shadow)" }}>
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", padding: "2.5rem", borderRadius: "16px", boxShadow: "var(--shadow)" }}>
         <h2 style={{ textAlign: "center", marginBottom: "0.5rem", color: "var(--primary)" }}>Đặt lại mật khẩu</h2>
         <p style={{ textAlign: "center", fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
           Nhập mã xác thực và mật khẩu mới

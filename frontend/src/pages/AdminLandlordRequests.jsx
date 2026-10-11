@@ -39,26 +39,26 @@ const thStyle = {
   textAlign: "left",
   padding: "12px 16px",
   fontSize: 12,
-  color: "#64748B",
+  color: "var(--text-secondary)",
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: 0.4,
-  background: "#F8FAFC",
-  borderBottom: "1px solid #E2E8F0",
+  background: "var(--bg-primary)",
+  borderBottom: "1px solid var(--border-color)",
 };
 
 const tdStyle = {
   padding: "14px 16px",
   fontSize: 14,
-  color: "#334155",
-  borderBottom: "1px solid #F1F5F9",
+  color: "var(--text-primary)",
+  borderBottom: "1px solid var(--border-color)",
   verticalAlign: "middle",
 };
 
 const STATUS_BADGE = {
-  PENDING: { color: "#D97706", bg: "#FEF3C7", label: "Chờ duyệt" },
-  APPROVED: { color: "#059669", bg: "#D1FAE5", label: "Đã duyệt" },
-  REJECTED: { color: "#DC2626", bg: "#FEE2E2", label: "Từ chối" },
+  PENDING: { color: "#F59E0B", bg: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)", label: "Chờ duyệt" },
+  APPROVED: { color: "#10B981", bg: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", label: "Đã duyệt" },
+  REJECTED: { color: "#EF4444", bg: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", label: "Từ chối" },
 };
 
 const AdminLandlordRequests = () => {
@@ -191,13 +191,13 @@ const AdminLandlordRequests = () => {
 
       {/* Filter Toolbar */}
       <div style={{ ...cardStyle, padding: "16px 24px", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 10, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: "0 14px", flex: "1 1 280px", maxWidth: 420 }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm theo tên, email, SĐT hoặc mã SePay..."
-            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14 }}
+            style={{ border: "none", background: "transparent", outline: "none", padding: "10px 8px", width: "100%", fontSize: 14, color: "var(--text-primary)" }}
           />
         </div>
 
@@ -210,7 +210,7 @@ const AdminLandlordRequests = () => {
 
         <button
           onClick={fetchData}
-          style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 8, padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#475569" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-secondary)" }}
         >
           <RefreshCw size={14} /> Làm mới
         </button>
@@ -240,49 +240,49 @@ const AdminLandlordRequests = () => {
                     <tr key={req.id}>
                       <td style={tdStyle}>
                         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#EEF2FF", color: "#4F46E5", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--primary-light)", color: "var(--primary)", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {(req.fullName || "?").charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div style={{ fontWeight: 700, color: "#0F172A" }}>{req.fullName}</div>
-                            <div style={{ fontSize: 12, color: "#64748B" }}>ID Đơn: #{req.id}</div>
+                            <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>{req.fullName}</div>
+                            <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>ID Đơn: #{req.id}</div>
                           </div>
                         </div>
                       </td>
 
                       <td style={tdStyle}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5 }}>
-                          <Mail size={13} color="#94A3B8" /> {req.email}
+                          <Mail size={13} color="var(--text-secondary)" /> {req.email}
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#64748B", marginTop: 2 }}>
-                          <Phone size={13} color="#94A3B8" /> {req.phoneNumber || "—"}
-                          {req.idCardNumber && <span style={{ marginLeft: 6, background: "#F1F5F9", padding: "1px 6px", borderRadius: 4, fontSize: 11 }}>CCCD: {req.idCardNumber}</span>}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
+                          <Phone size={13} color="var(--text-secondary)" /> {req.phoneNumber || "—"}
+                          {req.idCardNumber && <span style={{ marginLeft: 6, background: "var(--bg-primary)", border: "1px solid var(--border-color)", padding: "1px 6px", borderRadius: 4, fontSize: 11 }}>CCCD: {req.idCardNumber}</span>}
                         </div>
                       </td>
 
                       <td style={tdStyle}>
-                        <div style={{ fontFamily: "monospace", fontWeight: 700, color: "#1E293B", fontSize: 13 }}>
+                        <div style={{ fontFamily: "monospace", fontWeight: 700, color: "var(--text-primary)", fontSize: 13 }}>
                           {req.paymentCode}
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#059669", marginTop: 2 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#10B981", marginTop: 2 }}>
                           {Number(req.amount || 0).toLocaleString("vi-VN")} đ
                         </div>
                       </td>
 
                       <td style={tdStyle}>
                         {req.channel === "OFFLINE_DIRECT" ? (
-                          <span style={{ display: "inline-block", background: "#F1F5F9", color: "#475569", padding: "3px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
+                          <span style={{ display: "inline-block", background: "var(--bg-primary)", border: "1px solid var(--border-color)", color: "var(--text-secondary)", padding: "3px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
                             📞 Offline Admin
                           </span>
                         ) : (
-                          <span style={{ display: "inline-block", background: "#EDE9FE", color: "#6D28D9", padding: "3px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
+                          <span style={{ display: "inline-block", background: "rgba(139, 92, 246, 0.15)", border: "1px solid rgba(139, 92, 246, 0.3)", color: "#8B5CF6", padding: "3px 8px", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
                             🏦 VietQR SePay
                           </span>
                         )}
                       </td>
 
                       <td style={tdStyle}>
-                        <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700, color: sBadge.color, background: sBadge.bg }}>
+                        <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700, color: sBadge.color, background: sBadge.bg, border: sBadge.border || "none" }}>
                           {sBadge.label}
                         </span>
                         {req.rejectionReason && (
@@ -328,23 +328,23 @@ const AdminLandlordRequests = () => {
 
       {/* MODAL: DIRECT CREATE LANDLORD */}
       {showCreateModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
-          <div style={{ background: "#FFFFFF", borderRadius: 20, width: "100%", maxWidth: 520, padding: 28, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: 20, width: "100%", maxWidth: 520, padding: 28, boxShadow: "var(--shadow-card)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EEF2FF", color: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Building size={20} />
                 </div>
-                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "#0F172A" }}>Tạo Tài Khoản Chủ Trọ Trực Tiếp</h3>
+                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "var(--text-primary)" }}>Tạo Tài Khoản Chủ Trọ Trực Tiếp</h3>
               </div>
-              <button onClick={() => setShowCreateModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
+              <button onClick={() => setShowCreateModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}>
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleCreateDirect} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                   Họ và tên chủ trọ <span style={{ color: "#EF4444" }}>*</span>
                 </label>
                 <input
@@ -352,13 +352,13 @@ const AdminLandlordRequests = () => {
                   value={directForm.fullName}
                   onChange={(e) => setDirectForm({ ...directForm, fullName: e.target.value })}
                   placeholder="Nguyễn Văn A"
-                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                 />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                     Email đăng nhập <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <input
@@ -367,11 +367,11 @@ const AdminLandlordRequests = () => {
                     value={directForm.email}
                     onChange={(e) => setDirectForm({ ...directForm, email: e.target.value })}
                     placeholder="chutro@gmail.com"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                     Số điện thoại <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <input
@@ -379,25 +379,25 @@ const AdminLandlordRequests = () => {
                     value={directForm.phoneNumber}
                     onChange={(e) => setDirectForm({ ...directForm, phoneNumber: e.target.value })}
                     placeholder="0912345678"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                     Số CCCD / CMND
                   </label>
                   <input
                     value={directForm.idCardNumber}
                     onChange={(e) => setDirectForm({ ...directForm, idCardNumber: e.target.value })}
                     placeholder="077099xxxxxx"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                     Mật khẩu khởi tạo <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <input
@@ -406,20 +406,20 @@ const AdminLandlordRequests = () => {
                     value={directForm.password}
                     onChange={(e) => setDirectForm({ ...directForm, password: e.target.value })}
                     placeholder="Đặt mật khẩu tùy thích"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                   Ghi chú Admin (Tùy chọn)
                 </label>
                 <input
                   value={directForm.adminNote}
                   onChange={(e) => setDirectForm({ ...directForm, adminNote: e.target.value })}
                   placeholder="Ví dụ: Khách gọi hotline chuyển tiền mặt..."
-                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                 />
               </div>
 
@@ -427,14 +427,14 @@ const AdminLandlordRequests = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #CBD5E1", background: "#FFFFFF", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                  style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-secondary)", fontWeight: 600, cursor: "pointer" }}
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#4F46E5", color: "#FFFFFF", fontWeight: 700, cursor: creating ? "not-allowed" : "pointer" }}
+                  style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "var(--primary)", color: "#FFFFFF", fontWeight: 700, cursor: creating ? "not-allowed" : "pointer" }}
                 >
                   {creating ? "Đang tạo..." : "Xác nhận tạo Chủ trọ"}
                 </button>
@@ -446,19 +446,19 @@ const AdminLandlordRequests = () => {
 
       {/* MODAL: CONFIRM APPROVE / REJECT */}
       {confirmModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
-          <div style={{ background: "#FFFFFF", borderRadius: 20, width: "100%", maxWidth: 460, padding: 24, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
-            <h3 style={{ margin: "0 0 10px 0", fontSize: "1.2rem", fontWeight: 700, color: confirmModal.type === "approve" ? "#059669" : "#DC2626" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: 20, width: "100%", maxWidth: 460, padding: 24, boxShadow: "var(--shadow-card)" }}>
+            <h3 style={{ margin: "0 0 10px 0", fontSize: "1.2rem", fontWeight: 700, color: confirmModal.type === "approve" ? "#10B981" : "#EF4444" }}>
               {confirmModal.type === "approve" ? "Phê duyệt kích hoạt Chủ trọ" : "Từ chối đơn đăng ký"}
             </h3>
-            <p style={{ margin: "0 0 14px 0", fontSize: 14, color: "#475569", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 14px 0", fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
               {confirmModal.type === "approve"
                 ? `Bạn có chắc chắn đã nhận được tiền và muốn kích hoạt quyền Chủ trọ cho "${confirmModal.item.fullName}" (${confirmModal.item.email})?`
                 : `Từ chối đơn đăng ký của "${confirmModal.item.fullName}"?`}
             </p>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                 {confirmModal.type === "approve" ? "Ghi chú phê duyệt (Tùy chọn)" : "Lý do từ chối"}
               </label>
               <textarea
@@ -466,14 +466,14 @@ const AdminLandlordRequests = () => {
                 value={confirmModal.note}
                 onChange={(e) => setConfirmModal({ ...confirmModal, note: e.target.value })}
                 placeholder={confirmModal.type === "approve" ? "Đã đối soát ngân hàng BIDV..." : "Ví dụ: Chưa nhận được chuyển khoản / sai nội dung..."}
-                style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13.5, outline: "none", boxSizing: "border-box" }}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", fontSize: 13.5, outline: "none", boxSizing: "border-box" }}
               />
             </div>
 
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 18 }}>
               <button
                 onClick={() => setConfirmModal(null)}
-                style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #CBD5E1", background: "#FFFFFF", color: "#475569", fontWeight: 600, cursor: "pointer" }}
+                style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-secondary)", fontWeight: 600, cursor: "pointer" }}
               >
                 Hủy
               </button>

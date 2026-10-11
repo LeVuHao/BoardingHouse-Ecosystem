@@ -97,29 +97,29 @@ const AdminContactQRWidget = () => {
         >
           <div
             style={{
-              background: "#FFFFFF",
+              background: "var(--bg-card)",
               borderRadius: 24,
               width: "100%",
               maxWidth: 580,
               maxHeight: "90vh",
               overflowY: "auto",
               padding: "28px 24px",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-              border: "1px solid #E2E8F0",
+              boxShadow: "var(--shadow-card)",
+              border: "1px solid var(--border)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#EEF2FF", color: "#4F46E5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "#0F172A" }}>
+                  <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "var(--ink)" }}>
                     Nạp Tiền & Kích Hoạt Quyền Chủ Trọ
                   </h3>
-                  <p style={{ margin: 0, fontSize: 13, color: "#64748B" }}>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
                     Dành cho khách vãng lai / người dùng muốn đăng bài cho thuê trọ
                   </p>
                 </div>
@@ -128,7 +128,7 @@ const AdminContactQRWidget = () => {
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
-                  background: "#F1F5F9",
+                  background: "var(--bg-primary)",
                   border: "none",
                   borderRadius: "50%",
                   width: 32,
@@ -137,7 +137,7 @@ const AdminContactQRWidget = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  color: "#64748B",
+                  color: "var(--text-muted)",
                 }}
               >
                 <X size={18} />
@@ -145,8 +145,8 @@ const AdminContactQRWidget = () => {
             </div>
 
             {/* Thông báo chính sách */}
-            <div style={{ background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 14, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, fontSize: 13, color: "#92400E" }}>
-              <Info size={18} color="#D97706" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ background: "rgba(245, 158, 11, 0.12)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: 14, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, fontSize: 13, color: "var(--accent, #f59e0b)" }}>
+              <Info size={18} color="var(--accent, #f59e0b)" style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
                 <strong>Quy định:</strong> Để chống tin ảo và bảo vệ người thuê, tài khoản Chủ trọ cần được nạp phí kích hoạt trọn đời (<strong>199.000đ</strong>) hoặc liên hệ Admin tạo trực tiếp.
               </div>
@@ -155,49 +155,49 @@ const AdminContactQRWidget = () => {
             {/* Grid Nội dung: QR Code + Thông tin chuyển khoản */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20, alignItems: "center" }}>
               {/* QR Code */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#F8FAFC", padding: 16, borderRadius: 18, border: "1px solid #E2E8F0" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#475569", marginBottom: 8, textTransform: "uppercase" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "var(--bg-primary)", padding: 16, borderRadius: 18, border: "1px solid var(--border)" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" }}>
                   Mã VietQR Ngân hàng BIDV
                 </div>
-                <div style={{ background: "#FFFFFF", padding: 8, borderRadius: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.06)", border: "1px solid #E2E8F0" }}>
+                <div style={{ background: "#FFFFFF", padding: 8, borderRadius: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.06)", border: "1px solid var(--border)" }}>
                   <img
                     src={bankInfo.qrUrl}
                     alt="VietQR SePay BIDV"
                     style={{ width: 200, height: 200, objectFit: "contain", display: "block" }}
                   />
                 </div>
-                <div style={{ marginTop: 10, fontSize: 12, color: "#059669", fontWeight: 700 }}>
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--primary)", fontWeight: 700 }}>
                   Quét bằng App Ngân hàng bất kỳ
                 </div>
               </div>
 
               {/* Chi tiết chuyển khoản & liên hệ */}
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ background: "#F8FAFC", borderRadius: 10, padding: "10px 14px", border: "1px solid #E2E8F0" }}>
-                  <div style={{ fontSize: 11, color: "#64748B" }}>Ngân hàng</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#0F172A" }}>BIDV (PGD Phù Cát)</div>
+                <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Ngân hàng</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>BIDV (PGD Phù Cát)</div>
                 </div>
 
-                <div style={{ background: "#F8FAFC", borderRadius: 10, padding: "10px 14px", border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontSize: 11, color: "#64748B" }}>Số tài khoản</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>{bankInfo.bankAccount}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Số tài khoản</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{bankInfo.bankAccount}</div>
                   </div>
                   <button
                     onClick={() => copyToClipboard(bankInfo.bankAccount, "Số tài khoản")}
-                    style={{ background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", borderRadius: 6, padding: "4px 8px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
                   >
                     <Copy size={12} /> {copiedField === "Số tài khoản" ? "Đã chép" : "Chép"}
                   </button>
                 </div>
 
-                <div style={{ background: "#F8FAFC", borderRadius: 10, padding: "10px 14px", border: "1px solid #E2E8F0" }}>
-                  <div style={{ fontSize: 11, color: "#64748B" }}>Chủ tài khoản</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{bankInfo.accountHolder}</div>
+                <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Chủ tài khoản</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{bankInfo.accountHolder}</div>
                 </div>
 
-                <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", border: "1px solid #BFDBFE" }}>
-                  <div style={{ fontSize: 11, color: "#1D4ED8" }}>Hotline / Zalo hỗ trợ Admin</div>
+                <div style={{ background: "rgba(59, 130, 246, 0.12)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                  <div style={{ fontSize: 11, color: "var(--primary)" }}>Hotline / Zalo hỗ trợ Admin</div>
                   <a href={`tel:${bankInfo.phone}`} style={{ fontSize: 14, fontWeight: 800, color: "#EF4444", textDecoration: "none" }}>
                     {bankInfo.phone} ({bankInfo.accountHolder})
                   </a>
@@ -206,7 +206,7 @@ const AdminContactQRWidget = () => {
             </div>
 
             {/* Footer Buttons */}
-            <div style={{ display: "flex", gap: 10, marginTop: 24, paddingTop: 16, borderTop: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", gap: 10, marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
               <Link
                 to="/register-landlord"
                 onClick={() => setIsOpen(false)}
@@ -214,7 +214,7 @@ const AdminContactQRWidget = () => {
                   flex: 1,
                   padding: "12px 18px",
                   borderRadius: 12,
-                  background: "#4F46E5",
+                  background: "var(--primary)",
                   color: "#FFFFFF",
                   fontWeight: 700,
                   fontSize: 14,
@@ -224,7 +224,7 @@ const AdminContactQRWidget = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 6,
-                  boxShadow: "0 4px 12px rgba(79, 70, 229, 0.25)",
+                  boxShadow: "var(--shadow-soft)",
                 }}
               >
                 Vào Trang Đăng Ký Chủ Trọ Chi Tiết <ExternalLink size={15} />

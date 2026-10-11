@@ -104,20 +104,20 @@ const LandlordRequests = ({ embedded = false }) => {
   const renderStatusBadge = (status) => {
     if (status === 'APPROVED') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#dcfce7', color: '#166534', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
           <CheckCircle2 size={14} /> ĐÃ DUYỆT
         </span>
       );
     }
     if (status === 'REJECTED') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#fee2e2', color: '#991b1b', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
           <XCircle size={14} /> ĐÃ TỪ CHỐI
         </span>
       );
     }
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#fef3c7', color: '#92400e', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.3rem 0.7rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold' }}>
         <Clock size={14} /> CHỜ DUYỆT
       </span>
     );
@@ -177,7 +177,7 @@ const LandlordRequests = ({ embedded = false }) => {
               {Icon && <Icon size={16} />}
               {tab.label}
               {tab.key === 'PENDING' && requests.length > 0 && activeTab === 'PENDING' && (
-                <span style={{ background: 'white', color: 'var(--primary)', padding: '0.1rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                <span style={{ background: 'rgba(255, 255, 255, 0.25)', color: '#ffffff', padding: '0.1rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                   {requests.length}
                 </span>
               )}
@@ -188,17 +188,17 @@ const LandlordRequests = ({ embedded = false }) => {
 
       {/* Main Content */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
+        <div style={{ textAlign: 'center', padding: '4rem', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '16px', boxShadow: 'var(--shadow-soft)' }}>
           <Loader size={40} className="spinner" style={{ color: 'var(--primary)' }} />
-          <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Đang tải danh sách yêu cầu thuê...</p>
+          <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>Đang tải danh sách yêu cầu thuê...</p>
         </div>
       ) : requests.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'white', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '16px', boxShadow: 'var(--shadow-soft)' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
             {activeTab === 'PENDING' ? 'Không có yêu cầu nào đang chờ duyệt' : 'Chưa có yêu cầu nào'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
             {activeTab === 'PENDING'
               ? 'Tất cả các yêu cầu thuê phòng đã được bạn xử lý hoàn tất.'
               : 'Danh sách này hiện tại đang trống.'}
@@ -215,11 +215,12 @@ const LandlordRequests = ({ embedded = false }) => {
             <div
               key={req.id}
               style={{
-                background: 'white',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
                 borderRadius: '16px',
                 padding: '1.5rem 2rem',
-                boxShadow: 'var(--shadow)',
-                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)',
+                border: '1px solid var(--border-color)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -295,9 +296,10 @@ const LandlordRequests = ({ embedded = false }) => {
 
                   {req.note && (
                     <div style={{
-                      background: 'var(--bg-main)',
+                      background: 'var(--bg-primary)',
                       padding: '0.8rem 1.2rem',
                       borderRadius: '10px',
+                      border: '1px solid var(--border-color)',
                       borderLeft: '4px solid var(--primary)',
                       marginTop: '0.5rem',
                     }}>

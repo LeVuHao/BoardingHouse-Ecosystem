@@ -8,8 +8,8 @@ import {
   buttonStyle, cardStyle, errorMessage, formatDateTime, inputStyle,
 } from "../components/admin/AdminUi";
 
-const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" };
-const tdStyle = { padding: "12px 16px", fontSize: 14, color: "#334155", borderBottom: "1px solid #F1F5F9", verticalAlign: "middle" };
+const thStyle = { textAlign: "left", padding: "12px 16px", fontSize: 12, color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4, background: "var(--bg-primary)", borderBottom: "1px solid var(--border-color)" };
+const tdStyle = { padding: "12px 16px", fontSize: 14, color: "var(--text-primary)", borderBottom: "1px solid var(--border-color)", verticalAlign: "middle" };
 
 const EMPTY_FORM = { name: "", icon: "", active: true, sortOrder: 0 };
 
@@ -99,8 +99,8 @@ const AdminAmenities = () => {
       />
 
       <div style={{ ...cardStyle, padding: "12px 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F1F5F9", borderRadius: 8, padding: "0 14px", maxWidth: 360 }}>
-          <Search size={18} color="#94A3B8" />
+        <div style={{ display: "flex", alignItems: "center", background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: "0 14px", maxWidth: 360 }}>
+          <Search size={18} color="var(--text-secondary)" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -125,11 +125,11 @@ const AdminAmenities = () => {
                 {filtered.map((a) => (
                   <tr key={a.id}>
                     <td style={tdStyle}>
-                      <div style={{ width: 38, height: 38, borderRadius: 10, background: "#EDE9FE", color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(139, 92, 246, 0.15)", color: "#8B5CF6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <AmenityIcon name={a.icon} size={18} />
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: "#0F172A" }}>{a.name}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "var(--text-primary)" }}>{a.name}</td>
                     <td style={tdStyle}>{a.sortOrder}</td>
                     <td style={tdStyle}>
                       <button
@@ -187,7 +187,7 @@ const AdminAmenities = () => {
                       onClick={() => setForm({ ...form, icon: key })}
                       style={{
                         height: 44, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                        border: `2px solid ${active ? "#8B5CF6" : "#E2E8F0"}`, background: active ? "#EDE9FE" : "white", color: active ? "#7C3AED" : "#64748B",
+                        border: `2px solid ${active ? "#8B5CF6" : "var(--border-color)"}`, background: active ? "rgba(139, 92, 246, 0.15)" : "var(--bg-card)", color: active ? "#A78BFA" : "var(--text-secondary)",
                       }}
                     >
                       <AmenityIcon name={key} size={20} />
@@ -203,7 +203,7 @@ const AdminAmenities = () => {
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
                   placeholder="Hoặc nhập emoji, vd: 🅿️"
                 />
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EDE9FE", color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(139, 92, 246, 0.15)", color: "#8B5CF6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <AmenityIcon name={form.icon} size={20} />
                 </div>
               </div>
@@ -238,20 +238,20 @@ const AdminAmenities = () => {
         {viewing && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: "#EDE9FE", color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(139, 92, 246, 0.15)", color: "#8B5CF6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <AmenityIcon name={viewing.icon} size={26} />
               </div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>{viewing.name}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{viewing.name}</div>
                 <StatusBadge status={viewing.active ? "ACTIVE" : "HIDDEN"} label={viewing.active ? "Đang bật" : "Đã tắt"} />
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", rowGap: 8, fontSize: 14, color: "#334155" }}>
-              <span style={{ color: "#64748B" }}>Mã</span><span>#{viewing.id}</span>
-              <span style={{ color: "#64748B" }}>Icon</span><span>{viewing.icon || "Mặc định"}</span>
-              <span style={{ color: "#64748B" }}>Thứ tự</span><span>{viewing.sortOrder}</span>
-              <span style={{ color: "#64748B" }}>Tạo lúc</span><span>{formatDateTime(viewing.createdAt)}</span>
-              <span style={{ color: "#64748B" }}>Cập nhật</span><span>{formatDateTime(viewing.updatedAt)}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", rowGap: 8, fontSize: 14, color: "var(--text-primary)" }}>
+              <span style={{ color: "var(--text-secondary)" }}>Mã</span><span>#{viewing.id}</span>
+              <span style={{ color: "var(--text-secondary)" }}>Icon</span><span>{viewing.icon || "Mặc định"}</span>
+              <span style={{ color: "var(--text-secondary)" }}>Thứ tự</span><span>{viewing.sortOrder}</span>
+              <span style={{ color: "var(--text-secondary)" }}>Tạo lúc</span><span>{formatDateTime(viewing.createdAt)}</span>
+              <span style={{ color: "var(--text-secondary)" }}>Cập nhật</span><span>{formatDateTime(viewing.updatedAt)}</span>
             </div>
           </div>
         )}

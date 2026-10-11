@@ -138,7 +138,7 @@ const CreateForumPost = () => {
           <form className="forum-create-card" onSubmit={handleSubmit}>
             {/* Author section */}
             <div className="forum-create-author">
-              <div className="avatar">{(user?.fullName || "C")[0]}</div>
+              <div className="avatar" style={{ background: "linear-gradient(135deg, #2563eb, #7c3aed)", color: "#ffffff", fontWeight: 800 }}>{(user?.fullName || "C")[0]}</div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15 }}>{user?.fullName || "Chủ trọ"}</div>
                 <div className="muted" style={{ fontSize: 12.5 }}>Đăng công khai trên diễn đàn</div>
@@ -237,7 +237,7 @@ const CreateForumPost = () => {
                 marginBottom: 14,
                 fontWeight: 700,
                 fontSize: "1rem",
-                color: "var(--ink)",
+                color: "var(--text-primary)",
               }}
             >
               <MapPin size={18} color="var(--primary)" />
@@ -245,8 +245,8 @@ const CreateForumPost = () => {
             </div>
 
             {/* Quick Address Autocomplete */}
-            <div style={{ marginBottom: 18, background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "12px 16px", borderRadius: 12 }}>
-              <label style={{ fontSize: "13px", fontWeight: 700, color: "#166534", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ marginBottom: 18, background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "12px 16px", borderRadius: 12 }}>
+              <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--primary)", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                 ✨ Gợi ý & Tự động điền nhanh địa chỉ:
               </label>
               <AddressAutocomplete
@@ -264,7 +264,7 @@ const CreateForumPost = () => {
                   toast.success("Đã tự động điền địa chỉ & ghim vị trí trên bản đồ! 📍");
                 }}
               />
-              <div style={{ fontSize: "12px", color: "#15803d", marginTop: 6 }}>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: 6 }}>
                 💡 Gõ tên địa điểm rồi bấm chọn, hệ thống sẽ tự động điền Tỉnh/TP, Quận/Huyện, Phường/Xã và định vị bản đồ.
               </div>
             </div>
@@ -341,14 +341,14 @@ const CreateForumPost = () => {
             </div>
 
             {/* Roommate Option */}
-            <div style={{ background: "#f8fafc", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px", marginBottom: 24 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700, color: "var(--ink)" }}>
+            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: 12, padding: "16px 20px", marginBottom: 24 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700, color: "var(--text-primary)" }}>
                 <input
                   type="checkbox"
                   name="roommateNeeded"
                   checked={form.roommateNeeded}
                   onChange={handleChange}
-                  style={{ width: 18, height: 18 }}
+                  style={{ width: 18, height: 18, accentColor: "var(--primary)" }}
                 />
                 <span>🔥 Phòng này đang có nhu cầu tìm người ở ghép cùng</span>
               </label>
@@ -356,7 +356,7 @@ const CreateForumPost = () => {
               {form.roommateNeeded && (
                 <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4, color: "var(--text-secondary)" }}>
                       Số lượng người cần tìm ở ghép (bạn)
                     </label>
                     <input
@@ -366,11 +366,11 @@ const CreateForumPost = () => {
                       max="10"
                       value={form.roommateCount}
                       onChange={handleChange}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4, color: "var(--text-secondary)" }}>
                       Tiêu chí / Ghi chú cho người ở ghép
                     </label>
                     <input
@@ -379,7 +379,7 @@ const CreateForumPost = () => {
                       value={form.roommateNote}
                       onChange={handleChange}
                       placeholder="VD: Ưu tiên sinh viên, không hút thuốc, tính tình gọn gàng..."
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
                     />
                   </div>
                 </div>
@@ -397,7 +397,7 @@ const CreateForumPost = () => {
                 marginBottom: 14,
                 fontWeight: 700,
                 fontSize: "1rem",
-                color: "var(--ink)",
+                color: "var(--text-primary)",
               }}
             >
               <ImagePlus size={18} color="var(--primary)" />
@@ -407,9 +407,9 @@ const CreateForumPost = () => {
             <div
               className="forum-upload-zone"
               style={{
-                border: "2px dashed #cbd5e1",
+                border: "2px dashed var(--border-color)",
                 borderRadius: 14,
-                background: "#f8fafc",
+                background: "var(--bg-primary)",
                 transition: "all 0.2s",
                 marginBottom: 16,
               }}
@@ -443,8 +443,8 @@ const CreateForumPost = () => {
                     width: 50,
                     height: 50,
                     borderRadius: "50%",
-                    background: "#eff6ff",
-                    color: "#2563eb",
+                    background: "rgba(37, 99, 235, 0.15)",
+                    color: "var(--primary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -453,10 +453,10 @@ const CreateForumPost = () => {
                 >
                   <ImagePlus size={24} strokeWidth={2} />
                 </div>
-                <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--ink)" }}>
+                <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)" }}>
                   Bấm để chọn ảnh từ máy tính
                 </span>
-                <span style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+                <span style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>
                   Hỗ trợ định dạng JPG, PNG, WEBP (tải lên nhiều ảnh cùng lúc)
                 </span>
               </label>
@@ -542,6 +542,7 @@ const CreateForumPost = () => {
               type="submit"
               className="btn btn-primary forum-submit-btn"
               disabled={loading}
+              style={{ background: "var(--primary)", color: "#ffffff", fontWeight: 700 }}
             >
               <Send size={16} />
               {loading ? "Đang đăng..." : "Đăng bài cho thuê"}
