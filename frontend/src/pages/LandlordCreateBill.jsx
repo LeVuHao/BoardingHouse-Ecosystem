@@ -20,7 +20,7 @@ const emptyForm = {
   dueDate: '',
 };
 
-const LandlordCreateBill = () => {
+const LandlordCreateBill = ({ embedded = false, defaultContractId = null }) => {
   const [contracts, setContracts] = useState([]);
   const [loadingContracts, setLoadingContracts] = useState(true);
   const [form, setForm] = useState(emptyForm);
@@ -94,7 +94,7 @@ const LandlordCreateBill = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 760 }}>
+    <div className={embedded ? "" : "container"} style={{ maxWidth: 760, margin: '0 auto', padding: embedded ? '0 0 30px 0' : undefined }}>
       {/* Header */}
       <div
         style={{

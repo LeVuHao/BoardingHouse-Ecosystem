@@ -45,7 +45,7 @@ const timeAgo = (dateStr) => {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 };
 
-const LandlordTickets = () => {
+const LandlordTickets = ({ embedded = false }) => {
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({ activeCount: 0, urgentCount: 0 });
   const [loading, setLoading] = useState(true);
@@ -96,13 +96,13 @@ const LandlordTickets = () => {
   const urgentTickets = tickets.filter(t => t.urgency === "URGENT" && ["OPEN", "IN_PROGRESS"].includes(t.status));
 
   return (
-    <div className="page-shell" style={{ background: "var(--bg)" }}>
-      <div className="wrap" style={{ paddingTop: 32, paddingBottom: 60, maxWidth: 1000 }}>
+    <div className={embedded ? "" : "page-shell"} style={embedded ? { background: "transparent" } : { background: "var(--bg)" }}>
+      <div className={embedded ? "" : "wrap"} style={{ paddingTop: embedded ? 0 : 32, paddingBottom: 60, maxWidth: embedded ? '100%' : 1000, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", fontFamily: "Manrope, sans-serif", display: "flex", alignItems: "center", gap: 10 }}>
-              <Wrench size={26} /> Quản lý báo hỏng
+            <h1 style={{ fontSize: embedded ? 22 : 26, fontWeight: 800, color: "var(--ink)", fontFamily: "Manrope, sans-serif", display: "flex", alignItems: "center", gap: 10 }}>
+              <Wrench size={embedded ? 22 : 26} /> Quản lý báo hỏng & Sự cố
             </h1>
             <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 4 }}>
               Xử lý sự cố do người thuê báo cáo

@@ -10,6 +10,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Ho_Chi_Minh
     ports:
       - "3307:3306"
     volumes:
@@ -18,7 +19,7 @@ services:
       - ./database/db_property_rental.sql:/docker-entrypoint-initdb.d/02_db_property_rental.sql
       - ./database/db_billing_payment.sql:/docker-entrypoint-initdb.d/03_db_billing_payment.sql
       - ./database/db_notification.sql:/docker-entrypoint-initdb.d/04_db_notification.sql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+07:00
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s
@@ -93,7 +94,8 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_auth?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      TZ: Asia/Ho_Chi_Minh
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_auth?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
@@ -117,7 +119,8 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_property_rental?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      TZ: Asia/Ho_Chi_Minh
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_property_rental?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
@@ -144,7 +147,8 @@ services:
     ports:
       - "8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_billing_payment?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      TZ: Asia/Ho_Chi_Minh
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_billing_payment?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
@@ -168,7 +172,8 @@ services:
     ports:
       - "8084:8084"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_notification?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      TZ: Asia/Ho_Chi_Minh
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_notification?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
@@ -192,6 +197,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      TZ: Asia/Ho_Chi_Minh
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       eureka-server:
@@ -214,6 +220,8 @@ services:
     restart: unless-stopped
     ports:
       - "5173:80"
+    environment:
+      TZ: Asia/Ho_Chi_Minh
     depends_on:
       - api-gateway
     networks:

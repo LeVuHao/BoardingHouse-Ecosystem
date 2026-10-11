@@ -20,6 +20,7 @@ import Notifications from "./pages/Notifications";
 import LandlordProperties from "./pages/LandlordProperties";
 import LandlordRequests from "./pages/LandlordRequests";
 import LandlordCreateBill from "./pages/LandlordCreateBill";
+import LandlordHub from "./pages/LandlordHub";
 import MyContracts from "./pages/MyContracts";
 import AdminDashboard from "./pages/AdminDashboard";
 import ForumFeed from "./pages/ForumFeed";
@@ -91,22 +92,15 @@ const AppContent = () => {
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["LANDLORD"]} />}>
             <Route path="/forum/create" element={<CreateForumPost />} />
-            <Route
-              path="/landlord/properties"
-              element={<LandlordProperties />}
-            />
-            <Route
-              path="/landlord/requests"
-              element={<LandlordRequests />}
-            />
-            <Route
-              path="/landlord/create-bill"
-              element={<LandlordCreateBill />}
-            />
-            <Route
-              path="/landlord/tickets"
-              element={<LandlordTickets />}
-            />
+            <Route path="/landlord/management" element={<LandlordHub />} />
+            <Route path="/landlord/hub" element={<LandlordHub />} />
+            <Route path="/landlord/my-hub" element={<LandlordHub />} />
+            <Route path="/landlord/properties" element={<LandlordHub defaultTab="properties" />} />
+            <Route path="/landlord/occupied" element={<LandlordHub defaultTab="occupied" />} />
+            <Route path="/landlord/requests" element={<LandlordHub defaultTab="requests" />} />
+            <Route path="/landlord/create-bill" element={<LandlordHub defaultTab="bills" />} />
+            <Route path="/landlord/tickets" element={<LandlordHub defaultTab="tickets" />} />
+            <Route path="/landlord/contracts" element={<LandlordHub defaultTab="contracts" />} />
           </Route>
           
           {/* ADMIN ROUTES WRAPPED IN ADMIN LAYOUT */}

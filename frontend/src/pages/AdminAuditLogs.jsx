@@ -22,6 +22,12 @@ const ACTION_LABELS = {
   CREATE_AMENITY: "Thêm tiện ích",
   UPDATE_AMENITY: "Sửa tiện ích",
   DELETE_AMENITY: "Xóa tiện ích",
+  LANDLORD_CREATE_PROPERTY: "Chủ trọ thêm khu trọ",
+  LANDLORD_UPDATE_PROPERTY: "Chủ trọ sửa khu trọ",
+  LANDLORD_DELETE_PROPERTY: "Chủ trọ xóa khu trọ",
+  LANDLORD_CREATE_ROOM: "Chủ trọ thêm phòng",
+  LANDLORD_UPDATE_ROOM: "Chủ trọ sửa phòng",
+  LANDLORD_DELETE_ROOM: "Chủ trọ xóa phòng",
 };
 
 const thStyle = { padding: "16px 24px", fontWeight: 600, textAlign: "left" };

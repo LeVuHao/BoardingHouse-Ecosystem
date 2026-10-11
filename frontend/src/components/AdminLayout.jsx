@@ -18,12 +18,23 @@ import {
   Tag
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { adminApi } from "../api/apiClient";
 
 const AdminLayout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [pendingPostsCount, setPendingPostsCount] = useState(0);
   const location = useLocation();
   const { logout, user } = useAuth();
+
+  React.useEffect(() => {
+    adminApi.getForumPostStats()
+      .then((res) => {
+        const stats = res?.data || {};
+        setPendingPostsCount(Number(stats.PENDING || 0));
+      })
+      .catch(() => {});
+  }, [location.pathname]);
 
   const menuItems = [
     { path: "/admin", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
@@ -181,8 +192,21 @@ const AdminLayout = ({ children }) => {
                     }}
                   />
                 )}
-                <div style={{ display: "flex", alignItems: "center" }}>{item.icon}</div>
-                {!isCollapsed && <span style={{ fontWeight: isActive ? "600" : "500" }}>{item.label}</span>}
+                {!isCollapsed && <span style={{ fontWeight: isActive ? "600" : "500", flex: 1 }}>{item.label}</span>}
+                {!isCollapsed && item.path === "/admin/forum-posts" && pendingPostsCount > 0 && (
+                  <span style={{
+                    background: "#ef4444",
+                    color: "#ffffff",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    borderRadius: "20px",
+                    padding: "2px 8px",
+                    marginLeft: "auto",
+                    boxShadow: "0 2px 6px rgba(239, 68, 68, 0.4)"
+                  }}>
+                    {pendingPostsCount}
+                  </span>
+                )}
               </Link>
             );
           })}

@@ -245,7 +245,7 @@ const RoomLocationPicker = ({ addressQuery, initialLocation, onChange }) => {
           center={position || DEFAULT_CENTER}
           zoom={position ? 16 : 12}
           style={{ height: "100%", width: "100%" }}
-          scrollWheelZoom
+          scrollWheelZoom={false}
         >
           <TileLayer
             attribution={BASEMAP_ATTRIBUTION}

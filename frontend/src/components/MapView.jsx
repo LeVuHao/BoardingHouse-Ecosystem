@@ -264,7 +264,7 @@ const MapView = ({
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution={BASEMAP_ATTRIBUTION}

@@ -8,6 +8,7 @@ import com.roomily.billing.entity.PaymentTransaction;
 import com.roomily.billing.repository.BillRepository;
 import com.roomily.billing.repository.PaymentTransactionRepository;
 import com.roomily.billing.util.VNPayUtil;
+import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,6 +89,26 @@ public class BillingService {
         return billRepository.findByLandlordId(landlordId).stream()
                 .map(BillResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BillResponse updateBillStatus(Long landlordId, Long billId, String status) {
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay hoa don voi ID: " + billId));
+        if (!bill.getLandlordId().equals(landlordId)) {
+            throw new BadRequestException("Ban khong co quyen cap nhat hoa don nay");
+        }
+        bill.setStatus(status.toUpperCase());
+        Bill saved = billRepository.save(bill);
+
+        if ("PAID".equalsIgnoreCase(status)) {
+            publishEvent("bill.paid", bill.getTenantId(),
+                    "Hoa don thang " + bill.getMonthYear() + " da duoc xac nhan thanh toan",
+                    "Chu tro da xac nhan thanh toan thanh cong hoa don thang " + bill.getMonthYear() + " voi tong tien: " + bill.getTotalAmount() + " d.",
+                    bill.getId());
+        }
+
+        return BillResponse.fromEntity(saved);
     }
 
     @Transactional

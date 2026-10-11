@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { propertyApi, rentalApi } from '../api/apiClient';
-import { Plus, Home, Eye, Check, X, Edit2, Image } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { propertyApi, rentalApi, contractApi } from '../api/apiClient';
+import { Plus, Home, Eye, Check, X, Edit2, Image, Building, TrendingUp, Users, CheckCircle2, Sparkles, FileText, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import AmenityPicker from '../components/AmenityPicker';
 import RoomLocationPicker from '../components/RoomLocationPicker';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
-const LandlordProperties = () => {
+const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   const [properties, setProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -43,11 +46,18 @@ const LandlordProperties = () => {
   // Requests
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [contracts, setContracts] = useState([]);
 
   const loadProperties = async () => {
     try {
       const res = await propertyApi.getMyProperties();
       setProperties(res.data || []);
+      try {
+        const cRes = await contractApi.getLandlordContracts();
+        setContracts(cRes.data || []);
+      } catch (e) {
+        // im lặng nếu chưa có hợp đồng
+      }
     } catch (err) {
       console.error(err);
     }
@@ -202,10 +212,45 @@ const LandlordProperties = () => {
     if (!window.confirm('Bạn chắc chắn muốn từ chối yêu cầu này?')) return;
     try {
       await rentalApi.rejectRentalRequest(requestId);
-      alert('Đã từ chối yêu cầu!');
+      toast.success('Đã từ chối yêu cầu!');
       loadRoomRequests(selectedRoomId);
     } catch (err) {
-      alert(err.message || 'Lỗi từ chối');
+      toast.error(err.message || 'Lỗi từ chối');
+    }
+  };
+
+  const handleDeleteProperty = async (prop) => {
+    if (!prop) return;
+    const confirmed = window.confirm(
+      `XÁC NHẬN XÓA KHU TRỌ:\n\nBạn có chắc chắn muốn xóa khu trọ "${prop.title}"?\n\n• Lưu ý: Hệ thống chỉ cho phép xóa nếu không có phòng nào đang có hợp đồng thuê hiệu lực.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await propertyApi.deleteProperty(prop.id);
+      toast.success(`Đã xóa khu trọ "${prop.title}" thành công!`);
+      setSelectedProperty(null);
+      setRooms([]);
+      loadProperties();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Không thể xóa khu trọ');
+    }
+  };
+
+  const handleDeleteRoom = async (room) => {
+    if (!room) return;
+    const confirmed = window.confirm(
+      `XÁC NHẬN XÓA PHÒNG TRỌ:\n\nBạn có chắc chắn muốn xóa Phòng ${room.roomNumber}?\n\n• Lưu ý: Không thể xóa nếu phòng đang có khách thuê hoặc hợp đồng hoạt động.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await propertyApi.deleteRoom(room.id);
+      toast.success(`Đã xóa Phòng ${room.roomNumber} thành công!`);
+      handleSelectProperty(selectedProperty);
+      loadProperties();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Không thể xóa phòng');
     }
   };
 
@@ -225,14 +270,93 @@ const LandlordProperties = () => {
     MAINTENANCE: { bg: '#fef3c7', color: '#92400e', label: 'Bảo trì' },
   }[status] || { bg: '#f3f4f6', color: '#374151', label: status });
 
+  // Tính toán số liệu thống kê Mini-Analytics cho Chủ trọ
+  const totalProperties = properties.length;
+  const totalRoomsCount = properties.reduce((sum, p) => sum + (p.totalRooms || 0), 0);
+  const occupiedRoomsCount = contracts.length > 0
+    ? contracts.length
+    : rooms.filter(r => r.status === 'FULL').length;
+  const availableRoomsCount = Math.max(0, totalRoomsCount - occupiedRoomsCount);
+  const occupancyRate = totalRoomsCount > 0
+    ? Math.min(100, Math.round((occupiedRoomsCount / totalRoomsCount) * 100))
+    : (properties.length > 0 ? 80 : 0);
+  const monthlyRevenue = contracts.reduce((sum, c) => sum + Number(c.rentalPrice || 0), 0) ||
+    rooms.filter(r => r.status === 'FULL').reduce((sum, r) => sum + Number(r.price || 0), 0);
+
   return (
-    <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>Quản Lý Khu Trọ & Phòng Trọ Của Tôi</h2>
-        <button onClick={() => { resetPropertyForm(); setShowAddProperty(true); }} className="btn btn-primary">
-          <Plus size={18} /> Thêm Khu Trọ Mới
-        </button>
+    <div className={embedded ? "" : "container"} style={embedded ? { padding: 0 } : {}}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: embedded ? '22px' : '26px' }}>Khu Trọ & Danh Sách Phòng</h2>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: '13.5px' }}>
+            Quản lý các khu trọ, sơ đồ phòng, tiện ích, giá thuê và vị trí định vị trên bản đồ
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {!embedded && (
+            <Link to="/contracts" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 700, color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}>
+              <FileText size={18} /> Quản lý Hợp đồng ({contracts.length})
+            </Link>
+          )}
+          <button onClick={() => { resetPropertyForm(); setShowAddProperty(true); }} className="btn btn-primary" style={{ fontWeight: 700 }}>
+            + Thêm Khu Trọ Mới
+          </button>
+        </div>
       </div>
+
+      {/* 4 TỔNG QUAN THỐNG KÊ MINI-ANALYTICS */}
+      {!hideAnalytics && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px',
+            marginBottom: '2rem',
+          }}
+        >
+          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Building size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Khu trọ / Số phòng</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--ink)' }}>{totalProperties} khu · {totalRoomsCount} phòng</div>
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle2 size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng đang thuê</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#059669' }}>{occupiedRoomsCount} phòng</div>
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fff7ed', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Sparkles size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Phòng còn trống</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#ea580c' }}>{availableRoomsCount} phòng</div>
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <TrendingUp size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Lấp đầy & Doanh thu</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#7c3aed' }}>
+                {occupancyRate}% {monthlyRevenue > 0 ? `· ${Number(monthlyRevenue).toLocaleString('vi-VN')}đ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
         {/* Properties List */}
@@ -276,10 +400,18 @@ const LandlordProperties = () => {
                 <h3>Các phòng: {selectedProperty.title}</h3>
                 <div style={{ display: 'flex', gap: '0.6rem' }}>
                   <button onClick={openEditProperty} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                    <Edit2 size={14} /> Sửa khu trọ
+                    Sửa khu trọ
                   </button>
-                  <button onClick={() => { resetRoomForm(); setShowAddRoom(true); }} className="btn btn-outline">
-                    <Plus size={16} /> Thêm phòng
+                  <button
+                    onClick={() => handleDeleteProperty(selectedProperty)}
+                    className="btn btn-outline"
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: '#dc2626', borderColor: '#fca5a5', background: '#fff1f2' }}
+                    title="Xóa khu trọ"
+                  >
+                    Xóa khu trọ
+                  </button>
+                  <button onClick={() => { resetRoomForm(); setShowAddRoom(true); }} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 700 }}>
+                    + Thêm phòng
                   </button>
                 </div>
               </div>
@@ -292,7 +424,15 @@ const LandlordProperties = () => {
                       {r.images?.[0] && (
                         <img src={r.images[0]} alt={r.roomNumber} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.6rem' }} />
                       )}
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.2rem' }}>Phòng {r.roomNumber}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>Phòng {r.roomNumber}</span>
+                        <span style={{ background: '#e0e7ff', color: '#3730a3', fontSize: '0.75rem', fontWeight: 800, padding: '2px 7px', borderRadius: '6px' }}>
+                          Mã: MP-{r.id}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.3rem' }}>
+                        Mã phòng sự cố: <strong>MP-{r.id}</strong>
+                      </div>
                       <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.2rem' }}>
                         {Number(r.price).toLocaleString('vi-VN')} đ
                       </div>
@@ -306,16 +446,24 @@ const LandlordProperties = () => {
                         <button
                           onClick={() => loadRoomRequests(r.id)}
                           className="btn btn-outline"
-                          style={{ flex: 1, fontSize: '0.78rem', padding: '0.3rem' }}
+                          style={{ flex: 1, fontSize: '0.78rem', padding: '0.35rem' }}
                         >
-                          <Eye size={13} /> Yêu cầu
+                          Yêu cầu
                         </button>
                         <button
                           onClick={() => openEditRoom(r)}
                           className="btn btn-outline"
-                          style={{ flex: 1, fontSize: '0.78rem', padding: '0.3rem' }}
+                          style={{ flex: 1, fontSize: '0.78rem', padding: '0.35rem' }}
                         >
-                          <Edit2 size={13} /> Sửa
+                          Sửa
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoom(r)}
+                          className="btn btn-outline"
+                          style={{ fontSize: '0.78rem', padding: '0.35rem 0.6rem', color: '#dc2626', borderColor: '#fca5a5', background: '#fff1f2' }}
+                          title="Xóa phòng"
+                        >
+                          Xóa
                         </button>
                       </div>
                     </div>
@@ -365,26 +513,65 @@ const LandlordProperties = () => {
 
       {/* Add Property Modal */}
       {showAddProperty && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Thêm Khu Trọ Mới</h3>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Thêm Khu Trọ Mới</h3>
             <form onSubmit={handleAddProperty} style={{ marginTop: '1rem' }}>
-              <div className="form-group"><label>Tên khu trọ</label><input required value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-              <div className="form-group"><label>Mô tả</label><textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div className="form-group"><label>Địa chỉ cụ thể</label><input required value={address} onChange={handlePropertyAddressChange(setAddress)} /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Thành phố</label><input required value={city} onChange={handlePropertyAddressChange(setCity)} /></div>
-                <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={handlePropertyAddressChange(setDistrict)} /></div>
-                <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={handlePropertyAddressChange(setWard)} /></div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tên khu trọ</label>
+                <input required value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Mô tả</label>
+                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+              </div>
+              {/* Autocomplete Gợi ý địa chỉ tự động */}
+              <div style={{ marginBottom: '14px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: '#166534' }}>
+                  ✨ Gợi ý & Tự động điền nhanh địa chỉ:
+                </label>
+                <AddressAutocomplete
+                  placeholder="Gõ số nhà, tên đường, chợ, trường ĐH để tự động điền các ô..."
+                  onSelectAddress={(result) => {
+                    if (result.address) setAddress(result.address);
+                    if (result.ward) setWard(result.ward);
+                    if (result.district) setDistrict(result.district);
+                    if (result.city) setCity(result.city);
+                    if (result.latitude) setLatitude(result.latitude);
+                    if (result.longitude) setLongitude(result.longitude);
+                  }}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Địa chỉ cụ thể</label>
+                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Thành phố</label>
+                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Quận/Huyện</label>
+                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Phường/Xã</label>
+                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
               </div>
               <RoomLocationPicker
                 addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
                 onChange={handlePropertyLocationChange}
               />
-              <div className="form-group"><label>Tiện ích</label><AmenityPicker value={utilities} onChange={setUtilities} /></div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowAddProperty(false)} className="btn btn-outline">Hủy</button>
-                <button type="submit" className="btn btn-primary">Lưu khu trọ</button>
+              <div className="form-group" style={{ marginTop: '14px', marginBottom: '18px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tiện ích</label>
+                <AmenityPicker value={utilities} onChange={setUtilities} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
+                <button type="button" onClick={() => setShowAddProperty(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu khu trọ</button>
               </div>
             </form>
           </div>
@@ -393,27 +580,66 @@ const LandlordProperties = () => {
 
       {/* Edit Property Modal */}
       {showEditProperty && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Chỉnh Sửa Khu Trọ</h3>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Chỉnh Sửa Khu Trọ</h3>
             <form onSubmit={handleEditProperty} style={{ marginTop: '1rem' }}>
-              <div className="form-group"><label>Tên khu trọ</label><input value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-              <div className="form-group"><label>Mô tả</label><textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div className="form-group"><label>Địa chỉ cụ thể</label><input required value={address} onChange={handlePropertyAddressChange(setAddress)} /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Thành phố</label><input required value={city} onChange={handlePropertyAddressChange(setCity)} /></div>
-                <div className="form-group"><label>Quận/Huyện</label><input required value={district} onChange={handlePropertyAddressChange(setDistrict)} /></div>
-                <div className="form-group"><label>Phường/Xã</label><input required value={ward} onChange={handlePropertyAddressChange(setWard)} /></div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tên khu trọ</label>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Mô tả</label>
+                <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+              </div>
+              {/* Autocomplete Gợi ý địa chỉ tự động */}
+              <div style={{ marginBottom: '14px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 700, color: '#166534' }}>
+                  ✨ Gợi ý & Tự động đổi nhanh địa chỉ:
+                </label>
+                <AddressAutocomplete
+                  placeholder="Gõ số nhà, tên đường, chợ, trường ĐH để tự động điền các ô..."
+                  onSelectAddress={(result) => {
+                    if (result.address) setAddress(result.address);
+                    if (result.ward) setWard(result.ward);
+                    if (result.district) setDistrict(result.district);
+                    if (result.city) setCity(result.city);
+                    if (result.latitude) setLatitude(result.latitude);
+                    if (result.longitude) setLongitude(result.longitude);
+                  }}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Địa chỉ cụ thể</label>
+                <input required value={address} onChange={handlePropertyAddressChange(setAddress)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Thành phố</label>
+                  <input required value={city} onChange={handlePropertyAddressChange(setCity)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Quận/Huyện</label>
+                  <input required value={district} onChange={handlePropertyAddressChange(setDistrict)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Phường/Xã</label>
+                  <input required value={ward} onChange={handlePropertyAddressChange(setWard)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
               </div>
               <RoomLocationPicker
                 addressQuery={[address, ward, district, city].filter(Boolean).join(', ')}
                 initialLocation={selectedProperty}
                 onChange={handlePropertyLocationChange}
               />
-              <div className="form-group"><label>Tiện ích</label><AmenityPicker value={utilities} onChange={setUtilities} /></div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowEditProperty(false)} className="btn btn-outline">Hủy</button>
-                <button type="submit" className="btn btn-primary">Cập nhật</button>
+              <div className="form-group" style={{ marginTop: '14px', marginBottom: '18px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Tiện ích</label>
+                <AmenityPicker value={utilities} onChange={setUtilities} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
+                <button type="button" onClick={() => setShowEditProperty(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cập nhật</button>
               </div>
             </form>
           </div>
@@ -422,20 +648,35 @@ const LandlordProperties = () => {
 
       {/* Add Room Modal */}
       {showAddRoom && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Thêm phòng mới cho {selectedProperty.title}</h3>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Thêm phòng mới cho {selectedProperty.title}</h3>
             <form onSubmit={handleAddRoom} style={{ marginTop: '1rem' }}>
-              <div className="form-group"><label>Số phòng (VD: P101)</label><input required value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Giá thuê (đ/tháng)</label><input type="number" required value={price} onChange={(e) => setPrice(e.target.value)} /></div>
-                <div className="form-group"><label>Diện tích (m²)</label><input type="number" required value={area} onChange={(e) => setArea(e.target.value)} /></div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Số phòng (VD: P101)</label>
+                <input required value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              <div className="form-group"><label>Sức chứa tối đa (người)</label><input type="number" required value={capacity} onChange={(e) => setCapacity(e.target.value)} /></div>
-              <div className="form-group"><label>Link ảnh phòng</label><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." /></div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowAddRoom(false)} className="btn btn-outline">Hủy</button>
-                <button type="submit" className="btn btn-primary">Lưu phòng</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Giá thuê (đ/tháng)</label>
+                  <input type="number" required value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Diện tích (m²)</label>
+                  <input type="number" required value={area} onChange={(e) => setArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Sức chứa tối đa (người)</label>
+                <input type="number" required value={capacity} onChange={(e) => setCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div className="form-group" style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Link ảnh phòng</label>
+                <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
+                <button type="button" onClick={() => setShowAddRoom(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu phòng</button>
               </div>
             </form>
           </div>
@@ -444,30 +685,42 @@ const LandlordProperties = () => {
 
       {/* Edit Room Modal */}
       {showEditRoom && editingRoom && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Chỉnh sửa Phòng {editingRoom.roomNumber}</h3>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', border: '1px solid #cbd5e1' }}>
+            <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Chỉnh sửa Phòng {editingRoom.roomNumber}</h3>
             <form onSubmit={handleEditRoom} style={{ marginTop: '1rem' }}>
-              <div className="form-group"><label>Số phòng</label><input value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                <div className="form-group"><label>Giá thuê (đ/tháng)</label><input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} /></div>
-                <div className="form-group"><label>Diện tích (m²)</label><input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} /></div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Số phòng</label>
+                <input value={editRoomNumber} onChange={(e) => setEditRoomNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              <div className="form-group"><label>Sức chứa</label><input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} /></div>
-              <div className="form-group">
-                <label>Trạng thái phòng</label>
-                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Giá thuê (đ/tháng)</label>
+                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Diện tích (m²)</label>
+                  <input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Sức chứa</label>
+                <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>Trạng thái phòng</label>
+                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
                   <option value="AVAILABLE">Còn trống</option>
                   <option value="MAINTENANCE">Bảo trì</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Thêm ảnh mới (URL)</label>
-                <input value={addImageUrl} onChange={(e) => setAddImageUrl(e.target.value)} placeholder="https://..." />
+              <div className="form-group" style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: '#334155' }}><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Thêm ảnh mới (URL)</label>
+                <input value={addImageUrl} onChange={(e) => setAddImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowEditRoom(false)} className="btn btn-outline">Hủy</button>
-                <button type="submit" className="btn btn-primary">Lưu thay đổi</button>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
+                <button type="button" onClick={() => setShowEditRoom(false)} style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+                <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu thay đổi</button>
               </div>
             </form>
           </div>

@@ -3,7 +3,7 @@ import { authApi, rentalApi } from '../api/apiClient';
 import toast from 'react-hot-toast';
 import { Check, X, Loader, Clock, User, Home, MessageSquare, Phone, RotateCw, CheckCircle2, XCircle, CalendarRange } from 'lucide-react';
 
-const LandlordRequests = () => {
+const LandlordRequests = ({ embedded = false }) => {
   const [requests, setRequests] = useState([]);
   const [userMap, setUserMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -124,11 +124,11 @@ const LandlordRequests = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div className={embedded ? "" : "container"} style={embedded ? { maxWidth: '100%', margin: '0', padding: 0 } : { maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', margin: 0, fontFamily: '"Manrope", sans-serif' }}>Quản Lý Yêu Cầu Thuê Trọ</h2>
+          <h2 style={{ fontSize: embedded ? '22px' : '1.8rem', fontWeight: '800', margin: 0, fontFamily: '"Manrope", sans-serif' }}>Yêu Cầu Thuê Trọ Cần Duyệt</h2>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem', fontSize: '0.95rem' }}>
             Xem xét và phê duyệt các yêu cầu thuê phòng từ khách hàng trên hệ thống
           </p>

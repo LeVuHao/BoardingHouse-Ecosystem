@@ -91,6 +91,28 @@ const timeAgo = (dateStr) => {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 };
 
+// Chuẩn hóa và làm sạch địa chỉ hiển thị (tránh lặp quận huyện, thành phố)
+const formatFullAddress = (post) => {
+  if (!post) return "Chưa cập nhật địa chỉ";
+  const rawParts = [post.address, post.ward, post.district, post.city]
+    .filter(Boolean)
+    .map((p) => String(p).trim())
+    .filter((p) => p.length > 0);
+
+  const result = [];
+  for (const part of rawParts) {
+    const isDup = result.some((existing) => {
+      const e = existing.toLowerCase();
+      const p = part.toLowerCase();
+      return e === p || (e.includes(p) && p.length > 5) || (p.includes(e) && e.length > 5);
+    });
+    if (!isDup) {
+      result.push(part);
+    }
+  }
+  return result.length > 0 ? result.join(", ") : "Chưa cập nhật địa chỉ";
+};
+
 // Carousel ảnh bài đăng
 const PostImageCarousel = ({ images }) => {
   const [idx, setIdx] = useState(0);
@@ -154,6 +176,8 @@ const Rooms = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recentRentedPost, setRecentRentedPost] = useState(null);
+  const [showFlashBanner, setShowFlashBanner] = useState(false);
+  const [landlordMyPosts, setLandlordMyPosts] = useState([]);
 
   // Bộ lọc
   const [city, setCity] = useState(searchParams.get("city") || "");
@@ -232,6 +256,16 @@ const Rooms = () => {
 
       setPosts(data);
       setRecentRentedPost(data.find((post) => post.isRented) || null);
+
+      if (user && user.role === "LANDLORD") {
+        try {
+          const myRes = await forumApi.getMyPosts();
+          const myData = unwrapApiData(myRes);
+          setLandlordMyPosts(Array.isArray(myData) ? myData : []);
+        } catch {
+          // ignore
+        }
+      }
     } catch (err) {
       console.error("Lỗi khi tải bài đăng phòng trọ:", err);
       toast.error("Không thể tải danh sách bài đăng phòng trọ");
@@ -243,6 +277,42 @@ const Rooms = () => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  // Quản lý hiển thị Flash banner thông báo phòng vừa duyệt (chỉ hiện tối đa 2 lần trong phiên, tự đóng sau 7s)
+  useEffect(() => {
+    if (!recentRentedPost) {
+      setShowFlashBanner(false);
+      return;
+    }
+
+    const isClosed = sessionStorage.getItem("roomily_flash_banner_closed");
+    if (isClosed === "true") {
+      setShowFlashBanner(false);
+      return;
+    }
+
+    const views = Number(sessionStorage.getItem("roomily_flash_banner_views") || 0);
+    const MAX_FLASH_VIEWS = 2; // Giới hạn số lần thông báo theo yêu cầu thay vì để hoài
+
+    if (views < MAX_FLASH_VIEWS) {
+      setShowFlashBanner(true);
+      sessionStorage.setItem("roomily_flash_banner_views", String(views + 1));
+
+      // Tự động đóng sau 7 giây
+      const timer = setTimeout(() => {
+        setShowFlashBanner(false);
+      }, 7000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowFlashBanner(false);
+    }
+  }, [recentRentedPost]);
+
+  const handleDismissFlashBanner = () => {
+    setShowFlashBanner(false);
+    sessionStorage.setItem("roomily_flash_banner_closed", "true");
+  };
 
   useEffect(() => {
     const query = proximityQuery.trim();
@@ -518,7 +588,8 @@ const Rooms = () => {
 
   // Lọc và sắp xếp phòng
   const filteredPosts = useMemo(() => {
-    let result = [...posts];
+    // Quy tắc: Những phòng đã có người thuê mà không tìm ở ghép thì không hiển thị ngoài diễn đàn
+    let result = posts.filter((p) => !p.isRented || Boolean(p.roommateNeeded));
 
     // Lọc theo từ khóa / khu vực
     if (city.trim()) {
@@ -557,9 +628,7 @@ const Rooms = () => {
     if (statusFilter === "AVAILABLE") {
       result = result.filter((p) => !p.isRented);
     } else if (statusFilter === "ROOMMATE") {
-      result = result.filter((p) => p.roommateNeeded);
-    } else if (statusFilter === "RENTED") {
-      result = result.filter((p) => p.isRented);
+      result = result.filter((p) => Boolean(p.roommateNeeded));
     }
 
     // Lọc theo tiện ích
@@ -875,7 +944,21 @@ const Rooms = () => {
       <div className={`results-wrap${viewMode === "MAP" ? " is-map-view" : " is-list-view"}`}>
         <div className="rooms-results-column">
         {/* SIDEBAR BỘ LỌC BÊN TRÁI */}
-        <aside className="filters">
+        <aside
+          className="filters"
+          style={{
+            alignSelf: "start",
+            position: "sticky",
+            top: 76,
+            maxHeight: "calc(100vh - 90px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            padding: "20px 18px 36px",
+            boxSizing: "border-box",
+            scrollbarWidth: "thin",
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <Filter size={18} color="var(--primary)" /> Bộ Lọc Phòng
@@ -962,23 +1045,40 @@ const Rooms = () => {
           </div>
 
           {/* Tiện ích */}
-          <div className="filter-group">
+          <div className="filter-group" style={{ paddingBottom: 16 }}>
             <h4>Tiện ích phòng</h4>
-            {amenityOptions.map(({ name: amenity }) => (
-              <label key={amenity} className="check-row" style={{ cursor: "pointer" }}>
-                <input
-                  type="checkbox"
-                  checked={selectedAmenities.includes(amenity)}
-                  onChange={() => toggleAmenity(amenity)}
-                />
-                <span>{amenity}</span>
-              </label>
-            ))}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px 6px" }}>
+              {amenityOptions.map(({ name: amenity }) => (
+                <label
+                  key={amenity}
+                  className="check-row"
+                  style={{
+                    cursor: "pointer",
+                    margin: 0,
+                    fontSize: 13,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "2px 0",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedAmenities.includes(amenity)}
+                    onChange={() => toggleAmenity(amenity)}
+                    style={{ margin: 0, flexShrink: 0, cursor: "pointer" }}
+                  />
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={amenity}>
+                    {amenity}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Đăng tin trọ dành cho chủ trọ */}
           {user?.role === "LANDLORD" && (
-            <div style={{ marginTop: 20 }}>
+            <div style={{ marginTop: 16, marginBottom: 16 }}>
               <Link
                 to="/forum/create"
                 className="btn btn-primary btn-block"
@@ -988,6 +1088,8 @@ const Rooms = () => {
               </Link>
             </div>
           )}
+
+          <div style={{ height: 24 }} />
         </aside>
 
         {/* NỘI DUNG CHÍNH (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
@@ -1106,20 +1208,96 @@ const Rooms = () => {
             </div>
           </div>
 
-          {/* Flash Announcement: Nếu có phòng vừa được duyệt */}
-          {recentRentedPost && (
-            <div className="rented-alert-banner" style={{ marginBottom: 20 }}>
-              <div className="rented-pulse-indicator">
-                <span className="rented-dot-pulse"></span>
-                <strong>
-                  ⚡ TIN MỚI: "{recentRentedPost.title}" vừa được chủ trọ duyệt thành công!
-                </strong>
+          {/* Thông báo bài đăng đang chờ Admin duyệt của chủ trọ */}
+          {user?.role === "LANDLORD" && landlordMyPosts.some((p) => p.moderationStatus === "PENDING") && (
+            <div style={{
+              background: "#fffbeb",
+              border: "1.5px solid #fde68a",
+              borderRadius: "14px",
+              padding: "14px 18px",
+              marginBottom: 20,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 14,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>⏳</span>
+                <div>
+                  <strong style={{ color: "#92400e", fontSize: 14 }}>
+                    Bạn có {landlordMyPosts.filter((p) => p.moderationStatus === "PENDING").length} bài đăng trọ đang chờ Admin duyệt
+                  </strong>
+                  <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#b45309" }}>
+                    Bài đăng này chưa hiển thị công khai cho khách thuê cho đến khi Quản trị viên duyệt.
+                  </p>
+                </div>
               </div>
-              <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", opacity: 0.9 }}>
-                Khách thuê vẫn có thể nhắn tin hỏi thêm các phòng trống lân cận cùng khu vực!
-              </p>
+              <Link
+                to="/landlord/management?tab=posts"
+                className="btn btn-accent"
+                style={{ padding: "6px 14px", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap" }}
+              >
+                Xem trạng thái duyệt →
+              </Link>
             </div>
           )}
+
+          {/* Flash Announcement: Nếu có phòng vừa được duyệt (hiển thị có giới hạn, tự đóng) */}
+          <AnimatePresence>
+            {showFlashBanner && recentRentedPost && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
+                transition={{ duration: 0.3 }}
+                className="rented-alert-banner"
+                style={{
+                  marginBottom: 20,
+                  position: "relative",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 12,
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div className="rented-pulse-indicator">
+                    <span className="rented-dot-pulse"></span>
+                    <strong>
+                      ⚡ TIN MỚI: "{recentRentedPost.title}" vừa được chủ trọ duyệt thành công!
+                    </strong>
+                  </div>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", opacity: 0.9 }}>
+                    Khách thuê vẫn có thể nhắn tin hỏi thêm các phòng trống lân cận cùng khu vực!
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDismissFlashBanner}
+                  title="Đóng thông báo"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: 26,
+                    height: 26,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#dc2626",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.25)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)"; }}
+                >
+                  <X size={15} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Danh sách phòng */}
           {loading ? (
@@ -1168,7 +1346,7 @@ const Rooms = () => {
                         </div>
                         <div>
                           <div className="forum-author-name">
-                            {post.landlordName || "Chủ trọ"}
+                            <span>{post.landlordName || "Chủ trọ"}</span>
                             <span className="badge-verified">✓ Chính chủ</span>
                           </div>
                           <div className="forum-post-time">
@@ -1179,19 +1357,19 @@ const Rooms = () => {
                       </div>
 
                       {/* Badges: ĐÃ THUÊ / Ở GHÉP / BÀI ĐĂNG CỦA BẠN */}
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                        {user && (
-                          (post.landlordId && user.id && String(post.landlordId) === String(user.id)) ||
-                          (post.userId && user.id && String(post.userId) === String(user.id)) ||
-                          (post.landlordName && user.fullName && post.landlordName.toLowerCase() === user.fullName.toLowerCase())
-                        ) && (
-                          <span style={{ background: "#e0e7ff", color: "#4338ca", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 12, border: "1px solid #c7d2fe" }}>
+                      <div className="forum-card-badges">
+                        {user && isUserPost(post, user) && (
+                          <span className="badge-user-post">
                             👤 Bài đăng của bạn
                           </span>
                         )}
-                        {post.isRented && (
+                        {post.isRented ? (
                           <span className="rented-badge-flashing">
                             ⚡ ĐÃ CÓ NGƯỜI THUÊ
+                          </span>
+                        ) : (
+                          <span className="badge-available">
+                            🟢 Còn phòng trống
                           </span>
                         )}
                         {post.roommateNeeded && (
@@ -1202,17 +1380,19 @@ const Rooms = () => {
                       </div>
                     </div>
 
-                    {/* Room Title */}
-                    <Link to={`/rooms/${post.id}`} className="forum-card-title">
-                      {post.title}
-                    </Link>
-
-                    {/* Specs: Price, Area, Type */}
-                    <div className="forum-card-specs">
+                    {/* Room Title & Price */}
+                    <div className="forum-card-title-row">
+                      <Link to={`/rooms/${post.id}`} className="forum-card-title">
+                        {post.title}
+                      </Link>
                       <div className="forum-card-price">
                         {formatVnd(post.price)}
                         <span className="forum-price-unit">/tháng</span>
                       </div>
+                    </div>
+
+                    {/* Specs: Price, Area, Type */}
+                    <div className="forum-card-specs">
                       {post.roomArea && (
                         <div className="forum-spec-item">
                           📐 {post.roomArea} m²
@@ -1226,24 +1406,13 @@ const Rooms = () => {
                     </div>
 
                     {/* Address & Distance from search target */}
-                    <div className="forum-card-address" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 200 }}>
-                        <MapPin size={14} style={{ color: "var(--brand-primary, #2563eb)", flexShrink: 0 }} />
-                        <span>{post.address}, {post.ward}, {post.district}, {post.city}</span>
+                    <div className="forum-card-address">
+                      <div className="forum-address-text">
+                        <MapPin size={14} className="address-pin-icon" />
+                        <span>{formatFullAddress(post)}</span>
                       </div>
                       {post.distanceToTarget != null && (
-                        <span style={{
-                          background: "#ecfdf5",
-                          color: "#059669",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          padding: "3px 8px",
-                          borderRadius: 6,
-                          border: "1px solid #a7f3d0",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4
-                        }}>
+                        <span className="forum-distance-badge">
                           📍 Cách đích {formatDistance(post.distanceToTarget)}
                         </span>
                       )}
@@ -1252,8 +1421,8 @@ const Rooms = () => {
                     {/* Description preview */}
                     {post.description && (
                       <p className="forum-card-desc">
-                        {post.description.length > 150
-                          ? post.description.substring(0, 150) + "..."
+                        {post.description.length > 130
+                          ? post.description.substring(0, 130) + "..."
                           : post.description}
                       </p>
                     )}
@@ -1261,7 +1430,7 @@ const Rooms = () => {
                     {/* Utilities tags */}
                     {post.utilities && (
                       <div className="forum-card-utilities">
-                        {post.utilities.split(",").slice(0, 4).map((u, idx) => (
+                        {post.utilities.split(",").slice(0, 5).map((u, idx) => (
                           <span key={idx} className="utility-tag">
                             ✓ {u.trim()}
                           </span>
@@ -1271,13 +1440,13 @@ const Rooms = () => {
 
                     {/* Roommate Note Highlight (nếu có) */}
                     {post.roommateNeeded && post.roommateNote && (
-                      <div style={{ background: "#fff7ed", border: "1px dashed #fdba74", padding: "8px 12px", borderRadius: 8, margin: "10px 0", fontSize: "0.85rem", color: "#c2410c" }}>
+                      <div className="forum-roommate-note">
                         <strong>🤝 Tiêu chí ở ghép:</strong> {post.roommateNote}
                       </div>
                     )}
 
                     {/* Contact Phone & Actions */}
-                    <div className="forum-card-footer" style={{ marginTop: 12 }}>
+                    <div className="forum-card-footer">
                       {post.contactPhone && (
                         <a href={`tel:${post.contactPhone}`} className="forum-contact-phone">
                           <Phone size={14} />
@@ -1293,9 +1462,8 @@ const Rooms = () => {
                             setRentalForm({ occupants: 1, moveInDate: "", note: "" });
                           }}
                           className="btn btn-primary forum-action-btn"
-                          style={{ fontWeight: 700 }}
                         >
-                          <Zap size={15} />
+                          <Zap size={14} />
                           ⚡ Yêu cầu thuê
                         </button>
 
@@ -1312,21 +1480,20 @@ const Rooms = () => {
                             });
                           }}
                           className="btn btn-accent forum-action-btn"
-                          style={{ fontWeight: 700 }}
                         >
-                          <Users size={15} />
-                          👥 Tìm bạn ở ghép
+                          <Users size={14} />
+                          👥 Ở ghép
                         </button>
 
                         {/* 3. Xem chi tiết */}
                         <Link to={`/rooms/${post.id}`} className="btn forum-action-btn">
-                          <Eye size={15} />
-                          Xem chi tiết
+                          <Eye size={14} />
+                          Chi tiết
                         </Link>
 
                         {/* 4. Nhắn tin */}
                         <Link to={`/rooms/${post.id}`} className="btn btn-outline forum-action-btn">
-                          <MessageCircle size={15} />
+                          <MessageCircle size={14} />
                           Nhắn tin
                         </Link>
                         

@@ -314,13 +314,13 @@ const Home = () => {
               <span className="badge" style={{ background: "#2563eb", color: "#fff", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
                 TÍNH NĂNG MỚI
               </span>
-              <h2 style={{ marginTop: 12, color: "#fff" }}>Diễn Đàn Cho Thuê Trọ (Facebook Feed)</h2>
+              <h2 style={{ marginTop: 12, color: "#fff" }}>Diễn Đàn Tìm & Cho Thuê Trọ</h2>
               <p style={{ color: "#94a3b8" }}>
-                Chủ trọ có thể tự do đăng bài kèm hình ảnh thực tế, địa chỉ, giá cả. Người thuê có thể xem trực tiếp và gửi tin nhắn liên hệ chủ trọ ngay lập tức!
+                Chủ trọ có thể tự do đăng bài kèm hình ảnh thực tế, địa chỉ, giá cả. Người thuê có thể dễ dàng tìm kiếm, lọc phòng trọ và liên hệ chủ trọ ngay lập tức!
               </p>
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <Link to="/forum" className="btn btn-primary" style={{ background: "#2563eb" }}>
-                  Khám phá diễn đàn
+                <Link to="/rooms" className="btn btn-primary" style={{ background: "#2563eb" }}>
+                  Khám phá phòng trọ & diễn đàn
                 </Link>
                 <Link to="/forum/create" className="btn" style={{ background: "rgba(255,255,255,0.1)", color: "#fff" }}>
                   Đăng bài cho thuê ngay

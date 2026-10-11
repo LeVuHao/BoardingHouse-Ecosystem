@@ -87,7 +87,8 @@ const SearchRooms = () => {
         <aside>
           <div style={{
             background: 'white', borderRadius: '16px', padding: '1.5rem',
-            boxShadow: 'var(--shadow)', position: 'sticky', top: '5.5rem'
+            boxShadow: 'var(--shadow)', position: 'sticky', top: '5.5rem',
+            maxHeight: 'calc(100vh - 7rem)', overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

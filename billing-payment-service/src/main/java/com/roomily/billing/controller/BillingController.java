@@ -45,6 +45,15 @@ public class BillingController {
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 
+    @PatchMapping("/bills/{billId}/status")
+    public ResponseEntity<ApiResponse<BillResponse>> updateBillStatus(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @PathVariable Long billId,
+            @RequestParam String status) {
+        BillResponse res = billingService.updateBillStatus(landlordId, billId, status);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái hóa đơn thành công", res));
+    }
+
     // --- PAYMENTS & VNPAY ---
     @PostMapping("/payments/create-bill-payment-url/{billId}")
     public ResponseEntity<ApiResponse<Map<String, String>>> createBillPaymentUrl(
