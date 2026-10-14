@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Clock, Plus, ChevronLeft, ChevronRight,
-  MessageCircle, Eye, Users, Zap, FileText, X, Search, Filter, RotateCcw,
-  Phone, Maximize2, Sparkles, ShieldCheck, Layers
+  MessageCircle, Eye, Users, Zap, X, Search, Filter, RotateCcw,
+  Phone, Maximize2, Sparkles, ShieldCheck, SlidersHorizontal, LayoutGrid, List
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +15,12 @@ import WishlistButton from "../components/WishlistButton";
 
 const PAGE_SIZE = 6;
 const API_PAGE_SIZE = 100;
+const AMENITY_GROUPS = [
+  { label: "Nội thất cơ bản", icon: "❄️", keywords: ["máy lạnh", "điều hòa", "tủ lạnh", "máy giặt", "giường", "nệm", "tủ quần áo"] },
+  { label: "Kết cấu phòng", icon: "🏠", keywords: ["gác", "ban công", "cửa sổ", "bếp"] },
+  { label: "An ninh & tiện ích chung", icon: "🛡️", keywords: ["khóa", "thẻ từ", "camera", "chủ", "24/24", "giờ giấc"] },
+  { label: "Quy định & tiện ích", icon: "🐶", keywords: ["thú cưng", "pet", "ở ghép", "thang máy", "bãi xe", "ô tô"] },
+];
 
 // Các địa điểm sinh viên & người đi làm quan tâm nhất
 const POPULAR_LANDMARKS = [
@@ -114,7 +120,7 @@ const formatFullAddress = (post) => {
 };
 
 // Carousel ảnh bài đăng
-const PostImageCarousel = ({ images }) => {
+const PostImageCarousel = ({ images, post }) => {
   const [idx, setIdx] = useState(0);
   const imgList = (images && Array.isArray(images) && images.length > 0) ? images : [];
 
@@ -129,12 +135,20 @@ const PostImageCarousel = ({ images }) => {
         <span style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(0,0,0,0.65)", color: "#fff", padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
           Ảnh phòng mẫu
         </span>
+        <div className="room-photo-actions">
+          <span className="room-photo-status">{post?.isRented ? "Đã cho thuê" : "Còn phòng"}</span>
+          {post && <WishlistButton post={post} showText={false} />}
+        </div>
       </div>
     );
   }
   return (
     <div className="forum-card-photo">
       <img src={imgList[idx]} alt="Ảnh phòng trọ" />
+      <div className="room-photo-actions">
+        <span className="room-photo-status">{post?.isRented ? "Đã cho thuê" : "Đang nhận khách"}</span>
+        {post && <WishlistButton post={post} showText={false} />}
+      </div>
       {imgList.length > 1 && (
         <>
           <button
@@ -192,7 +206,13 @@ const Rooms = () => {
   const amenityOptions = useAmenities(); // danh mục tiện ích do Admin quản lý
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [page, setPage] = useState(0);
-  const [viewMode, setViewMode] = useState("LIST"); // LIST | MAP
+  const [viewMode, setViewMode] = useState("LIST"); // LIST | GRID | MAP
+  const [roomTypeFilter, setRoomTypeFilter] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [priceRange, setPriceRange] = useState([
+    Math.min(15000000, Math.max(1000000, Number(searchParams.get("minPrice")) || 1000000)),
+    Math.min(15000000, Math.max(1000000, Number(searchParams.get("maxPrice")) || 15000000)),
+  ]);
   const [roomCoordinates, setRoomCoordinates] = useState({});
   const [activeRoomId, setActiveRoomId] = useState(null);
   const [viewportBounds, setViewportBounds] = useState(null);
@@ -639,6 +659,15 @@ const Rooms = () => {
       });
     }
 
+    if (roomTypeFilter) {
+      result = result.filter((p) => p.roomType === roomTypeFilter);
+    }
+
+    if (sort === "today") {
+      const today = new Date().toDateString();
+      result = result.filter((post) => post.createdAt && new Date(post.createdAt).toDateString() === today);
+    }
+
     // Lọc theo Tab Người đăng (Của tôi / Người khác)
     if (postTab === "MY_POSTS" && user) {
       result = result.filter((p) => isUserPost(p, user));
@@ -653,13 +682,37 @@ const Rooms = () => {
       result.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sort === "area-desc") {
       result.sort((a, b) => Number(b.roomArea || 0) - Number(a.roomArea || 0));
+    } else if (sort === "rating") {
+      result.sort((a, b) => Number(b.averageRating || b.rating || 0) - Number(a.averageRating || a.rating || 0));
+    } else if (sort === "recommended") {
+      result.sort((a, b) =>
+        (Number(b.viewCount || 0) + Number(b.commentCount || 0) * 2)
+        - (Number(a.viewCount || 0) + Number(a.commentCount || 0) * 2)
+      );
     } else {
-      // newest
-      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      result.sort((a, b) => {
+        const dateDifference = new Date(b.createdAt) - new Date(a.createdAt);
+        if (sort !== "today") return dateDifference;
+        return dateDifference;
+      });
     }
 
     return result;
-  }, [posts, city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort, user]);
+  }, [posts, city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort, user, roomTypeFilter]);
+
+  const roomTypes = useMemo(
+    () => [...new Set(posts.map((post) => post.roomType).filter(Boolean))],
+    [posts],
+  );
+  const priceDistribution = useMemo(() => {
+    const buckets = Array(7).fill(0);
+    posts.forEach((post) => {
+      const bucket = Math.min(6, Math.floor(Number(post.price || 0) / 2000000));
+      buckets[bucket] += 1;
+    });
+    const maxBucket = Math.max(1, ...buckets);
+    return buckets.map((count) => Math.max(8, (count / maxBucket) * 100));
+  }, [posts]);
 
   const mapPosts = useMemo(
     () =>
@@ -733,7 +786,16 @@ const Rooms = () => {
   // Reset trang khi đổi filter
   useEffect(() => {
     setPage(0);
-  }, [city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort]);
+  }, [city, minPrice, maxPrice, minArea, maxArea, statusFilter, postTab, selectedAmenities, sort, roomTypeFilter]);
+
+  useEffect(() => {
+    if (!showAdvancedFilters) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === "Escape") setShowAdvancedFilters(false);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [showAdvancedFilters]);
 
   const clearAllFilters = () => {
     setCity("");
@@ -744,10 +806,37 @@ const Rooms = () => {
     setStatusFilter("ALL");
     setPostTab("ALL");
     setSelectedAmenities([]);
+    setRoomTypeFilter("");
     setSort("newest");
+    setPriceRange([1000000, 15000000]);
     clearProximitySearch();
     setPage(0);
   };
+
+  const updatePriceRange = (index, value) => {
+    const nextRange = [...priceRange];
+    nextRange[index] = Number(value);
+    if (index === 0 && nextRange[0] >= nextRange[1]) nextRange[0] = nextRange[1] - 500000;
+    if (index === 1 && nextRange[1] <= nextRange[0]) nextRange[1] = nextRange[0] + 500000;
+    setPriceRange(nextRange);
+    setMinPrice(nextRange[0] <= 1000000 ? "" : String(nextRange[0]));
+    setMaxPrice(nextRange[1] >= 15000000 ? "" : String(nextRange[1]));
+  };
+
+  const setQuickPrice = (min, max) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+    setPriceRange([Number(min) || 1000000, Number(max) || 15000000]);
+  };
+
+  const activeFilters = [
+    city && { label: city, clear: () => setCity("") },
+    minPrice && { label: `Từ ${formatVnd(minPrice)}`, clear: () => { setMinPrice(""); setPriceRange((range) => [1000000, range[1]]); } },
+    maxPrice && { label: `Đến ${formatVnd(maxPrice)}`, clear: () => { setMaxPrice(""); setPriceRange((range) => [range[0], 15000000]); } },
+    roomTypeFilter && { label: roomTypeFilter, clear: () => setRoomTypeFilter("") },
+    ...selectedAmenities.map((amenity) => ({ label: amenity, clear: () => toggleAmenity(amenity) })),
+    proximityLocation && { label: `Gần ${selectedSuggestion?.label || proximityQuery || "địa điểm đã chọn"}`, kind: "proximity" },
+  ].filter(Boolean);
 
   const toggleAmenity = (amenity) => {
     setSelectedAmenities((prev) =>
@@ -761,8 +850,8 @@ const Rooms = () => {
       <section className="search-strip" style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border-color)", padding: "18px 0" }}>
         <div className="wrap">
           <form
-            className="search-box"
-            style={{ margin: 0, boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}
+            className="search-box rooms-search-box"
+            style={{ margin: 0, boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
             onSubmit={(e) => {
               e.preventDefault();
               setPage(0);
@@ -775,9 +864,29 @@ const Rooms = () => {
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="VD: Bình Thạnh, Dĩ An, Thủ Đức, TP.HCM..."
+                  placeholder="Thử Bình Thạnh, Quận 10, ĐH Bách Khoa..."
+                  list="room-location-suggestions"
                 />
+                <datalist id="room-location-suggestions">
+                  {[
+                    "Quận 1", "Quận 3", "Quận 10", "Bình Thạnh", "Thủ Đức",
+                    "ĐHQG / Làng Đại học", "ĐH Bách Khoa TP.HCM", "ĐH Kinh Tế (UEH)",
+                    "ĐH FPT / Khu CNC", "ĐH Sư Phạm Kỹ Thuật",
+                  ].map((location) => <option key={location} value={location} />)}
+                </datalist>
               </div>
+            </div>
+
+            <div className="search-field" style={{ flex: 1 }}>
+              <label>Loại hình phòng</label>
+              <select
+                value={roomTypeFilter}
+                onChange={(e) => setRoomTypeFilter(e.target.value)}
+                style={{ color: "var(--text-primary)", background: "transparent" }}
+              >
+                <option value="">Tất cả loại phòng</option>
+                {roomTypes.map((roomType) => <option key={roomType} value={roomType}>{roomType}</option>)}
+              </select>
             </div>
 
             <div className="search-field" style={{ flex: 1 }}>
@@ -799,20 +908,15 @@ const Rooms = () => {
                 onChange={(e) => {
                   const val = e.target.value;
                   if (val === "u2") {
-                    setMinPrice("");
-                    setMaxPrice("2000000");
+                    setQuickPrice("", "2000000");
                   } else if (val === "2-4") {
-                    setMinPrice("2000000");
-                    setMaxPrice("4000000");
+                    setQuickPrice("2000000", "4000000");
                   } else if (val === "4-7") {
-                    setMinPrice("4000000");
-                    setMaxPrice("7000000");
+                    setQuickPrice("4000000", "7000000");
                   } else if (val === "o7") {
-                    setMinPrice("7000000");
-                    setMaxPrice("");
+                    setQuickPrice("7000000", "");
                   } else {
-                    setMinPrice("");
-                    setMaxPrice("");
+                    setQuickPrice("", "");
                   }
                 }}
                 style={{ color: "var(--text-primary)", background: "transparent" }}
@@ -864,10 +968,35 @@ const Rooms = () => {
               </select>
             </div>
 
-            <button className="btn btn-accent" type="submit" style={{ padding: "0 28px", fontWeight: "bold" }}>
+            <button className="btn rooms-search-submit" type="submit" style={{ padding: "0 28px", fontWeight: "bold" }}>
               <Search size={16} style={{ marginRight: 6 }} /> Tìm phòng
             </button>
           </form>
+
+          <div className="rooms-quick-prices" aria-label="Lọc nhanh theo giá">
+            <span>Giá nhanh:</span>
+            {[
+              { label: "Dưới 2 triệu", min: "", max: "2000000" },
+              { label: "2 – 4 triệu", min: "2000000", max: "4000000" },
+              { label: "4 – 7 triệu", min: "4000000", max: "7000000" },
+              { label: "Trên 7 triệu", min: "7000000", max: "" },
+            ].map((price) => {
+              const active = minPrice === price.min && maxPrice === price.max;
+              return (
+                <button
+                  key={price.label}
+                  type="button"
+                  className={`rooms-quick-price${active ? " active" : ""}`}
+                  onClick={() => setQuickPrice(active ? "" : price.min, active ? "" : price.max)}
+                >
+                  {price.label}
+                </button>
+              );
+            })}
+            <button type="button" className="rooms-advanced-trigger" onClick={() => setShowAdvancedFilters(true)}>
+              <SlidersHorizontal size={15} /> Bộ lọc nâng cao
+            </button>
+          </div>
 
           {/* Quick Landmark Recommendations (Đề xuất khu vực & trường học gần nhất) */}
           <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -943,7 +1072,7 @@ const Rooms = () => {
       </section>
 
       {/* 2. MAIN LAYOUT: SIDEBAR BỘ LỌC + DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ */}
-      <div className={`results-wrap${viewMode === "MAP" ? " is-map-view" : " is-list-view"}`}>
+      <div className={`results-wrap${viewMode === "MAP" ? " is-map-view" : viewMode === "GRID" ? " is-grid-view" : " is-list-view"}`}>
         <div className="rooms-results-column">
         {/* SIDEBAR BỘ LỌC BÊN TRÁI */}
         <aside
@@ -965,9 +1094,14 @@ const Rooms = () => {
             <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <Filter size={18} color="var(--primary)" /> Bộ Lọc Phòng
             </h3>
-            <button onClick={clearAllFilters} className="btn-clear" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-              <RotateCcw size={12} /> Xóa lọc
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button onClick={() => setShowAdvancedFilters(true)} className="btn-clear" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                <SlidersHorizontal size={13} /> Nâng cao
+              </button>
+              <button onClick={clearAllFilters} className="btn-clear" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                <RotateCcw size={12} /> Xóa lọc
+              </button>
+            </div>
           </div>
 
           {/* Trạng thái / Nhu cầu */}
@@ -1097,7 +1231,7 @@ const Rooms = () => {
         {/* NỘI DUNG CHÍNH (DANH SÁCH BÀI ĐĂNG PHÒNG TRỌ) */}
         <main className="rooms-list-pane">
           {/* Modern Header: Tabs (Tất cả / Của tôi / Người khác) & Bộ lọc sắp xếp */}
-          <div style={{ background: "var(--bg-card)", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border-color)", marginBottom: 20, boxShadow: "var(--shadow-soft)" }}>
+          <div className="rooms-results-toolbar" style={{ background: "var(--bg-card)", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border-color)", marginBottom: 20, boxShadow: "var(--shadow-soft)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
               {/* Tab phân loại bài đăng */}
               <div style={{ display: "flex", gap: 8, background: "var(--bg-primary)", padding: 4, borderRadius: 12 }}>
@@ -1189,11 +1323,37 @@ const Rooms = () => {
                     outline: "none"
                   }}
                 >
+                  <option value="recommended">🌟 Được quan tâm nhiều</option>
                   <option value="newest">✨ Mới nhất</option>
+                  <option value="today">⏱️ Mới đăng hôm nay</option>
                   <option value="price-asc">💵 Giá thấp đến cao</option>
                   <option value="price-desc">💎 Giá cao đến thấp</option>
                   <option value="area-desc">📐 Diện tích rộng nhất</option>
+                  <option value="rating">⭐ Đánh giá cao nhất</option>
                 </select>
+                <div className="rooms-view-toggle" role="group" aria-label="Chế độ hiển thị">
+                  <button type="button" className={viewMode === "GRID" ? "active" : ""} onClick={() => setViewMode("GRID")} aria-label="Dạng lưới" title="Dạng lưới">
+                    <LayoutGrid size={16} />
+                  </button>
+                  <button type="button" className={viewMode === "LIST" ? "active" : ""} onClick={() => setViewMode("LIST")} aria-label="Dạng danh sách" title="Dạng danh sách">
+                    <List size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={viewMode === "MAP" ? "active" : ""}
+                    onClick={() => {
+                      if (window.matchMedia("(max-width: 820px)").matches) {
+                        setShowFullMap(true);
+                      } else {
+                        setViewMode("MAP");
+                      }
+                    }}
+                    aria-label="Danh sách và bản đồ"
+                    title="Danh sách và bản đồ"
+                  >
+                    <MapPin size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1201,14 +1361,31 @@ const Rooms = () => {
               <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                 Tìm thấy <strong style={{ color: "var(--accent)" }}>{visiblePosts.length}</strong> bài đăng phòng trọ phù hợp
               </span>
-              <button 
-                onClick={() => setShowFullMap(true)}
-                className="btn btn-outline"
-                style={{ padding: "4px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 5, borderRadius: 6 }}
-              >
-                <Maximize2 size={13} /> Mở bản đồ toàn màn hình
-              </button>
+              {viewMode !== "MAP" && (
+                <button
+                  onClick={() => setShowFullMap(true)}
+                  className="btn btn-outline"
+                  style={{ padding: "4px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 5, borderRadius: 6 }}
+                >
+                  <Maximize2 size={13} /> Mở bản đồ toàn màn hình
+                </button>
+              )}
             </div>
+            {activeFilters.length > 0 && (
+              <div className="rooms-active-filters">
+                {activeFilters.map((filter) => (
+                  <button
+                    type="button"
+                    key={filter.label}
+                    className="rooms-filter-tag"
+                    onClick={filter.kind === "proximity" ? clearProximitySearch : filter.clear}
+                  >
+                    {filter.label}<X size={13} />
+                  </button>
+                ))}
+                <button type="button" className="rooms-clear-filters" onClick={clearAllFilters}>Xóa tất cả bộ lọc</button>
+              </div>
+            )}
           </div>
 
           {/* Thông báo bài đăng đang chờ Admin duyệt của chủ trọ */}
@@ -1312,16 +1489,16 @@ const Rooms = () => {
           ) : currentItems.length === 0 ? (
             <div className="empty-state" style={{ background: "var(--bg-card)", borderRadius: 16, padding: "60px 20px", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Không tìm thấy phòng phù hợp</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Rất tiếc, chưa tìm thấy phòng khớp 100% tiêu chí của bạn!</h3>
               <p style={{ color: "var(--text-muted)", margin: "8px 0 16px 0", fontSize: 14 }}>
-                Thử nới rộng khoảng giá, đổi khu vực tìm kiếm hoặc bấm xóa bộ lọc.
+                Bạn có thể bỏ bớt bộ lọc, nới rộng khoảng giá hoặc chọn khu vực lân cận để xem thêm phòng.
               </p>
-              <button onClick={clearAllFilters} className="btn btn-outline btn-ripple">
-                <RotateCcw size={14} style={{ marginRight: 6 }} /> Xóa bộ lọc tìm kiếm
+              <button onClick={clearAllFilters} className="btn btn-primary btn-ripple">
+                <RotateCcw size={14} style={{ marginRight: 6 }} /> Bỏ bớt bộ lọc
               </button>
             </div>
           ) : (
-            <motion.div layout className="forum-posts-list rooms-cards-list" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <motion.div layout className={`forum-posts-list rooms-cards-list${viewMode === "GRID" ? " is-grid" : ""}`} style={{ gap: 20 }}>
               <AnimatePresence>
                 {currentItems.map((post) => (
                   <motion.div
@@ -1337,7 +1514,7 @@ const Rooms = () => {
                     onMouseLeave={() => setActiveRoomId(null)}
                   >
                   {/* Photo Carousel */}
-                  <PostImageCarousel images={post.images || post.imageUrls} />
+                  <PostImageCarousel images={post.images || post.imageUrls} post={post} />
 
                   {/* Body Content */}
                   <div className="forum-card-body">
@@ -1500,8 +1677,6 @@ const Rooms = () => {
                           Nhắn tin
                         </Link>
                         
-                        {/* 5. Yêu thích */}
-                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }} showText={false} />
                       </div>
                     </div>
                   </div>
@@ -1592,18 +1767,39 @@ const Rooms = () => {
             </div>
 
             {/* Quick search by location inside card */}
-            <div style={{ padding: "12px 14px", background: "var(--bg-card)", borderTop: "1px solid var(--border-color)" }}>
+            <div className="rooms-nearby-search" style={{ padding: "12px 14px", background: "var(--bg-card)", borderTop: "1px solid var(--border-color)" }}>
               <div style={{ display: "flex", gap: 6 }}>
                 <input
                   value={proximityQuery}
                   onChange={(e) => setProximityQuery(e.target.value)}
                   onKeyDown={(e) => {
+                    if (e.key === "ArrowDown" && proximitySuggestionsOpen) {
+                      e.preventDefault();
+                      setActiveSuggestionIndex((index) => Math.min(index + 1, proximitySuggestions.length - 1));
+                      return;
+                    }
+                    if (e.key === "ArrowUp" && proximitySuggestionsOpen) {
+                      e.preventDefault();
+                      setActiveSuggestionIndex((index) => Math.max(index - 1, 0));
+                      return;
+                    }
+                    if (e.key === "Escape") {
+                      setProximitySuggestionsOpen(false);
+                      return;
+                    }
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      handleProximitySearch(e);
+                      if (activeSuggestionIndex >= 0 && proximitySuggestions[activeSuggestionIndex]) {
+                        chooseProximitySuggestion(proximitySuggestions[activeSuggestionIndex]);
+                      } else {
+                        handleProximitySearch(e);
+                      }
                     }
                   }}
                   placeholder="Gõ tên trường ĐH, địa điểm..."
+                  role="combobox"
+                  aria-expanded={proximitySuggestionsOpen}
+                  aria-controls="proximity-location-suggestions"
                   style={{
                     flex: 1,
                     padding: "6px 10px",
@@ -1623,6 +1819,26 @@ const Rooms = () => {
                   {proximityLoading ? "..." : "Tìm"}
                 </button>
               </div>
+              {proximitySuggestionsLoading && <div className="rooms-suggestion-status">Đang tìm địa điểm...</div>}
+              {proximitySuggestionsOpen && proximitySuggestions.length > 0 && (
+                <div id="proximity-location-suggestions" className="rooms-location-suggestions" role="listbox">
+                  {proximitySuggestions.map((suggestion, index) => (
+                    <button
+                      key={`${suggestion.label}-${suggestion.address}`}
+                      type="button"
+                      role="option"
+                      aria-selected={index === activeSuggestionIndex}
+                      className={index === activeSuggestionIndex ? "active" : ""}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => chooseProximitySuggestion(suggestion)}
+                    >
+                      <MapPin size={14} />
+                      <span><strong>{suggestion.label}</strong><small>{suggestion.address}</small></span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {proximityError && <div className="rooms-suggestion-error">{proximityError}</div>}
             </div>
           </div>
 
@@ -1659,6 +1875,154 @@ const Rooms = () => {
           </div>
         </aside>
       </div>
+
+      <AnimatePresence>
+        {showAdvancedFilters && (
+          <motion.div
+            className="rooms-filter-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setShowAdvancedFilters(false);
+            }}
+          >
+            <motion.aside
+              className="rooms-filter-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rooms-filter-title"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 280 }}
+            >
+              <div className="rooms-filter-drawer-header">
+                <div>
+                  <span className="rooms-drawer-eyebrow">TÙY CHỈNH KẾT QUẢ</span>
+                  <h2 id="rooms-filter-title">Bộ lọc nâng cao</h2>
+                </div>
+                <button type="button" className="rooms-drawer-close" onClick={() => setShowAdvancedFilters(false)} aria-label="Đóng bộ lọc">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="rooms-filter-drawer-content">
+                <section className="rooms-drawer-section">
+                  <div className="rooms-drawer-section-title">
+                    <div><strong>Khoảng giá</strong><span>Điều chỉnh ngân sách của bạn</span></div>
+                    <strong className="rooms-price-range-value">{formatVnd(priceRange[0])} – {priceRange[1] >= 15000000 ? "15.000.000đ+" : formatVnd(priceRange[1])}</strong>
+                  </div>
+                  <div className="rooms-price-chart" aria-label="Phân bổ giá phòng">
+                    {priceDistribution.map((height, index) => (
+                      <span key={index} style={{ height: `${height}%` }} title={`${index === 6 ? "12" : index * 2}–${index === 6 ? "15+" : (index + 1) * 2} triệu`} />
+                    ))}
+                  </div>
+                  <div className="rooms-dual-range">
+                    <input
+                      aria-label="Giá thấp nhất"
+                      type="range"
+                      min="1000000"
+                      max="15000000"
+                      step="250000"
+                      value={priceRange[0]}
+                      onChange={(event) => updatePriceRange(0, event.target.value)}
+                    />
+                    <input
+                      aria-label="Giá cao nhất"
+                      type="range"
+                      min="1000000"
+                      max="15000000"
+                      step="250000"
+                      value={priceRange[1]}
+                      onChange={(event) => updatePriceRange(1, event.target.value)}
+                    />
+                  </div>
+                  <div className="rooms-range-labels"><span>1 triệu</span><span>15 triệu+</span></div>
+                </section>
+
+                <section className="rooms-drawer-section">
+                  <div className="rooms-drawer-section-title">
+                    <div><strong>Loại hình phòng</strong><span>Chọn loại phòng phù hợp</span></div>
+                  </div>
+                  <div className="rooms-type-options">
+                    <button type="button" className={!roomTypeFilter ? "active" : ""} onClick={() => setRoomTypeFilter("")}>Tất cả</button>
+                    {roomTypes.map((roomType) => (
+                      <button type="button" key={roomType} className={roomTypeFilter === roomType ? "active" : ""} onClick={() => setRoomTypeFilter(roomType)}>
+                        {roomType}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rooms-drawer-section">
+                  <div className="rooms-drawer-section-title">
+                    <div><strong>Tiện ích & cơ sở vật chất</strong><span>Chọn một hoặc nhiều tiện ích</span></div>
+                  </div>
+                  {AMENITY_GROUPS.map((group) => {
+                    const amenities = amenityOptions.filter(({ name }) =>
+                      group.keywords.some((keyword) => name.toLowerCase().includes(keyword)),
+                    );
+                    if (amenities.length === 0) return null;
+                    return (
+                      <div key={group.label} className="rooms-amenity-group">
+                        <h4>{group.icon} {group.label}</h4>
+                        <div className="rooms-amenity-grid">
+                          {amenities.map(({ name }) => (
+                            <label key={name} className="rooms-amenity-option">
+                              <input type="checkbox" checked={selectedAmenities.includes(name)} onChange={() => toggleAmenity(name)} />
+                              <span>{name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {amenityOptions.some(({ name }) => !AMENITY_GROUPS.some((group) => group.keywords.some((keyword) => name.toLowerCase().includes(keyword)))) && (
+                    <div className="rooms-amenity-group">
+                      <h4>✨ Tiện ích khác</h4>
+                      <div className="rooms-amenity-grid">
+                        {amenityOptions
+                          .filter(({ name }) => !AMENITY_GROUPS.some((group) => group.keywords.some((keyword) => name.toLowerCase().includes(keyword))))
+                          .map(({ name }) => (
+                            <label key={name} className="rooms-amenity-option">
+                              <input type="checkbox" checked={selectedAmenities.includes(name)} onChange={() => toggleAmenity(name)} />
+                              <span>{name}</span>
+                            </label>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <section className="rooms-drawer-section">
+                  <div className="rooms-drawer-section-title">
+                    <div><strong>Gần địa điểm bạn quan tâm</strong><span>Tìm quanh trường học, trạm xe buýt hoặc metro</span></div>
+                  </div>
+                  {proximityLocation ? (
+                    <div className="rooms-radius-control">
+                      <MapPin size={17} />
+                      <span>{selectedSuggestion?.label || proximityQuery}</span>
+                      <select value={proximityRadius} onChange={(event) => setProximityRadius(Number(event.target.value))} aria-label="Bán kính tìm kiếm">
+                        {[1, 3, 5, 10].map((radius) => <option key={radius} value={radius}>{radius} km</option>)}
+                      </select>
+                    </div>
+                  ) : (
+                    <p className="rooms-location-hint">Chọn một trường/địa điểm gợi ý phía trên hoặc dùng ô tìm địa điểm trên bản đồ để bật lọc bán kính.</p>
+                  )}
+                </section>
+              </div>
+
+              <div className="rooms-filter-drawer-footer">
+                <button type="button" className="rooms-drawer-reset" onClick={clearAllFilters}>Xóa tất cả</button>
+                <button type="button" className="rooms-drawer-apply" onClick={() => setShowAdvancedFilters(false)}>
+                  Hiển thị {visiblePosts.length} phòng
+                </button>
+              </div>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* MODAL GỬI YÊU CẦU THUÊ PHÒNG */}
       {rentalModalPost && (
