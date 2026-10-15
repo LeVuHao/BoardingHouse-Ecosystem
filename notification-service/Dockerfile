@@ -16,7 +16,7 @@ COPY billing-payment-service/pom.xml billing-payment-service/
 
 RUN mvn -pl common,notification-service -am package -DskipTests
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/notification-service/target/*.jar app.jar
 EXPOSE 8084
