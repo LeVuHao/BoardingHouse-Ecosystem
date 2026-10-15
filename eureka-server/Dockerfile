@@ -21,7 +21,7 @@ COPY notification-service/pom.xml notification-service/
 RUN mvn -pl common,eureka-server -am package -DskipTests
 
 # Stage 2: Runtime image nhỏ gọn
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/eureka-server/target/*.jar app.jar
 EXPOSE 8761
