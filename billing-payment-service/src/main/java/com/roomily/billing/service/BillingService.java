@@ -2,12 +2,13 @@ package com.roomily.billing.service;
 
 import com.roomily.billing.config.RabbitMQConfig;
 import com.roomily.billing.dto.request.CreateBillRequest;
+import com.roomily.billing.dto.request.SepayWebhookRequest;
+import com.roomily.billing.dto.response.BillPaymentQrResponse;
 import com.roomily.billing.dto.response.BillResponse;
 import com.roomily.billing.entity.Bill;
 import com.roomily.billing.entity.PaymentTransaction;
 import com.roomily.billing.repository.BillRepository;
 import com.roomily.billing.repository.PaymentTransactionRepository;
-import com.roomily.billing.util.VNPayUtil;
 import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,17 +35,20 @@ public class BillingService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${vnpay.tmnCode:DEMO1234}")
-    private String vnpTmnCode;
+    @Value("${sepay.api-key:}")
+    private String sepayApiKey;
 
-    @Value("${vnpay.hashSecret:DEMOSECRETKEYFORVNPAYSANDBOX123456}")
-    private String vnpHashSecret;
+    @Value("${sepay.webhook-token:}")
+    private String sepayWebhookToken;
 
-    @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
-    private String vnpPayUrl;
+    @Value("${sepay.bank-code:BIDV}")
+    private String bankCode;
 
-    @Value("${vnpay.returnUrl:http://localhost:8080/api/v1/payments/vnpay-callback}")
-    private String vnpReturnUrl;
+    @Value("${sepay.bank-account:96247160605}")
+    private String bankAccount;
+
+    @Value("${sepay.account-holder:LE VU HAO}")
+    private String accountHolder;
 
     @Transactional
     public BillResponse createBill(Long landlordId, CreateBillRequest req) {
@@ -72,8 +75,8 @@ public class BillingService {
         Bill saved = billRepository.save(bill);
 
         publishEvent("invoice.created", saved.getTenantId(),
-                "Hoa don thang " + saved.getMonthYear() + " da duoc tao",
-                "Tong tien: " + saved.getTotalAmount() + " d. Han thanh toan: " + saved.getDueDate(),
+                "Hóa đơn tháng " + saved.getMonthYear() + " đã được tạo",
+                "Tổng tiền: " + saved.getTotalAmount() + " đ. Hạn thanh toán: " + saved.getDueDate(),
                 saved.getId());
 
         return BillResponse.fromEntity(saved);
@@ -94,135 +97,178 @@ public class BillingService {
     @Transactional
     public BillResponse updateBillStatus(Long landlordId, Long billId, String status) {
         Bill bill = billRepository.findById(billId)
-                .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay hoa don voi ID: " + billId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn với ID: " + billId));
         if (!bill.getLandlordId().equals(landlordId)) {
-            throw new BadRequestException("Ban khong co quyen cap nhat hoa don nay");
+            throw new BadRequestException("Bạn không có quyền cập nhật hóa đơn này");
         }
         bill.setStatus(status.toUpperCase());
         Bill saved = billRepository.save(bill);
 
         if ("PAID".equalsIgnoreCase(status)) {
             publishEvent("bill.paid", bill.getTenantId(),
-                    "Hoa don thang " + bill.getMonthYear() + " da duoc xac nhan thanh toan",
-                    "Chu tro da xac nhan thanh toan thanh cong hoa don thang " + bill.getMonthYear() + " voi tong tien: " + bill.getTotalAmount() + " d.",
+                    "Hóa đơn tháng " + bill.getMonthYear() + " đã được xác nhận thanh toán",
+                    "Chủ trọ đã xác nhận thanh toán thành công hóa đơn tháng " + bill.getMonthYear() + " với tổng tiền: " + bill.getTotalAmount() + " đ.",
                     bill.getId());
         }
 
         return BillResponse.fromEntity(saved);
     }
 
+    /**
+     * Sinh mã QR thanh toán chuẩn VietQR SePay cho hóa đơn tiền trọ
+     */
     @Transactional
-    public String createVNPayPaymentUrl(Long userId, String type, Long billId, BigDecimal amount) {
-        String vnpTxnRef = "TXN_" + System.currentTimeMillis() + "_" + userId;
+    public BillPaymentQrResponse createBillPaymentQR(Long userId, Long billId) {
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn với ID: " + billId));
 
-        PaymentTransaction txn = PaymentTransaction.builder()
-                .userId(userId)
-                .billId(billId)
-                .transactionType(type)
-                .amount(amount)
-                .paymentMethod("VNPAY")
-                .vnpTxnRef(vnpTxnRef)
-                .status("PENDING")
-                .build();
+        if (!bill.getTenantId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền truy cập thanh toán hóa đơn này");
+        }
+
+        String paymentCode = "BILL" + bill.getId();
+        String encodedHolder = URLEncoder.encode(accountHolder, StandardCharsets.UTF_8);
+        String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
+        long amountLong = bill.getTotalAmount().longValue();
+
+        String qrUrl = String.format(
+                "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                bankCode,
+                bankAccount,
+                amountLong,
+                encodedCode,
+                encodedHolder
+        );
+
+        // Lưu bản ghi giao dịch chờ thanh toán
+        PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(paymentCode)
+                .orElse(null);
+
+        if (txn == null) {
+            txn = PaymentTransaction.builder()
+                    .userId(userId)
+                    .billId(billId)
+                    .transactionType("BILL_PAYMENT")
+                    .amount(bill.getTotalAmount())
+                    .paymentMethod("SEPAY_VIETQR")
+                    .vnpTxnRef(paymentCode)
+                    .status(bill.getStatus().equals("PAID") ? "SUCCESS" : "PENDING")
+                    .build();
+        } else {
+            txn.setAmount(bill.getTotalAmount());
+            if ("PAID".equalsIgnoreCase(bill.getStatus())) {
+                txn.setStatus("SUCCESS");
+            }
+        }
         paymentTransactionRepository.save(txn);
 
-        Map<String, String> vnpParams = new HashMap<>();
-        vnpParams.put("vnp_Version", "2.1.0");
-        vnpParams.put("vnp_Command", "pay");
-        vnpParams.put("vnp_TmnCode", vnpTmnCode);
-        vnpParams.put("vnp_Amount", String.valueOf(amount.multiply(BigDecimal.valueOf(100)).longValue()));
-        vnpParams.put("vnp_CurrCode", "VND");
-        vnpParams.put("vnp_TxnRef", vnpTxnRef);
-        vnpParams.put("vnp_OrderInfo", "Thanh toan " + type + " - User " + userId);
-        vnpParams.put("vnp_OrderType", "other");
-        vnpParams.put("vnp_Locale", "vn");
-        vnpParams.put("vnp_ReturnUrl", vnpReturnUrl);
-        vnpParams.put("vnp_IpAddr", "127.0.0.1");
-
-        // KHÔNG dùng Calendar/TimeZone theo tên ("Asia/Ho_Chi_Minh", "Etc/GMT+7"...):
-        // trên một số JRE rút gọn (vd Alpine), việc tra timezone theo ID có thể âm thầm
-        // KHÔNG áp dụng offset nào cả (coi như GMT+0) mà không hề báo lỗi, khiến
-        // vnp_CreateDate/vnp_ExpireDate sai lệch và VNPay báo "quá thời gian chờ
-        // thanh toán" (code=15) dù thanh toán ngay lập tức.
-        // Dùng ZoneOffset.ofHours(7) (tính toán số học thuần túy, không phụ thuộc
-        // dữ liệu tzdata) để chắc chắn luôn ra đúng giờ Việt Nam (UTC+7, không DST).
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        OffsetDateTime nowVN = OffsetDateTime.now(ZoneOffset.ofHours(7));
-        vnpParams.put("vnp_CreateDate", nowVN.format(formatter));
-        vnpParams.put("vnp_ExpireDate", nowVN.plusMinutes(15).format(formatter));
-
-        String hashData = VNPayUtil.buildHashData(vnpParams);
-        String vnpSecureHash = VNPayUtil.hmacSHA512(vnpHashSecret, hashData);
-
-        List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
-        Collections.sort(fieldNames);
-        StringBuilder query = new StringBuilder();
-        for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext(); ) {
-            String fieldName = itr.next();
-            query.append(fieldName).append('=')
-                    .append(URLEncoder.encode(vnpParams.get(fieldName), StandardCharsets.US_ASCII));
-            if (itr.hasNext()) {
-                query.append('&');
-            }
-        }
-        query.append("&vnp_SecureHash=").append(vnpSecureHash);
-
-        return vnpPayUrl + "?" + query;
+        return BillPaymentQrResponse.builder()
+                .billId(bill.getId())
+                .tenantId(bill.getTenantId())
+                .monthYear(bill.getMonthYear())
+                .amount(bill.getTotalAmount())
+                .paymentCode(paymentCode)
+                .qrImageUrl(qrUrl)
+                .bankName("BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)")
+                .bankAccount(bankAccount)
+                .accountHolder(accountHolder)
+                .status(bill.getStatus())
+                .build();
     }
 
+    /**
+     * Xử lý Webhook SePay bắn về khi người thuê chuyển khoản thanh toán hóa đơn
+     */
     @Transactional
-    public Map<String, Object> handleVNPayCallback(Map<String, String> allParams) {
-        Map<String, Object> result = new HashMap<>();
+    public boolean handleSepayWebhook(SepayWebhookRequest webhook, String authHeader) {
+        if (webhook == null) return false;
 
-        if (!VNPayUtil.verifySignature(allParams, vnpHashSecret)) {
-            log.warn("VNPay callback CHU KY KHONG HOP LE! params={}", allParams);
-            result.put("success", false);
-            result.put("message", "Chu ky khong hop le, giao dich bi tu choi");
-            return result;
-        }
-
-        String vnpTxnRef = allParams.get("vnp_TxnRef");
-        String vnpResponseCode = allParams.get("vnp_ResponseCode");
-        String vnpTransactionNo = allParams.get("vnp_TransactionNo");
-
-        PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(vnpTxnRef)
-                .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay giao dich: " + vnpTxnRef));
-
-        if ("SUCCESS".equals(txn.getStatus()) || "FAILED".equals(txn.getStatus())) {
-            result.put("success", "SUCCESS".equals(txn.getStatus()));
-            result.put("message", "Giao dich da duoc xu ly truoc do");
-            result.put("transaction", txn);
-            return result;
-        }
-
-        txn.setVnpResponseCode(vnpResponseCode);
-        txn.setVnpTransactionNo(vnpTransactionNo);
-
-        if ("00".equals(vnpResponseCode)) {
-            txn.setStatus("SUCCESS");
-            paymentTransactionRepository.save(txn);
-
-            if ("BILL_PAYMENT".equals(txn.getTransactionType()) && txn.getBillId() != null) {
-                billRepository.findById(txn.getBillId()).ifPresent(bill -> {
-                    bill.setStatus("PAID");
-                    billRepository.save(bill);
-                    publishEvent("bill.paid", bill.getLandlordId(),
-                            "Hoa don da duoc thanh toan",
-                            "Tenant da thanh toan hoa don thang " + bill.getMonthYear() + ".",
-                            bill.getId());
-                });
-                result.put("message", "Thanh toan hoa don thanh cong!");
+        // 1. Kiểm tra xác thực Webhook Token / API Key nếu có cấu hình
+        String expectedKey = (sepayApiKey != null && !sepayApiKey.isBlank()) ? sepayApiKey : sepayWebhookToken;
+        if (expectedKey != null && !expectedKey.isBlank()) {
+            if (authHeader == null || (!authHeader.contains(expectedKey) && !authHeader.equalsIgnoreCase("Apikey " + expectedKey))) {
+                log.warn("[SePay Bill Webhook] Từ chối webhook do Authorization header không hợp lệ! Header: {}", authHeader);
+                return false;
             }
-            result.put("success", true);
-        } else {
-            txn.setStatus("FAILED");
-            paymentTransactionRepository.save(txn);
-            result.put("success", false);
-            result.put("message", "Giao dich thanh toan that bai hoac da bi huy.");
         }
 
-        result.put("transaction", txn);
-        return result;
+        // 2. Chỉ xử lý tiền vào (in) hoặc transferAmount > 0
+        if (webhook.getTransferAmount() == null || webhook.getTransferAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            log.info("[SePay Bill Webhook] Bỏ qua giao dịch không phải nạp tiền: {}", webhook);
+            return false;
+        }
+
+        String content = (webhook.getContent() != null ? webhook.getContent() : "") + " "
+                + (webhook.getCode() != null ? webhook.getCode() : "");
+        String normalized = content.toUpperCase().replaceAll("[^A-Z0-9]", "");
+
+        // 3. Trích xuất mã hóa đơn BILL<id> từ nội dung chuyển khoản
+        Matcher matcher = Pattern.compile("BILL(\\d+)").matcher(normalized);
+        if (!matcher.find()) {
+            log.warn("[SePay Bill Webhook] Không tìm thấy mã hóa đơn (BILL<id>) trong nội dung: {}", content);
+            return false;
+        }
+
+        Long billId = Long.parseLong(matcher.group(1));
+        Bill bill = billRepository.findById(billId).orElse(null);
+        if (bill == null) {
+            log.warn("[SePay Bill Webhook] Không tìm thấy hóa đơn ID: {} trong hệ thống", billId);
+            return false;
+        }
+
+        // 4. XỬ LÝ IDEMPOTENCY: Nếu hóa đơn đã được thanh toán trước đó (SePay retry)
+        if ("PAID".equalsIgnoreCase(bill.getStatus())) {
+            log.info("[SePay Bill Webhook] [Idempotent] Hóa đơn #{} đã được gạch nợ PAID trước đó. Trả về thành công để SePay ngừng retry.", billId);
+            return true;
+        }
+
+        // 5. ĐỐI SOÁT SỐ TIỀN: Tiền chuyển phải >= tổng tiền của hóa đơn
+        if (webhook.getTransferAmount().compareTo(bill.getTotalAmount()) < 0) {
+            log.warn("[SePay Bill Webhook] Số tiền thanh toán không đủ cho hóa đơn #{}: nhận {} đ, yêu cầu {} đ",
+                    billId, webhook.getTransferAmount(), bill.getTotalAmount());
+            return false;
+        }
+
+        log.info("[SePay Bill Webhook] Khớp hóa đơn #{}, Tenant ID: {}, Số tiền: {}",
+                billId, bill.getTenantId(), webhook.getTransferAmount());
+
+        // 6. Gạch nợ hóa đơn sang PAID
+        bill.setStatus("PAID");
+        billRepository.save(bill);
+
+        // 7. Cập nhật bản ghi giao dịch
+        String paymentCode = "BILL" + bill.getId();
+        PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(paymentCode)
+                .orElse(null);
+
+        if (txn == null) {
+            txn = PaymentTransaction.builder()
+                    .userId(bill.getTenantId())
+                    .billId(bill.getId())
+                    .transactionType("BILL_PAYMENT")
+                    .vnpTxnRef(paymentCode)
+                    .build();
+        }
+        txn.setStatus("SUCCESS");
+        txn.setPaymentMethod("SEPAY_VIETQR");
+        txn.setAmount(webhook.getTransferAmount());
+        txn.setVnpTransactionNo(webhook.getId() != null ? String.valueOf(webhook.getId()) : webhook.getReferenceCode());
+        txn.setVnpResponseCode("00");
+        paymentTransactionRepository.save(txn);
+
+        // 8. Bắn sự kiện RabbitMQ thông báo cho Chủ trọ & Người thuê
+        publishEvent("bill.paid", bill.getLandlordId(),
+                "Hóa đơn tháng " + bill.getMonthYear() + " đã được thanh toán",
+                "Người thuê đã thanh toán tự động qua VietQR SePay số tiền: " + bill.getTotalAmount() + " đ.",
+                bill.getId());
+
+        publishEvent("bill.paid", bill.getTenantId(),
+                "Thanh toán hóa đơn tháng " + bill.getMonthYear() + " thành công",
+                "Hệ thống đã tự động gạch nợ thành công hóa đơn tiền phòng tháng " + bill.getMonthYear() + ".",
+                bill.getId());
+
+        log.info("[SePay Bill Webhook] Đã gạch nợ hóa đơn #{} thành công", billId);
+        return true;
     }
 
     private void publishEvent(String routingKey, Long userId, String title, String content, Long referenceId) {

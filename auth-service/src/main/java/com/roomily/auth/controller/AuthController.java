@@ -57,8 +57,9 @@ public class AuthController {
 
     @PostMapping("/payment/sepay-webhook")
     public ResponseEntity<java.util.Map<String, Object>> handleSepayWebhook(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody com.roomily.auth.dto.request.SepayWebhookRequest webhook) {
-        boolean success = authService.processSepayWebhook(webhook);
+        boolean success = authService.processSepayWebhook(webhook, authHeader);
         java.util.Map<String, Object> res = new java.util.HashMap<>();
         res.put("success", success);
         res.put("message", success ? "Xử lý kích hoạt thành công" : "Bỏ qua hoặc không khớp giao dịch");

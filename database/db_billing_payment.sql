@@ -1,7 +1,7 @@
 -- ============================================================
 -- DATABASE: db_billing_payment
 -- Service: Billing & Payment Service
--- Mô tả: Quản lý hóa đơn và giao dịch VNPay
+-- Mô tả: Quản lý hóa đơn và giao dịch SePay VietQR
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS db_billing_payment
@@ -11,55 +11,52 @@ CREATE DATABASE IF NOT EXISTS db_billing_payment
 USE db_billing_payment;
 
 -- ----------------------------
--- Bảng invoices (Hóa đơn phòng trọ hàng tháng)
--- contract_id và room_id tham chiếu sang db_property_rental
--- (Cross-DB reference – KHÔNG dùng FOREIGN KEY, chỉ dùng INDEX)
+-- Bảng bills (Hóa đơn phòng trọ hàng tháng)
 -- ----------------------------
-CREATE TABLE invoices (
-    id              BIGINT          NOT NULL AUTO_INCREMENT,
-    contract_id     BIGINT          NOT NULL COMMENT 'Ref: db_property_rental.contracts.id',
-    room_id         BIGINT          NOT NULL COMMENT 'Ref: db_property_rental.rooms.id',
-    -- tenant_id để User có thể query hóa đơn của mình mà không cần join sang DB khác
-    tenant_id       BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id',
-    billing_cycle   VARCHAR(7)      NOT NULL COMMENT 'Tháng xuất hóa đơn. Format: YYYY-MM. VD: 2026-08',
-    total_amount    DECIMAL(12, 2)  NOT NULL COMMENT 'Tổng tiền. Landlord tự tính và nhập (điện+nước+phòng+dịch vụ)',
-    due_date        DATE            NOT NULL COMMENT 'Hạn chót đóng tiền',
-    status          VARCHAR(20)     NOT NULL DEFAULT 'UNPAID'
-                    COMMENT 'UNPAID | PAID | OVERDUE',
-    note            TEXT            NULL COMMENT 'Ghi chú từ Landlord (VD: điện 150kWh x 3500đ = 525k...)',
-    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS bills (
+    id                  BIGINT          NOT NULL AUTO_INCREMENT,
+    contract_id         BIGINT          NOT NULL COMMENT 'Ref: db_property_rental.contracts.id',
+    room_id             BIGINT          NOT NULL COMMENT 'Ref: db_property_rental.rooms.id',
+    landlord_id         BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id',
+    tenant_id           BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id',
+    month_year          VARCHAR(10)     NOT NULL COMMENT 'Tháng xuất hóa đơn (YYYY-MM)',
+    room_amount         DECIMAL(12, 2)  NOT NULL,
+    electricity_amount  DECIMAL(12, 2)  NOT NULL DEFAULT 0.00,
+    water_amount        DECIMAL(12, 2)  NOT NULL DEFAULT 0.00,
+    other_amount        DECIMAL(12, 2)  NOT NULL DEFAULT 0.00,
+    total_amount        DECIMAL(12, 2)  NOT NULL,
+    status              VARCHAR(20)     NOT NULL DEFAULT 'UNPAID' COMMENT 'UNPAID | PAID | OVERDUE',
+    due_date            DATE            NOT NULL,
+    created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
-    -- Mỗi hợp đồng chỉ có 1 hóa đơn cho 1 tháng
-    UNIQUE KEY uq_invoices_contract_cycle (contract_id, billing_cycle),
-    INDEX idx_invoices_tenant_id (tenant_id),
-    INDEX idx_invoices_status (status),
-    INDEX idx_invoices_room_id (room_id)
+    INDEX idx_bills_tenant_id (tenant_id),
+    INDEX idx_bills_landlord_id (landlord_id),
+    INDEX idx_bills_status (status),
+    INDEX idx_bills_contract_id (contract_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ----------------------------
--- Bảng transactions (Giao dịch VNPay Sandbox)
--- Ghi lại toàn bộ lịch sử thanh toán qua VNPay
+-- Bảng payment_transactions (Lịch sử giao dịch VietQR SePay)
 -- ----------------------------
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS payment_transactions (
     id                  BIGINT          NOT NULL AUTO_INCREMENT,
-    txn_ref             VARCHAR(100)    NOT NULL COMMENT 'Mã tham chiếu gửi sang VNPay. Format: {userId}_{timestamp}',
-    amount              DECIMAL(12, 2)  NOT NULL COMMENT 'Số tiền giao dịch (VNĐ)',
-    payment_type        VARCHAR(50)     NOT NULL
-                        COMMENT 'BILL_PAYMENT',
-    reference_id        BIGINT          NOT NULL COMMENT 'InvoiceId',
-    vnp_transaction_no  VARCHAR(100)    NULL COMMENT 'Mã giao dịch VNPay trả về qua IPN',
-    bank_code           VARCHAR(20)     NULL COMMENT 'Mã ngân hàng thực hiện giao dịch',
-    status              VARCHAR(20)     NOT NULL DEFAULT 'PENDING'
-                        COMMENT 'PENDING | SUCCESS | FAILED',
+    user_id             BIGINT          NOT NULL COMMENT 'Ref: db_auth.users.id',
+    bill_id             BIGINT          NULL COMMENT 'Ref: bills.id',
+    transaction_type    VARCHAR(30)     NOT NULL DEFAULT 'BILL_PAYMENT',
+    amount              DECIMAL(12, 2)  NOT NULL,
+    payment_method      VARCHAR(20)     NOT NULL DEFAULT 'SEPAY_VIETQR',
+    vnp_txn_ref         VARCHAR(100)    NOT NULL COMMENT 'Mã thanh toán đối soát: BILL<id>',
+    vnp_transaction_no  VARCHAR(100)    NULL COMMENT 'Mã tham chiếu SePay',
+    vnp_response_code   VARCHAR(10)     NULL DEFAULT '00',
+    status              VARCHAR(20)     NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING | SUCCESS | FAILED',
     created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    completed_at        TIMESTAMP       NULL     COMMENT 'Thời điểm VNPay xác nhận thành công',
 
     PRIMARY KEY (id),
-    UNIQUE KEY uq_transactions_txn_ref (txn_ref),
-    INDEX idx_transactions_status (status),
-    INDEX idx_transactions_payment_type (payment_type),
-    INDEX idx_transactions_reference_id (reference_id)
+    INDEX idx_pt_vnp_txn_ref (vnp_txn_ref),
+    INDEX idx_pt_bill_id (bill_id),
+    INDEX idx_pt_user_id (user_id),
+    INDEX idx_pt_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

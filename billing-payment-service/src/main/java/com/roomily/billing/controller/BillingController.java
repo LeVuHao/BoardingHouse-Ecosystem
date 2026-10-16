@@ -1,6 +1,8 @@
 package com.roomily.billing.controller;
 
 import com.roomily.billing.dto.request.CreateBillRequest;
+import com.roomily.billing.dto.request.SepayWebhookRequest;
+import com.roomily.billing.dto.response.BillPaymentQrResponse;
 import com.roomily.billing.dto.response.BillResponse;
 import com.roomily.billing.service.BillingService;
 import com.roomily.common.dto.ApiResponse;
@@ -10,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +23,7 @@ public class BillingController {
 
     private final BillingService billingService;
 
-    // --- BILLS ---
+    // --- BILLS CRUD ---
     @PostMapping("/bills")
     public ResponseEntity<ApiResponse<BillResponse>> createBill(
             @RequestHeader("X-User-Id") Long landlordId,
@@ -54,20 +56,31 @@ public class BillingController {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái hóa đơn thành công", res));
     }
 
-    // --- PAYMENTS & VNPAY ---
-    @PostMapping("/payments/create-bill-payment-url/{billId}")
-    public ResponseEntity<ApiResponse<Map<String, String>>> createBillPaymentUrl(
+    // --- SEPAY VIETQR PAYMENT ---
+    @GetMapping("/bills/{billId}/qr")
+    public ResponseEntity<ApiResponse<BillPaymentQrResponse>> getBillPaymentQr(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long billId,
-            @RequestParam BigDecimal amount) {
-        String paymentUrl = billingService.createVNPayPaymentUrl(userId, "BILL_PAYMENT", billId, amount);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("paymentUrl", paymentUrl)));
+            @PathVariable Long billId) {
+        BillPaymentQrResponse qr = billingService.createBillPaymentQR(userId, billId);
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin VietQR SePay thành công", qr));
     }
 
-    @GetMapping("/payments/vnpay-callback")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleCallback(
-            @RequestParam Map<String, String> allParams) {
-        Map<String, Object> result = billingService.handleVNPayCallback(allParams);
-        return ResponseEntity.ok(ApiResponse.success("Xử lý kết quả giao dịch VNPay thành công", result));
+    @PostMapping("/bills/{billId}/qr")
+    public ResponseEntity<ApiResponse<BillPaymentQrResponse>> createBillPaymentQrPost(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long billId) {
+        BillPaymentQrResponse qr = billingService.createBillPaymentQR(userId, billId);
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin VietQR SePay thành công", qr));
+    }
+
+    @PostMapping("/payments/sepay-webhook")
+    public ResponseEntity<Map<String, Object>> handleSepayWebhook(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody SepayWebhookRequest webhook) {
+        boolean success = billingService.handleSepayWebhook(webhook, authHeader);
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", success);
+        res.put("message", success ? "Xử lý gạch nợ hóa đơn thành công" : "Bỏ qua hoặc không khớp giao dịch hóa đơn");
+        return ResponseEntity.ok(res);
     }
 }

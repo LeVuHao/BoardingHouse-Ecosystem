@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { billingApi } from '../api/apiClient';
-import { Receipt, Home, Zap, Droplet, PlusCircle, CalendarClock, CheckCircle, AlertCircle, QrCode, Filter, ChevronRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import {
+  Receipt, Home, Zap, Droplet, PlusCircle, CalendarClock,
+  CheckCircle, AlertCircle, QrCode, Copy, Check, RefreshCw, X, Sparkles
+} from 'lucide-react';
 
 const money = (n) => (Number(n) || 0).toLocaleString('vi-VN') + ' đ';
 
 const MyBills = () => {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBill, setSelectedBill] = useState(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Modal QR SePay
+  const [qrModalData, setQrModalData] = useState(null);
+  const [loadingQrId, setLoadingQrId] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   const loadBills = async () => {
     try {
@@ -17,6 +25,7 @@ const MyBills = () => {
       setBills(res.data || []);
     } catch (err) {
       console.error(err);
+      toast.error('Lỗi khi tải danh sách hóa đơn');
     } finally {
       setLoading(false);
     }
@@ -26,15 +35,53 @@ const MyBills = () => {
     loadBills();
   }, []);
 
-  const handlePayBill = async (bill) => {
+  // Mở Modal Quét mã VietQR SePay
+  const handleOpenPayModal = async (bill) => {
     try {
-      const res = await billingApi.createBillPaymentUrl(bill.id, bill.totalAmount);
-      if (res.data?.paymentUrl) {
-        window.location.href = res.data.paymentUrl;
-      }
+      setLoadingQrId(bill.id);
+      const res = await billingApi.getBillPaymentQr(bill.id);
+      const data = res.data?.data || res.data;
+      setQrModalData({
+        ...data,
+        originalBill: bill,
+      });
     } catch (err) {
-      alert(err.message || 'Lỗi tạo liên kết thanh toán');
+      toast.error(err.message || 'Không thể lấy thông tin VietQR thanh toán');
+    } finally {
+      setLoadingQrId(null);
     }
+  };
+
+  // Auto-polling kiểm tra trạng thái thanh toán khi Modal QR đang mở
+  useEffect(() => {
+    let timer = null;
+    if (qrModalData && qrModalData.status !== 'PAID') {
+      timer = setInterval(async () => {
+        try {
+          const res = await billingApi.getMyBills();
+          const latestBills = res.data || [];
+          setBills(latestBills);
+
+          const current = latestBills.find((b) => b.id === qrModalData.billId);
+          if (current && current.status === 'PAID') {
+            setQrModalData((prev) => (prev ? { ...prev, status: 'PAID' } : null));
+            toast.success('🎉 Thanh toán thành công! Hóa đơn đã được gạch nợ tự động.');
+          }
+        } catch {
+          // Im lặng khi poll nền
+        }
+      }, 4000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [qrModalData]);
+
+  const copyToClipboard = (text, field) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success(`Đã sao chép ${field}!`);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   const filteredBills = bills.filter((b) => {
@@ -59,7 +106,7 @@ const MyBills = () => {
             <Receipt className="text-primary" size={28} /> Hóa Đơn Tiền Trọ Của Tôi
           </h2>
           <p style={{ color: 'var(--text-muted)', margin: '0.3rem 0 0', fontSize: '0.92rem' }}>
-            Theo dõi chi tiết các khoản tiền phòng, điện nước & phí sinh hoạt hàng tháng do chủ trọ gửi
+            Theo dõi chi tiết tiền phòng, điện nước & thanh toán tự động qua mã VietQR SePay
           </p>
         </div>
       </div>
@@ -236,16 +283,201 @@ const MyBills = () => {
 
                 {!isPaid && (
                   <button
-                    onClick={() => handlePayBill(bill)}
+                    onClick={() => handleOpenPayModal(bill)}
+                    disabled={loadingQrId === bill.id}
                     className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontWeight: 600 }}
+                    style={{ width: '100%', padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700 }}
                   >
-                    <QrCode size={16} /> Thanh toán qua QR / VNPay
+                    <QrCode size={18} /> {loadingQrId === bill.id ? 'Đang tạo mã QR...' : 'Thanh toán VietQR SePay'}
                   </button>
                 )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* MODAL QUÉT MÃ VIETQR SEPAY THANH TOÁN TỰ ĐỘNG */}
+      {qrModalData && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.7)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            borderRadius: '24px',
+            maxWidth: '560px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            padding: '28px',
+            position: 'relative',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.4)',
+            border: '1px solid var(--border)'
+          }}>
+            {/* Close button */}
+            <button
+              onClick={() => setQrModalData(null)}
+              style={{
+                position: 'absolute',
+                top: 18,
+                right: 18,
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border)',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={16} />
+            </button>
+
+            {/* Modal Header */}
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: 700,
+                background: qrModalData.status === 'PAID' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(37, 99, 235, 0.12)',
+                color: qrModalData.status === 'PAID' ? '#10b981' : '#2563eb',
+                marginBottom: '8px'
+              }}>
+                <Sparkles size={14} /> {qrModalData.status === 'PAID' ? 'GIAO DỊCH THÀNH CÔNG' : 'CỔNG THANH TOÁN VIETQR SEPAY'}
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.35rem', fontWeight: 800 }}>
+                {qrModalData.status === 'PAID' ? 'Hóa đơn đã thanh toán!' : `Thanh toán Hóa đơn tháng ${qrModalData.monthYear}`}
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                {qrModalData.status === 'PAID'
+                  ? 'Hệ thống đã nhận được tiền và tự động gạch nợ hóa đơn.'
+                  : 'Mở app ngân hàng bất kỳ để quét mã và chuyển khoản chính xác.'}
+              </p>
+            </div>
+
+            {qrModalData.status === 'PAID' ? (
+              /* Success State */
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{
+                  width: 76,
+                  height: 76,
+                  borderRadius: '50%',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  color: '#10b981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px'
+                }}>
+                  <CheckCircle size={44} />
+                </div>
+                <h4 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
+                  Thanh Toán Hoàn Tất!
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', maxWidth: 380, margin: '0 auto 24px' }}>
+                  Hóa đơn kỳ tháng <strong>{qrModalData.monthYear}</strong> với số tiền <strong>{money(qrModalData.amount)}</strong> đã được ghi nhận. Chủ trọ cũng đã nhận được thông báo.
+                </p>
+                <button
+                  onClick={() => setQrModalData(null)}
+                  className="btn btn-primary"
+                  style={{ padding: '10px 32px', fontWeight: 700 }}
+                >
+                  Đóng & Hoàn tất
+                </button>
+              </div>
+            ) : (
+              /* Payment QR State */
+              <div>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  background: 'var(--bg-primary)',
+                  padding: '20px',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ background: '#ffffff', padding: '12px', borderRadius: '12px', boxShadow: '0 4px 18px rgba(0,0,0,0.08)' }}>
+                    <img
+                      src={qrModalData.qrImageUrl}
+                      alt="VietQR SePay"
+                      style={{ width: '240px', height: '240px', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#2563eb', fontWeight: 600 }}>
+                    <RefreshCw size={13} className="animate-spin" /> Hệ thống tự động đối soát khi có tiền vào...
+                  </div>
+                </div>
+
+                {/* Transfer Info Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Số tiền cần đóng:</span>
+                    <span style={{ fontWeight: 800, color: '#ef4444', fontSize: '1.15rem' }}>
+                      {money(qrModalData.amount)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Nội dung chuyển khoản (Bắt buộc đúng):</div>
+                      <span style={{ fontWeight: 800, color: 'var(--primary)', letterSpacing: 0.5 }}>{qrModalData.paymentCode}</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(qrModalData.paymentCode, 'Nội dung')}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {copiedField === 'Nội dung' ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                      {copiedField === 'Nội dung' ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Số tài khoản nhận:</div>
+                      <span style={{ fontWeight: 800 }}>{qrModalData.bankAccount}</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(qrModalData.bankAccount, 'Số tài khoản')}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {copiedField === 'Số tài khoản' ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                      {copiedField === 'Số tài khoản' ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Ngân hàng & Chủ TK:</span>
+                    <span style={{ fontWeight: 600, textAlign: 'right' }}>
+                      {qrModalData.bankName} <br />
+                      <strong style={{ color: 'var(--text-primary)' }}>{qrModalData.accountHolder}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  💡 Gợi ý: Sau khi quét mã QR trên ứng dụng ngân hàng, số tiền và nội dung sẽ tự động điền sẵn.
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
