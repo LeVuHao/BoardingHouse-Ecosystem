@@ -19,4 +19,7 @@ public interface AuthClient {
 
     @PostMapping("/api/v1/auth/internal/audit-logs")
     ApiResponse<Object> createAuditLog(@RequestBody Map<String, String> body);
+
+    @org.springframework.web.bind.annotation.PutMapping("/api/v1/auth/internal/users/{id}/lock")
+    ApiResponse<Object> lockUserInternal(@org.springframework.web.bind.annotation.PathVariable("id") Long id);
 }

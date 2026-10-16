@@ -16,7 +16,7 @@ COPY notification-service/pom.xml notification-service/
 
 RUN mvn -pl common,property-rental-service -am package -DskipTests
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/property-rental-service/target/*.jar app.jar
 EXPOSE 8082
