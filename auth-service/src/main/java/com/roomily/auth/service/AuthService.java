@@ -86,11 +86,31 @@ public class AuthService {
         return com.roomily.auth.dto.response.LandlordRegistrationResponse.fromEntity(req);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${sepay.api-key:}")
+    private String sepayApiKey;
+
+    @org.springframework.beans.factory.annotation.Value("${sepay.webhook-token:}")
+    private String sepayWebhookToken;
+
     @Transactional
     public boolean processSepayWebhook(com.roomily.auth.dto.request.SepayWebhookRequest webhook) {
+        return processSepayWebhook(webhook, null);
+    }
+
+    @Transactional
+    public boolean processSepayWebhook(com.roomily.auth.dto.request.SepayWebhookRequest webhook, String authHeader) {
         if (webhook == null) return false;
-        
-        // Kiểm tra loại giao dịch: chỉ xử lý tiền vào (in) hoặc transferAmount > 0
+
+        // 1. Kiểm tra xác thực Webhook Token / API Key (nếu hệ thống có cấu hình)
+        String expectedKey = (sepayApiKey != null && !sepayApiKey.isBlank()) ? sepayApiKey : sepayWebhookToken;
+        if (expectedKey != null && !expectedKey.isBlank()) {
+            if (authHeader == null || (!authHeader.contains(expectedKey) && !authHeader.equalsIgnoreCase("Apikey " + expectedKey))) {
+                log.warn("[SePay Webhook] Từ chối webhook: Authorization header không khớp API Key! Header: {}", authHeader);
+                return false;
+            }
+        }
+
+        // 2. Kiểm tra loại giao dịch: chỉ xử lý tiền vào hoặc transferAmount > 0
         if (webhook.getTransferAmount() == null || webhook.getTransferAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             log.info("[SePay Webhook] Bỏ qua giao dịch không phải nạp tiền: {}", webhook);
             return false;
@@ -101,21 +121,38 @@ public class AuthService {
         String normalizedContent = content.replaceAll("[^A-Z0-9]", "");
         String normalizedCode = code.replaceAll("[^A-Z0-9]", "");
 
-        // Tìm kiếm tất cả đơn PENDING để đối soát nội dung
-        java.util.List<com.roomily.auth.entity.LandlordRegistrationRequest> pendingRequests = 
-                landlordRegistrationRequestRepository.findAll().stream()
-                        .filter(r -> "PENDING".equalsIgnoreCase(r.getStatus()))
-                        .collect(java.util.stream.Collectors.toList());
+        // 3. XỬ LÝ IDEMPOTENCY: Nếu đơn đã được APPROVED trước đó (SePay retry)
+        java.util.List<com.roomily.auth.entity.LandlordRegistrationRequest> allRequests =
+                landlordRegistrationRequestRepository.findAll();
 
-        com.roomily.auth.entity.LandlordRegistrationRequest matchedRequest = null;
-
-        for (com.roomily.auth.entity.LandlordRegistrationRequest req : pendingRequests) {
+        for (com.roomily.auth.entity.LandlordRegistrationRequest req : allRequests) {
             String pCode = req.getPaymentCode() != null ? req.getPaymentCode().toUpperCase() : "";
             String normalizedPCode = pCode.replaceAll("[^A-Z0-9]", "");
 
             if (!pCode.isBlank() && (
-                    content.contains(pCode) || 
-                    code.contains(pCode) || 
+                    content.contains(pCode) ||
+                    code.contains(pCode) ||
+                    (!normalizedPCode.isEmpty() && (normalizedContent.contains(normalizedPCode) || normalizedCode.contains(normalizedPCode)))
+            )) {
+                if ("APPROVED".equalsIgnoreCase(req.getStatus())) {
+                    log.info("[SePay Webhook] [Idempotent] Đơn đăng ký #{} (Mã {}) đã được kích hoạt trước đó. Xác nhận thành công để SePay không gửi lại.",
+                            req.getId(), req.getPaymentCode());
+                    return true;
+                }
+            }
+        }
+
+        // 4. Tìm kiếm đơn PENDING để đối soát nội dung
+        com.roomily.auth.entity.LandlordRegistrationRequest matchedRequest = null;
+        for (com.roomily.auth.entity.LandlordRegistrationRequest req : allRequests) {
+            if (!"PENDING".equalsIgnoreCase(req.getStatus())) continue;
+
+            String pCode = req.getPaymentCode() != null ? req.getPaymentCode().toUpperCase() : "";
+            String normalizedPCode = pCode.replaceAll("[^A-Z0-9]", "");
+
+            if (!pCode.isBlank() && (
+                    content.contains(pCode) ||
+                    code.contains(pCode) ||
                     (!normalizedPCode.isEmpty() && (normalizedContent.contains(normalizedPCode) || normalizedCode.contains(normalizedPCode)))
             )) {
                 matchedRequest = req;
@@ -128,10 +165,20 @@ public class AuthService {
             return false;
         }
 
+        // 5. ĐỐI SOÁT SỐ TIỀN: Chắc chắn tiền chuyển phải >= số tiền yêu cầu của đơn
+        if (matchedRequest.getAmount() != null && webhook.getTransferAmount().compareTo(matchedRequest.getAmount()) < 0) {
+            log.warn("[SePay Webhook] Số tiền thanh toán không đủ cho đơn ID {}: nhận được {} đ, yêu cầu {} đ",
+                    matchedRequest.getId(), webhook.getTransferAmount(), matchedRequest.getAmount());
+            matchedRequest.setAdminNote((matchedRequest.getAdminNote() != null ? matchedRequest.getAdminNote() + " | " : "")
+                    + "Cảnh báo thiếu tiền: Nhận " + webhook.getTransferAmount() + "đ (Yêu cầu " + matchedRequest.getAmount() + "đ)");
+            landlordRegistrationRequestRepository.save(matchedRequest);
+            return false;
+        }
+
         log.info("[SePay Webhook] Khớp đơn đăng ký ID: {}, Email: {}, Số tiền: {}", 
                 matchedRequest.getId(), matchedRequest.getEmail(), webhook.getTransferAmount());
 
-        // Kích hoạt User thành LANDLORD
+        // 6. Kích hoạt User thành LANDLORD
         String email = matchedRequest.getEmail().trim().toLowerCase();
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
@@ -161,7 +208,7 @@ public class AuthService {
         }
         userRepository.save(user);
 
-        // Cập nhật trạng thái đơn
+        // 7. Cập nhật trạng thái đơn
         matchedRequest.setStatus("APPROVED");
         matchedRequest.setPaymentStatus("PAID");
         matchedRequest.setAdminNote((matchedRequest.getAdminNote() != null ? matchedRequest.getAdminNote() + " | " : "") 

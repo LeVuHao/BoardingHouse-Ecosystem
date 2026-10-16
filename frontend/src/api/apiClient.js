@@ -69,11 +69,7 @@ export const billingApi = {
   createBill: (data) => api.post("/bills", data),
   updateBillStatus: (billId, status) =>
     api.patch(`/bills/${billId}/status?status=${status}`),
-  createBillPaymentUrl: (billId, amount) =>
-    api.post(`/payments/create-bill-payment-url/${billId}?amount=${amount}`),
-  // Public: xác nhận kết quả thanh toán VNPay trả về (dùng ở trang callback)
-  confirmVnpayCallback: (queryString) =>
-    api.get(`/payments/vnpay-callback${queryString}`),
+  getBillPaymentQr: (billId) => api.get(`/bills/${billId}/qr`),
 };
 
 export const notificationApi = {

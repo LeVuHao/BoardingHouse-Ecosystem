@@ -41,3 +41,10 @@ jwt:
 
 google:
   client-id: 620582122369-574d5epvj85faf8svrpen9gu7se796vu.apps.googleusercontent.com
+
+sepay:
+  api-key: ${SEPAY_API_KEY:}
+  webhook-token: ${SEPAY_WEBHOOK_TOKEN:}
+  bank-code: "BIDV"
+  bank-account: "96247160605"
+  account-holder: "LE VU HAO"

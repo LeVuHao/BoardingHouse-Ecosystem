@@ -63,12 +63,42 @@ const RegisterLandlord = () => {
 
       const responseData = res.data?.data || res.data;
       setSubmittedData(responseData);
+      if (responseData?.paymentCode) {
+        sessionStorage.setItem("roomily_landlord_request_code", responseData.paymentCode);
+      }
       toast.success("Đã tạo yêu cầu thành công! Vui lòng quét mã VietQR để hoàn tất nạp tiền.");
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "Đăng ký thất bại, vui lòng kiểm tra lại.";
       toast.error(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Khôi phục trạng thái đơn khi F5 / Refresh trang hoặc mở lại tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeFromUrl = urlParams.get("code");
+    const savedCode = codeFromUrl || sessionStorage.getItem("roomily_landlord_request_code");
+
+    if (savedCode && !submittedData) {
+      authApi.getLandlordRequestStatus(savedCode)
+        .then((res) => {
+          const data = res.data?.data || res.data;
+          if (data && data.paymentCode) {
+            setSubmittedData(data);
+          }
+        })
+        .catch(() => {
+          sessionStorage.removeItem("roomily_landlord_request_code");
+        });
+    }
+  }, []);
+
+  const handleResetApplication = () => {
+    if (window.confirm("Bạn có chắc muốn tạo lại đơn mới? Thông tin đơn hiện tại sẽ được đóng.")) {
+      sessionStorage.removeItem("roomily_landlord_request_code");
+      setSubmittedData(null);
     }
   };
 
@@ -83,6 +113,7 @@ const RegisterLandlord = () => {
           if (data && data.status !== submittedData.status) {
             setSubmittedData(data);
             if (data.status === "APPROVED") {
+              sessionStorage.removeItem("roomily_landlord_request_code");
               toast.success("🎉 Tiền đã vào tài khoản! Tài khoản Chủ trọ của bạn đã được kích hoạt thành công!");
             } else if (data.status === "REJECTED") {
               toast.error("Đơn đăng ký bị từ chối: " + (data.rejectionReason || "Không hợp lệ"));
@@ -106,11 +137,12 @@ const RegisterLandlord = () => {
       const data = res.data?.data || res.data;
       setSubmittedData(data);
       if (data.status === "APPROVED") {
+        sessionStorage.removeItem("roomily_landlord_request_code");
         toast.success("🎉 Tài khoản Chủ trọ của bạn đã được Admin phê duyệt kích hoạt! Bạn có thể đăng nhập ngay.");
       } else if (data.status === "REJECTED") {
         toast.error("Yêu cầu của bạn đã bị từ chối: " + (data.rejectionReason || "Chưa rõ lý do"));
       } else {
-        toast.info("Đơn đăng ký đang ở trạng thái: Chờ Admin phê duyệt đối soát.");
+        toast.info("Đơn đăng ký đang ở trạng thái: Chờ đối soát giao dịch chuyển khoản.");
       }
     } catch (err) {
       toast.error("Không kiểm tra được trạng thái lúc này.");
@@ -408,7 +440,27 @@ const RegisterLandlord = () => {
                     </h2>
                   </div>
 
-                  <div style={{ display: "flex", gap: 10 }}>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={handleResetApplication}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 14px",
+                        borderRadius: 10,
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-primary)",
+                        color: "var(--text-muted)",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: "pointer",
+                      }}
+                      title="Hủy đơn này để đăng ký lại"
+                    >
+                      Tạo đơn mới
+                    </button>
                     <button
                       onClick={checkPaymentStatus}
                       disabled={checkingStatus}

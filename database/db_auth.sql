@@ -56,6 +56,33 @@ CREATE TABLE verification_codes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
+-- Bảng landlord_registration_requests
+-- Lưu đơn đăng ký kích hoạt tài khoản Chủ trọ qua VietQR SePay & Offline
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS landlord_registration_requests (
+    id                  BIGINT          NOT NULL AUTO_INCREMENT,
+    full_name           VARCHAR(100)    NOT NULL,
+    email               VARCHAR(100)    NOT NULL,
+    phone_number        VARCHAR(20)     NOT NULL,
+    id_card_number      VARCHAR(30)     NULL,
+    desired_password    VARCHAR(255)    NULL,
+    amount              DECIMAL(15, 2)  NOT NULL DEFAULT 5000.00,
+    payment_code        VARCHAR(64)     NOT NULL,
+    payment_status      VARCHAR(30)     NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING | PAID | CANCELLED',
+    status              VARCHAR(30)     NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING | APPROVED | REJECTED',
+    admin_note          VARCHAR(500)    NULL,
+    rejection_reason    VARCHAR(500)    NULL,
+    channel             VARCHAR(20)     NOT NULL DEFAULT 'ONLINE_QR' COMMENT 'ONLINE_QR | OFFLINE_DIRECT',
+    created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_landlord_req_payment_code (payment_code),
+    INDEX idx_landlord_req_email (email),
+    INDEX idx_landlord_req_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
 -- Dữ liệu seed (Admin mặc định)
 -- Password: Admin@123 (BCrypt hash)
 -- ----------------------------
