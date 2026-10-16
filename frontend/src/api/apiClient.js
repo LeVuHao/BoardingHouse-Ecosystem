@@ -114,6 +114,16 @@ export const adminApi = {
   updateAmenity: (id, data) => api.put(`/admin/amenities/${id}`, data),
   getAmenity: (id) => api.get(`/admin/amenities/${id}`),
   deleteAmenity: (id) => api.delete(`/admin/amenities/${id}`),
+
+  // ===== Báo cáo vi phạm =====
+  getReports: (params) => api.get("/admin/reports", { params }),
+  getReportStats: () => api.get("/admin/reports/stats"),
+  getReportDetail: (id) => api.get(`/admin/reports/${id}`),
+  resolveReport: (id, data) => api.put(`/admin/reports/${id}/resolve`, data),
+};
+
+export const reportApi = {
+  createReport: (data) => api.post("/reports", data),
 };
 
 // Dữ liệu danh mục công khai (do Admin quản lý)

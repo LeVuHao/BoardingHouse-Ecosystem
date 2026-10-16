@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Clock, Plus, ChevronLeft, ChevronRight,
-  MessageCircle, Eye, Users, Zap, X, Search, Filter, RotateCcw,
-  Phone, Maximize2, Sparkles, ShieldCheck, SlidersHorizontal, LayoutGrid, List
+  MessageCircle, Eye, Users, Zap, FileText, X, Search, Filter, RotateCcw,
+  Phone, Maximize2, Sparkles, ShieldCheck, SlidersHorizontal, LayoutGrid, List, Layers, Flag
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -12,6 +12,7 @@ import { forumApi, rentalApi, unwrapApiData } from "../api/apiClient";
 import useAmenities from "../hooks/useAmenities";
 import MapView from "../components/MapView";
 import WishlistButton from "../components/WishlistButton";
+import ReportModal from "../components/ReportModal";
 
 const PAGE_SIZE = 6;
 const API_PAGE_SIZE = 100;
@@ -233,6 +234,7 @@ const Rooms = () => {
   const [rentalModalPost, setRentalModalPost] = useState(null);
   const [rentalForm, setRentalForm] = useState({ occupants: 1, moveInDate: "", note: "" });
   const [submittingRental, setSubmittingRental] = useState(false);
+  const [reportingItem, setReportingItem] = useState(null);
 
   // Modal Tìm Người Ở Ghép
   const [roommateModalPost, setRoommateModalPost] = useState(null);
@@ -1677,6 +1679,45 @@ const Rooms = () => {
                           Nhắn tin
                         </Link>
                         
+                        {/* 5. Yêu thích */}
+                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }} showText={false} />
+
+                        {/* 6. Báo cáo vi phạm */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!user) {
+                              navigate("/login");
+                              return;
+                            }
+                            setReportingItem({ id: post.id, title: post.title });
+                          }}
+                          style={{
+                            padding: "8px",
+                            borderRadius: "8px",
+                            border: "1px solid var(--border-color)",
+                            background: "var(--bg-card)",
+                            color: "var(--text-secondary)",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "all 0.2s"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = "#EF4444";
+                            e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "var(--text-secondary)";
+                            e.currentTarget.style.borderColor = "var(--border-color)";
+                            e.currentTarget.style.background = "var(--bg-card)";
+                          }}
+                          title="Báo cáo tin vi phạm / không đúng sự thật"
+                        >
+                          <Flag size={14} />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -2327,6 +2368,17 @@ const Rooms = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Report Modal */}
+      {reportingItem && (
+        <ReportModal
+          isOpen={Boolean(reportingItem)}
+          onClose={() => setReportingItem(null)}
+          targetType="ROOM"
+          targetId={reportingItem.id}
+          targetTitle={reportingItem.title}
+        />
       )}
     </div>
   );

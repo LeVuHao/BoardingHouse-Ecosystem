@@ -27,6 +27,7 @@ public class InternalUserController {
 
     private final UserRepository userRepository;
     private final com.roomily.auth.service.AuditLogService auditLogService;
+    private final com.roomily.auth.service.AdminService adminService;
 
     @GetMapping("/users/batch")
     public ResponseEntity<ApiResponse<List<UserSummaryResponse>>> getUsersByIds(
@@ -42,5 +43,12 @@ public class InternalUserController {
     public ResponseEntity<ApiResponse<Object>> createAuditLog(@RequestBody Map<String, String> body) {
         auditLogService.record(body.get("adminEmail"), body.get("action"), body.get("details"), body.get("ipAddress"));
         return ResponseEntity.ok(ApiResponse.success("OK", null));
+    }
+
+    /** Khóa tài khoản người dùng vi phạm từ các dịch vụ nội bộ (ví dụ xử lý báo cáo vi phạm) */
+    @org.springframework.web.bind.annotation.PutMapping("/users/{id}/lock")
+    public ResponseEntity<ApiResponse<Object>> lockUserInternal(@org.springframework.web.bind.annotation.PathVariable Long id) {
+        adminService.lockUser(id);
+        return ResponseEntity.ok(ApiResponse.success("Đã khóa tài khoản thành công", null));
     }
 }
