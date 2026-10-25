@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -81,6 +83,22 @@ public class RoomController {
             @RequestBody AddRoomImagesRequest req) {
         List<String> images = propertyService.addRoomImages(landlordId, id, req.getImageUrls());
         return ResponseEntity.ok(ApiResponse.success("Thêm ảnh phòng thành công", images));
+    }
+
+    // [HUY] Tải file ảnh trực tiếp cho phòng
+    @PostMapping(value = "/{id}/upload-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<List<String>>> uploadRoomImages(
+            @RequestHeader("X-User-Id") Long landlordId,
+            @RequestHeader(value = "X-User-Email", required = false) String userEmail,
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @RequestParam("files") List<MultipartFile> files) {
+        List<String> images = propertyService.uploadRoomImages(landlordId, id, files);
+        auditLogger.log(userEmail != null && !userEmail.isBlank() ? userEmail : "Chủ trọ #" + landlordId,
+                AdminGuard.clientIp(request),
+                "LANDLORD_UPLOAD_ROOM_IMAGES",
+                "Chủ trọ đã tải lên " + (files != null ? files.size() : 0) + " ảnh cho phòng #" + id);
+        return ResponseEntity.ok(ApiResponse.success("Tải ảnh phòng lên thành công", images));
     }
 
     @GetMapping("/search")

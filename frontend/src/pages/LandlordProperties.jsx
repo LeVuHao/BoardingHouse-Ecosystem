@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { propertyApi, rentalApi, contractApi, billingApi } from '../api/apiClient';
-import { Plus, Home, Eye, Check, X, Edit2, Image, Building, TrendingUp, Users, CheckCircle2, Sparkles, FileText, Trash2, Receipt, Zap, Droplet, CalendarDays, Wallet } from 'lucide-react';
+import { Plus, Home, Eye, Check, X, Edit2, Image, Building, TrendingUp, Users, CheckCircle2, Sparkles, FileText, Trash2, Receipt, Zap, Droplet, CalendarDays, Wallet, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AmenityPicker from '../components/AmenityPicker';
 import RoomLocationPicker from '../components/RoomLocationPicker';
@@ -34,6 +34,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   const [area, setArea] = useState('');
   const [capacity, setCapacity] = useState('2');
   const [imageUrl, setImageUrl] = useState('');
+  const [createRoomFiles, setCreateRoomFiles] = useState([]);
 
   // Edit Room form
   const [editRoomNumber, setEditRoomNumber] = useState('');
@@ -42,6 +43,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   const [editCapacity, setEditCapacity] = useState('');
   const [editStatus, setEditStatus] = useState('');
   const [addImageUrl, setAddImageUrl] = useState('');
+  const [editRoomFiles, setEditRoomFiles] = useState([]);
 
   // Requests
   const [selectedRoomId, setSelectedRoomId] = useState(null);
@@ -194,7 +196,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   const handleAddRoom = async (e) => {
     e.preventDefault();
     try {
-      await propertyApi.createRoom({
+      const res = await propertyApi.createRoom({
         propertyId: selectedProperty.id,
         roomNumber,
         price: Number(price),
@@ -202,12 +204,20 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
         capacity: Number(capacity),
         imageUrls: imageUrl ? [imageUrl] : []
       });
-      alert('Thêm phòng thành công!');
+      const newRoomId = res.data?.data?.id || res.data?.id;
+      if (createRoomFiles && createRoomFiles.length > 0 && newRoomId) {
+        const formData = new FormData();
+        for (let i = 0; i < createRoomFiles.length; i++) {
+          formData.append('files', createRoomFiles[i]);
+        }
+        await propertyApi.uploadRoomImages(newRoomId, formData);
+      }
+      toast.success('Thêm phòng trọ mới thành công!');
       setShowAddRoom(false);
       resetRoomForm();
       handleSelectProperty(selectedProperty);
     } catch (err) {
-      alert(err.message || 'Lỗi thêm phòng');
+      toast.error(err.message || 'Lỗi thêm phòng');
     }
   };
 
@@ -219,6 +229,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
     setEditCapacity(room.capacity);
     setEditStatus(room.status);
     setAddImageUrl('');
+    setEditRoomFiles([]);
     setShowEditRoom(true);
   };
 
@@ -235,11 +246,18 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
       if (addImageUrl) {
         await propertyApi.addRoomImages(editingRoom.id, { imageUrls: [addImageUrl] });
       }
-      alert('Cập nhật phòng thành công!');
+      if (editRoomFiles && editRoomFiles.length > 0) {
+        const formData = new FormData();
+        for (let i = 0; i < editRoomFiles.length; i++) {
+          formData.append('files', editRoomFiles[i]);
+        }
+        await propertyApi.uploadRoomImages(editingRoom.id, formData);
+      }
+      toast.success('Cập nhật phòng thành công!');
       setShowEditRoom(false);
       handleSelectProperty(selectedProperty);
     } catch (err) {
-      alert(err.message || 'Lỗi cập nhật phòng');
+      toast.error(err.message || 'Lỗi cập nhật phòng');
     }
   };
 
@@ -317,7 +335,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   };
 
   const resetRoomForm = () => {
-    setRoomNumber(''); setPrice(''); setArea(''); setCapacity('2'); setImageUrl('');
+    setRoomNumber(''); setPrice(''); setArea(''); setCapacity('2'); setImageUrl(''); setCreateRoomFiles([]);
   };
 
   const statusColor = (status) => ({
@@ -738,8 +756,23 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Sức chứa tối đa (người)</label>
                 <input type="number" required value={capacity} onChange={(e) => setCapacity(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}><UploadCloud size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tải ảnh trực tiếp từ máy (PNG, JPG, WEBP)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setCreateRoomFiles(Array.from(e.target.files || []))}
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1.5px dashed var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '13px' }}
+                />
+                {createRoomFiles.length > 0 && (
+                  <small style={{ color: '#10b981', display: 'block', marginTop: '4px' }}>
+                    ✓ Đã chọn {createRoomFiles.length} file ảnh
+                  </small>
+                )}
+              </div>
               <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Link ảnh phòng</label>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Hoặc link ảnh phòng (URL)</label>
                 <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
@@ -782,8 +815,23 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
                   <option value="MAINTENANCE">Bảo trì</option>
                 </select>
               </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}><UploadCloud size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tải ảnh mới từ máy (PNG, JPG, WEBP)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setEditRoomFiles(Array.from(e.target.files || []))}
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1.5px dashed var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '13px' }}
+                />
+                {editRoomFiles.length > 0 && (
+                  <small style={{ color: '#10b981', display: 'block', marginTop: '4px' }}>
+                    ✓ Đã chọn {editRoomFiles.length} file ảnh tải lên thêm
+                  </small>
+                )}
+              </div>
               <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Thêm ảnh mới (URL)</label>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}><Image size={14} style={{ display: 'inline', marginRight: '4px' }} /> Hoặc thêm link ảnh mới (URL)</label>
                 <input value={addImageUrl} onChange={(e) => setAddImageUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>

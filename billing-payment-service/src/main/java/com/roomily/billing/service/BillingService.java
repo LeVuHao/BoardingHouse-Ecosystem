@@ -44,7 +44,7 @@ public class BillingService {
     @Value("${sepay.bank-code:BIDV}")
     private String bankCode;
 
-    @Value("${sepay.bank-account:96247160605}")
+    @Value("${sepay.bank-account:8890014407}")
     private String bankAccount;
 
     @Value("${sepay.account-holder:LE VU HAO}")

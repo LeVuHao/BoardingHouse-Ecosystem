@@ -131,4 +131,19 @@ public class RentalController {
         Map<String, Object> res = joinRequestService.approveJoinRequestWithLock(id, landlordId);
         return ResponseEntity.ok(ApiResponse.success(res));
     }
+
+    @PostMapping("/posts/requests/{id}/reject")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> rejectJoinRequest(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long landlordId) {
+        JoinRequestResponse res = joinRequestService.rejectJoinRequest(id, landlordId);
+        return ResponseEntity.ok(ApiResponse.success("Đã từ chối yêu cầu ở ghép", res));
+    }
+
+    @GetMapping("/posts/my-join-requests")
+    public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getMyJoinRequests(
+            @RequestHeader("X-User-Id") Long userId) {
+        List<JoinRequestResponse> list = joinRequestService.getMyJoinRequests(userId);
+        return ResponseEntity.ok(ApiResponse.success(list));
+    }
 }

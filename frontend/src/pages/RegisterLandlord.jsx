@@ -510,8 +510,12 @@ const RegisterLandlord = () => {
                     </div>
                     <div style={{ background: "#FFFFFF", padding: 12, borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: "1px solid var(--border)" }}>
                       <img
-                        src={submittedData.qrImageUrl}
-                        alt="VietQR SePay"
+                        src={submittedData.qrImageUrl || "/qr_bidv_admin.png"}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/qr_bidv_admin.png";
+                        }}
+                        alt="VietQR BIDV LE VU HAO"
                         style={{ width: 280, height: 280, objectFit: "contain", display: "block" }}
                       />
                     </div>
@@ -529,21 +533,21 @@ const RegisterLandlord = () => {
                     <div style={{ background: "var(--bg-primary)", borderRadius: 14, padding: "14px 18px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Ngân hàng thụ hưởng</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{submittedData.bankName}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{submittedData.bankName || "BIDV (PGD Phù Cát)"}</div>
                       </div>
                       <span style={{ background: "var(--primary-light)", color: "var(--primary)", padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>BIDV</span>
                     </div>
 
                     <div style={{ background: "var(--bg-primary)", borderRadius: 14, padding: "14px 18px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Số tài khoản</div>
-                        <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", letterSpacing: 0.5 }}>{submittedData.bankAccount}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Số tài khoản / Mã ID QR</div>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", letterSpacing: 0.5 }}>{submittedData.bankAccount || "8890014407"}</div>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(submittedData.bankAccount, "Số tài khoản")}
+                        onClick={() => copyToClipboard(submittedData.bankAccount || "8890014407", "Số tài khoản / Mã ID QR")}
                         style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                       >
-                        <Copy size={13} /> {copiedField === "Số tài khoản" ? "Đã chép" : "Sao chép"}
+                        <Copy size={13} /> {copiedField === "Số tài khoản / Mã ID QR" ? "Đã chép" : "Sao chép"}
                       </button>
                     </div>
 

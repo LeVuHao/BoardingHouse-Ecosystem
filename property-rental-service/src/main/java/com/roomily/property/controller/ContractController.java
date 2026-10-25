@@ -38,4 +38,14 @@ public class ContractController {
         ContractResponse res = contractService.getContractDetail(id);
         return ResponseEntity.ok(ApiResponse.success(res));
     }
+
+    // Thanh lý / Chấm dứt hợp đồng khi khách trả phòng
+    @PutMapping("/{id}/terminate")
+    public ResponseEntity<ApiResponse<ContractResponse>> terminateContract(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        ContractResponse res = contractService.terminateContract(id, userId, userRole);
+        return ResponseEntity.ok(ApiResponse.success("Thanh lý hợp đồng thành công! Phòng đã được cập nhật số chỗ trống.", res));
+    }
 }

@@ -182,4 +182,43 @@ public class JoinRequestService {
         response.put("capacity", room.getCapacity());
         return response;
     }
+
+    @Transactional
+    public JoinRequestResponse rejectJoinRequest(Long requestId, Long landlordUserId) {
+        JoinRequest joinRequest = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu ở ghép"));
+
+        RoommatePost post = joinRequest.getPost();
+        Room room = roomRepository.findById(post.getRoomId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin phòng"));
+
+        boolean isLandlord = room.getProperty().getLandlordId().equals(landlordUserId);
+        boolean isCreator = post.getCreatorId().equals(landlordUserId);
+        if (!isLandlord && !isCreator) {
+            throw new BadRequestException("Bạn không có quyền từ chối yêu cầu cho phòng này");
+        }
+
+        joinRequest.setStatus("REJECTED");
+        JoinRequest saved = joinRequestRepository.save(joinRequest);
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("userId", joinRequest.getUserId());
+        event.put("title", "Yêu cầu ở ghép bị từ chối");
+        event.put("content", "Rất tiếc, yêu cầu tham gia ở ghép phòng " + room.getRoomNumber() + " của bạn đã bị từ chối.");
+        event.put("type", "JOIN_REJECTED");
+        event.put("referenceId", joinRequest.getId());
+        try {
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "join.rejected", event);
+        } catch (Exception ex) {
+            log.error("Failed to publish join rejected notification event: {}", ex.getMessage());
+        }
+
+        return JoinRequestResponse.fromEntity(saved);
+    }
+
+    public List<JoinRequestResponse> getMyJoinRequests(Long userId) {
+        return joinRequestRepository.findByUserId(userId).stream()
+                .map(JoinRequestResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 }

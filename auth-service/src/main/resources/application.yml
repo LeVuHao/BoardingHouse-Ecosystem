@@ -46,5 +46,5 @@ sepay:
   api-key: ${SEPAY_API_KEY:}
   webhook-token: ${SEPAY_WEBHOOK_TOKEN:}
   bank-code: "BIDV"
-  bank-account: "96247160605"
+  bank-account: "8890014407"
   account-holder: "LE VU HAO"

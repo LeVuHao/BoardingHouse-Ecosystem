@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { billingApi } from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Receipt, Home, Zap, Droplet, PlusCircle, CalendarClock,
-  CheckCircle, AlertCircle, QrCode, Copy, Check, RefreshCw, X, Sparkles
+  CheckCircle, AlertCircle, QrCode, Copy, Check, RefreshCw, X, Sparkles, Printer
 } from 'lucide-react';
 
 const money = (n) => (Number(n) || 0).toLocaleString('vi-VN') + ' đ';
 
 const MyBills = () => {
+  const { user } = useAuth();
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -17,6 +19,289 @@ const MyBills = () => {
   const [qrModalData, setQrModalData] = useState(null);
   const [loadingQrId, setLoadingQrId] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
+
+  // In hóa đơn / biên lai A4 chuyên nghiệp
+  const handlePrintInvoice = (bill) => {
+    const isPaid = bill.status === 'PAID';
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Trình duyệt đã chặn popup. Vui lòng cho phép popup để in biên lai!');
+      return;
+    }
+
+    const tenantName = user?.fullName || 'Khách thuê trọ (ID #' + (bill.tenantId || '') + ')';
+    const tenantPhone = user?.phoneNumber || 'Đã liên kết tài khoản';
+    const printDate = new Date().toLocaleDateString('vi-VN');
+    const createdDate = bill.createdAt ? new Date(bill.createdAt).toLocaleDateString('vi-VN') : printDate;
+    const dueDate = bill.dueDate ? new Date(bill.dueDate).toLocaleDateString('vi-VN') : 'Theo thỏa thuận';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Biên Lai Thu Tiền Trọ - #BILL-${bill.id}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm;
+          }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #111;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+            font-size: 13.5pt;
+            line-height: 1.5;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+          }
+          .brand {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #2563eb;
+            letter-spacing: -0.5px;
+          }
+          .brand-sub {
+            font-size: 10pt;
+            color: #64748b;
+            font-family: sans-serif;
+          }
+          .receipt-title {
+            text-align: center;
+            margin: 25px 0 15px;
+          }
+          .receipt-title h1 {
+            font-size: 22pt;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+            color: #0f172a;
+          }
+          .receipt-title p {
+            font-size: 11pt;
+            color: #475569;
+            font-style: italic;
+            margin: 4px 0 0;
+          }
+          .meta-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+            font-size: 11pt;
+          }
+          .meta-info div { margin-bottom: 3px; }
+          table.billing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+          }
+          table.billing-table th, table.billing-table td {
+            border: 1px solid #cbd5e1;
+            padding: 10px 14px;
+            text-align: left;
+          }
+          table.billing-table th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            font-size: 11.5pt;
+          }
+          table.billing-table .text-right {
+            text-align: right;
+          }
+          table.billing-table .total-row td {
+            font-size: 13pt;
+            font-weight: bold;
+            background-color: #eff6ff;
+            color: #1e3a8a;
+          }
+          .status-stamp {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 10.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .stamp-paid {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1.5px solid #22c55e;
+          }
+          .stamp-unpaid {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1.5px solid #f59e0b;
+          }
+          .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            margin-top: 40px;
+            page-break-inside: avoid;
+          }
+          .sig-box {
+            font-size: 12pt;
+          }
+          .sig-box em {
+            font-size: 10pt;
+            color: #64748b;
+          }
+          .sig-space {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .watermark-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border: 1.5px dashed #22c55e;
+            color: #16a34a;
+            font-weight: bold;
+            font-size: 10pt;
+            border-radius: 4px;
+            transform: rotate(-5deg);
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand">ROOMILY ECOSYSTEM</div>
+            <div class="brand-sub">Hệ thống Quản lý & Thuê trọ Thông minh</div>
+          </div>
+          <div style="text-align: right; font-size: 10pt; color: #475569;">
+            <div>Hotline hỗ trợ: 1900 8890</div>
+            <div>Hệ sinh thái Quản lý Nhà trọ Roomily</div>
+          </div>
+        </div>
+
+        <div class="receipt-title">
+          <h1>PHIẾU BÁO CƯỚC & BIÊN LAI TIỀN TRỌ</h1>
+          <p>Mã hóa đơn: #BILL-${bill.id} • Kỳ thu cước: Tháng ${bill.monthYear}</p>
+        </div>
+
+        <div class="meta-info">
+          <div>
+            <div><strong>Khách thuê:</strong> ${tenantName}</div>
+            <div><strong>Điện thoại:</strong> ${tenantPhone}</div>
+            <div><strong>Phòng số:</strong> Phòng #${bill.roomId || 'N/A'} (Hợp đồng: #${bill.contractId || 'N/A'})</div>
+          </div>
+          <div>
+            <div><strong>Ngày phát hành:</strong> ${createdDate}</div>
+            <div><strong>Hạn thanh toán:</strong> ${dueDate}</div>
+            <div>
+              <strong>Trạng thái: </strong>
+              <span class="status-stamp ${isPaid ? 'stamp-paid' : 'stamp-unpaid'}">
+                ${isPaid ? '✓ ĐÃ THANH TOÁN' : '⏳ CHƯA THANH TOÁN'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <table class="billing-table">
+          <thead>
+            <tr>
+              <th style="width: 8%; text-align: center;">STT</th>
+              <th>Danh mục chi phí</th>
+              <th style="width: 28%;">Kỳ hạn / Ghi chú</th>
+              <th class="text-right" style="width: 25%;">Thành tiền (VNĐ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align: center;">1</td>
+              <td><strong>Tiền thuê phòng trọ</strong></td>
+              <td>Kỳ tháng ${bill.monthYear}</td>
+              <td class="text-right"><strong>${money(bill.roomAmount)}</strong></td>
+            </tr>
+            <tr>
+              <td style="text-align: center;">2</td>
+              <td><strong>Tiền điện sinh hoạt</strong></td>
+              <td>Theo công tơ đo đếm</td>
+              <td class="text-right"><strong>${money(bill.electricityAmount)}</strong></td>
+            </tr>
+            <tr>
+              <td style="text-align: center;">3</td>
+              <td><strong>Tiền nước sinh hoạt</strong></td>
+              <td>Theo chỉ số thực tế / định mức</td>
+              <td class="text-right"><strong>${money(bill.waterAmount)}</strong></td>
+            </tr>
+            ${Number(bill.otherAmount) > 0 ? `
+            <tr>
+              <td style="text-align: center;">4</td>
+              <td><strong>Phí dịch vụ khác</strong></td>
+              <td>Rác thải, vệ sinh, wifi</td>
+              <td class="text-right"><strong>${money(bill.otherAmount)}</strong></td>
+            </tr>
+            ` : ''}
+            <tr class="total-row">
+              <td colspan="3" style="text-align: right; padding-right: 15px;">TỔNG CỘNG THANH TOÁN:</td>
+              <td class="text-right">${money(bill.totalAmount)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-size: 10.5pt; color: #334155; margin-bottom: 25px;">
+          <em>* Ghi chú: Biên lai có giá trị xác nhận nghĩa vụ tài chính giữa Khách thuê và Bên cho thuê trên nền tảng Roomily.</em>
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <strong>NGƯỜI THUÊ PHÒNG</strong><br/>
+            <em>(Ký, ghi rõ họ tên)</em>
+            <div class="sig-space">
+              ${isPaid ? '<span class="watermark-badge">✓ XÁC NHẬN NỘP TIỀN</span>' : ''}
+            </div>
+            <strong>${tenantName}</strong>
+          </div>
+          <div class="sig-box">
+            <strong>ĐẠI DIỆN CHỦ TRỌ / QUẢN LÝ</strong><br/>
+            <em>(Ký, ghi rõ họ tên)</em>
+            <div class="sig-space">
+              <span class="watermark-badge" style="border-color: #2563eb; color: #2563eb;">✓ ROOMILY SYSTEM VERIFIED</span>
+            </div>
+            <strong>Hệ thống Roomily Ecosystem</strong>
+          </div>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+          <button onclick="window.print()" style="padding: 12px 28px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;">
+            🖨️ Nhấn vào đây để In biên lai hoặc Lưu file PDF (A4)
+          </button>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 
   const loadBills = async () => {
     try {
@@ -281,16 +566,44 @@ const MyBills = () => {
                   )}
                 </div>
 
-                {!isPaid && (
+                <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
                   <button
-                    onClick={() => handleOpenPayModal(bill)}
-                    disabled={loadingQrId === bill.id}
-                    className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700 }}
+                    onClick={() => handlePrintInvoice(bill)}
+                    className="btn btn-outline"
+                    style={{
+                      flex: isPaid ? 1 : '0 0 auto',
+                      padding: '0.65rem 0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                      fontSize: '0.85rem'
+                    }}
+                    title="In biên lai A4 hoặc xuất file PDF"
                   >
-                    <QrCode size={18} /> {loadingQrId === bill.id ? 'Đang tạo mã QR...' : 'Thanh toán VietQR SePay'}
+                    <Printer size={16} /> In biên lai
                   </button>
-                )}
+
+                  {!isPaid && (
+                    <button
+                      onClick={() => handleOpenPayModal(bill)}
+                      disabled={loadingQrId === bill.id}
+                      className="btn btn-primary"
+                      style={{
+                        flex: 1,
+                        padding: '0.65rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.4rem',
+                        fontWeight: 700,
+                        fontSize: '0.88rem'
+                      }}
+                    >
+                      <QrCode size={16} /> {loadingQrId === bill.id ? 'Tạo QR...' : 'Thanh toán QR'}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -393,13 +706,36 @@ const MyBills = () => {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', maxWidth: 380, margin: '0 auto 24px' }}>
                   Hóa đơn kỳ tháng <strong>{qrModalData.monthYear}</strong> với số tiền <strong>{money(qrModalData.amount)}</strong> đã được ghi nhận. Chủ trọ cũng đã nhận được thông báo.
                 </p>
-                <button
-                  onClick={() => setQrModalData(null)}
-                  className="btn btn-primary"
-                  style={{ padding: '10px 32px', fontWeight: 700 }}
-                >
-                  Đóng & Hoàn tất
-                </button>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => {
+                      if (qrModalData.originalBill) {
+                        handlePrintInvoice({ ...qrModalData.originalBill, status: 'PAID' });
+                      } else {
+                        handlePrintInvoice({
+                          id: qrModalData.billId,
+                          monthYear: qrModalData.monthYear,
+                          totalAmount: qrModalData.amount,
+                          roomAmount: qrModalData.amount,
+                          electricityAmount: 0,
+                          waterAmount: 0,
+                          status: 'PAID'
+                        });
+                      }
+                    }}
+                    className="btn btn-outline"
+                    style={{ padding: '10px 20px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Printer size={16} /> In biên lai
+                  </button>
+                  <button
+                    onClick={() => setQrModalData(null)}
+                    className="btn btn-primary"
+                    style={{ padding: '10px 28px', fontWeight: 700 }}
+                  >
+                    Đóng & Hoàn tất
+                  </button>
+                </div>
               </div>
             ) : (
               /* Payment QR State */

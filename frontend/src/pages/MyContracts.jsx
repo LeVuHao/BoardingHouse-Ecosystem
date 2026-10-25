@@ -249,6 +249,20 @@ const MyContracts = ({ embedded = false }) => {
     }
   };
 
+  // Trả phòng / Thanh lý hợp đồng
+  const handleTerminateContract = async (contractId) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xác nhận trả phòng và thanh lý hợp đồng #HD-${contractId}? Hệ thống sẽ cập nhật lại số chỗ trống của phòng.`)) {
+      return;
+    }
+    try {
+      await contractApi.terminateContract(contractId);
+      toast.success('Đã thanh lý hợp đồng và hoàn tất trả phòng thành công! ✨');
+      fetchContracts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Lỗi khi thanh lý hợp đồng');
+    }
+  };
+
   if (loading) {
     return (
       <div className="page-shell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -385,15 +399,15 @@ const MyContracts = ({ embedded = false }) => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: 'rgba(16, 185, 129, 0.15)',
-                        color: '#10b981',
+                        background: c.status === 'TERMINATED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                        color: c.status === 'TERMINATED' ? '#ef4444' : '#10b981',
                         padding: '5px 12px',
                         borderRadius: '9999px',
                         fontSize: '0.82rem',
                         fontWeight: '800'
                       }}>
                         <CheckCircle2 size={15} />
-                        HỢP ĐỒNG ĐÃ KÍCH HOẠT (ACTIVE)
+                        {c.status === 'TERMINATED' ? 'ĐÃ THANH LÝ / TRẢ PHÒNG' : 'HỢP ĐỒNG ĐÃ KÍCH HOẠT (ACTIVE)'}
                       </span>
                       <span style={{
                         display: 'inline-flex',
@@ -414,7 +428,7 @@ const MyContracts = ({ embedded = false }) => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      {user?.role !== 'LANDLORD' && (
+                      {user?.role !== 'LANDLORD' && c.status !== 'TERMINATED' && (
                         <Link
                           to={`/maintenance-tickets?roomId=${c.roomId}`}
                           className="btn btn-outline"
@@ -439,14 +453,26 @@ const MyContracts = ({ embedded = false }) => {
                       >
                         <FileText size={14} /> Xem Hợp đồng điện tử
                       </button>
-                      {user?.role === 'LANDLORD' ? (
-                        <Link
-                          to="/landlord/create-bill"
-                          className="btn btn-primary"
-                          style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
+                      {c.status !== 'TERMINATED' && (
+                        <button
+                          onClick={() => handleTerminateContract(c.id)}
+                          className="btn btn-outline"
+                          style={{ padding: '6px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.08)', fontWeight: 700 }}
+                          title="Xác nhận trả phòng và thanh lý hợp đồng"
                         >
-                          <Receipt size={14} /> Tạo hóa đơn
-                        </Link>
+                          Trả phòng / Thanh lý
+                        </button>
+                      )}
+                      {user?.role === 'LANDLORD' ? (
+                        c.status !== 'TERMINATED' && (
+                          <Link
+                            to="/landlord/create-bill"
+                            className="btn btn-primary"
+                            style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
+                          >
+                            <Receipt size={14} /> Tạo hóa đơn
+                          </Link>
+                        )
                       ) : (
                         <Link
                           to="/my-bills"

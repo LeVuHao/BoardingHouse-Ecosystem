@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { rentalApi, contractApi } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, Plus, Eye, Check, Search, Filter, Home, Sparkles } from 'lucide-react';
+import { UserPlus, Plus, Eye, Check, Search, Filter, Home, Sparkles, X, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const money = (n) => (Number(n) || 0).toLocaleString('vi-VN') + ' đ';
@@ -37,6 +37,11 @@ const Roommates = () => {
   const [viewRequestsPost, setViewRequestsPost] = useState(null);
   const [joinRequests, setJoinRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+
+  // Modal Đơn xin ở ghép của tôi (User)
+  const [showMyRequestsModal, setShowMyRequestsModal] = useState(false);
+  const [myJoinRequests, setMyJoinRequests] = useState([]);
+  const [loadingMyRequests, setLoadingMyRequests] = useState(false);
 
   const fetchPosts = async () => {
     setLoadingPosts(true);
@@ -160,6 +165,32 @@ const Roommates = () => {
     }
   };
 
+  const handleRejectJoin = async (requestId) => {
+    try {
+      await rentalApi.rejectJoinRequest(requestId);
+      toast.success('Đã từ chối yêu cầu ở ghép');
+      if (viewRequestsPost) {
+        handleViewJoinRequests(viewRequestsPost);
+      }
+      fetchPosts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Lỗi khi từ chối yêu cầu');
+    }
+  };
+
+  const handleOpenMyRequests = async () => {
+    setShowMyRequestsModal(true);
+    setLoadingMyRequests(true);
+    try {
+      const res = await rentalApi.getMyJoinRequests();
+      setMyJoinRequests(res.data || []);
+    } catch {
+      toast.error('Không thể tải danh sách đơn ở ghép của bạn');
+    } finally {
+      setLoadingMyRequests(false);
+    }
+  };
+
   const filteredPosts = posts.filter((p) => {
     if (!searchKeyword.trim()) return true;
     const q = searchKeyword.toLowerCase();
@@ -181,9 +212,20 @@ const Roommates = () => {
             Kết nối những người bạn cùng phòng văn minh, chia sẻ chi phí sinh hoạt an toàn & tiện lợi
           </p>
         </div>
-        <button onClick={handleOpenCreateModal} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-          <Plus size={18} /> Đăng bài tìm bạn
-        </button>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {user && (
+            <button
+              onClick={handleOpenMyRequests}
+              className="btn btn-outline"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+            >
+              <UserPlus size={18} /> Đơn xin ở ghép của tôi
+            </button>
+          )}
+          <button onClick={handleOpenCreateModal} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+            <Plus size={18} /> Đăng bài tìm bạn
+          </button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
@@ -395,13 +437,22 @@ const Roommates = () => {
                     </div>
 
                     {req.status === 'PENDING' && isLandlord && (
-                      <button
-                        onClick={() => handleApproveJoin(req.id)}
-                        className="btn btn-primary"
-                        style={{ padding: '6px 14px', fontSize: '0.85rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Check size={14} /> Duyệt (Redis Lock)
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button
+                          onClick={() => handleRejectJoin(req.id)}
+                          className="btn btn-outline"
+                          style={{ padding: '6px 12px', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', borderColor: '#ef4444', color: '#ef4444' }}
+                        >
+                          <X size={14} /> Từ chối
+                        </button>
+                        <button
+                          onClick={() => handleApproveJoin(req.id)}
+                          className="btn btn-primary"
+                          style={{ padding: '6px 14px', fontSize: '0.85rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Check size={14} /> Duyệt (Redis Lock)
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -515,6 +566,81 @@ const Roommates = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ĐƠN XIN Ở GHÉP CỦA TÔI */}
+      {showMyRequestsModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: '20px', maxWidth: '600px', width: '100%', padding: '26px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserPlus size={20} className="text-primary" /> Đơn xin ở ghép của tôi
+              </h3>
+              <button onClick={() => setShowMyRequestsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {loadingMyRequests ? (
+              <p style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>Đang tải đơn của bạn...</p>
+            ) : myJoinRequests.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: '28px', color: 'var(--text-muted)', background: 'var(--bg-primary)', borderRadius: '12px' }}>
+                Bạn chưa gửi yêu cầu xin ở ghép nào. Hãy duyệt danh sách bài đăng và gửi đơn nhé!
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '380px', overflowY: 'auto' }}>
+                {myJoinRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    style={{
+                      padding: '14px 16px',
+                      background: 'var(--bg-primary)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        {req.postTitle || `Bài đăng ở ghép #${req.postId}`}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: '8px',
+                          background: req.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : req.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: req.status === 'APPROVED' ? '#10b981' : req.status === 'REJECTED' ? '#ef4444' : '#f59e0b',
+                        }}
+                      >
+                        {req.status === 'APPROVED' ? '✓ ĐÃ ĐƯỢC DUYỆT' : req.status === 'REJECTED' ? '✕ ĐÃ BỊ TỪ CHỐI' : '⏳ ĐANG CHỜ DUYỆT'}
+                      </span>
+                    </div>
+                    {req.roomId && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                        Phòng ID: {req.roomId}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      Lời nhắn của bạn: <em>"{req.introduction || 'Không có lời nhắn'}"</em>
+                    </div>
+                    {req.createdAt && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={12} /> {new Date(req.createdAt).toLocaleString('vi-VN')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '18px' }}>
+              <button onClick={() => setShowMyRequestsModal(false)} className="btn btn-outline" style={{ padding: '8px 20px' }}>
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -36,6 +36,10 @@ export const propertyApi = {
   updateRoom: (id, data) => api.put(`/rooms/${id}`, data),
   deleteRoom: (id) => api.delete(`/rooms/${id}`),
   addRoomImages: (id, data) => api.post(`/rooms/${id}/images`, data),
+  uploadRoomImages: (id, formData) =>
+    api.post(`/rooms/${id}/upload-images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const rentalApi = {
@@ -54,6 +58,8 @@ export const rentalApi = {
     api.post(`/rental/posts/${postId}/join`, data),
   getJoinRequests: (postId) => api.get(`/rental/posts/${postId}/requests`),
   approveJoinRequest: (id) => api.post(`/rental/posts/requests/${id}/approve`),
+  rejectJoinRequest: (id) => api.post(`/rental/posts/requests/${id}/reject`),
+  getMyJoinRequests: () => api.get("/rental/posts/my-join-requests"),
 };
 
 // [HUY] Contract API
@@ -61,6 +67,7 @@ export const contractApi = {
   getMyContracts: () => api.get("/contracts/my"),
   getLandlordContracts: () => api.get("/contracts/landlord"),
   getContractDetail: (id) => api.get(`/contracts/${id}`),
+  terminateContract: (id) => api.put(`/contracts/${id}/terminate`),
 };
 
 export const billingApi = {
