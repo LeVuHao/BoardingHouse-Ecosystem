@@ -39,9 +39,9 @@ public class LandlordRegistrationResponse {
     public static LandlordRegistrationResponse fromEntity(LandlordRegistrationRequest req) {
         if (req == null) return null;
 
-        String bankName = "BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)";
+        String bankName = "BIDV (PGD Phù Cát)";
         String bankCode = "BIDV";
-        String bankAccount = "96247160605";
+        String bankAccount = "8890014407";
         String accountHolder = "LE VU HAO";
 
         String encodedHolder = URLEncoder.encode(accountHolder, StandardCharsets.UTF_8);

@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 public class JoinRequestResponse {
     private Long id;
     private Long postId;
+    private String postTitle;
+    private Long roomId;
     private Long userId;
     private String introduction;
     private String status;
@@ -25,6 +27,8 @@ public class JoinRequestResponse {
         return JoinRequestResponse.builder()
                 .id(r.getId())
                 .postId(r.getPost() != null ? r.getPost().getId() : null)
+                .postTitle(r.getPost() != null ? r.getPost().getTitle() : null)
+                .roomId(r.getPost() != null ? r.getPost().getRoomId() : null)
                 .userId(r.getUserId())
                 .introduction(r.getIntroduction())
                 .status(r.getStatus())

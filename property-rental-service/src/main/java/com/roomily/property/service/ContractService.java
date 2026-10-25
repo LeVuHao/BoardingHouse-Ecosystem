@@ -1,5 +1,6 @@
 package com.roomily.property.service;
 
+import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
 import com.roomily.property.dto.response.ContractResponse;
 import com.roomily.property.entity.Contract;
@@ -11,6 +12,7 @@ import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -122,5 +124,50 @@ public class ContractService {
         }
 
         return res;
+    }
+
+    /**
+     * Thanh lý / Chấm dứt hợp đồng khi khách dọn đi (trả phòng)
+     */
+    @Transactional
+    public ContractResponse terminateContract(Long contractId, Long requesterId, String userRole) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hợp đồng"));
+
+        boolean isLandlord = contract.getLandlordId().equals(requesterId);
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(userRole);
+        boolean isTenant = contract.getUserId().equals(requesterId);
+
+        if (!isLandlord && !isAdmin && !isTenant) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên hợp đồng này");
+        }
+
+        if ("TERMINATED".equalsIgnoreCase(contract.getStatus()) || "EXPIRED".equalsIgnoreCase(contract.getStatus())) {
+            throw new BadRequestException("Hợp đồng này đã được thanh lý hoặc kết thúc trước đó");
+        }
+
+        contract.setStatus("TERMINATED");
+        Contract saved = contractRepository.save(contract);
+
+        // 1. Cập nhật phòng: Giảm số người ở và mở lại AVAILABLE nếu đang FULL
+        if (contract.getRoomId() != null) {
+            roomRepository.findById(contract.getRoomId()).ifPresent(room -> {
+                int newOccupants = Math.max(0, room.getCurrentOccupants() - 1);
+                room.setCurrentOccupants(newOccupants);
+                if ("FULL".equalsIgnoreCase(room.getStatus()) && newOccupants < room.getCapacity()) {
+                    room.setStatus("AVAILABLE");
+                }
+                roomRepository.save(room);
+            });
+
+            // 2. Cập nhật Tenant: Đánh dấu isStaying = false
+            tenantRepository.findByUserIdAndRoomIdAndIsStayingTrue(contract.getUserId(), contract.getRoomId())
+                    .ifPresent(tenant -> {
+                        tenant.setIsStaying(false);
+                        tenantRepository.save(tenant);
+                    });
+        }
+
+        return enrichContractResponse(saved);
     }
 }

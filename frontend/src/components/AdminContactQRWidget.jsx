@@ -7,25 +7,29 @@ import {
   CheckCircle2, 
   PhoneCall, 
   ShieldCheck, 
-  Sparkles,
+  Sparkles, 
   ExternalLink,
-  Info
+  Info,
+  Download
 } from "lucide-react";
 import toast from "react-hot-toast";
+import qrBidvImage from "../assets/qr_bidv_admin.png";
 
 const AdminContactQRWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedField, setCopiedField] = useState(null);
+  const [qrImageSrc, setQrImageSrc] = useState(qrBidvImage);
 
   const bankInfo = {
-    bankName: "BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)",
+    bankName: "BIDV (PGD Phù Cát)",
     bankCode: "BIDV",
-    bankAccount: "96247160605",
+    bankAccount: "8890014407",
     accountHolder: "LE VU HAO",
-    amount: "5.000",
+    amount: "199.000",
     phone: "0348.108.630",
     email: "levuhao10jq@gmail.com",
-    qrUrl: "https://img.vietqr.io/image/BIDV-96247160605-compact2.png?amount=5000&addInfo=NAP_TIEN_CHU_TRO&accountName=LE%20VU%20HAO"
+    transferSyntax: "NAP_TIEN_CHU_TRO",
+    qrUrl: qrBidvImage
   };
 
   const copyToClipboard = (text, field) => {
@@ -159,15 +163,20 @@ const AdminContactQRWidget = () => {
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" }}>
                   Mã VietQR Ngân hàng BIDV
                 </div>
-                <div style={{ background: "#FFFFFF", padding: 8, borderRadius: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.06)", border: "1px solid var(--border)" }}>
+                <div style={{ background: "#FFFFFF", padding: 8, borderRadius: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.06)", border: "1px solid var(--border)", display: "flex", justifyContent: "center" }}>
                   <img
-                    src={bankInfo.qrUrl}
-                    alt="VietQR SePay BIDV"
-                    style={{ width: 200, height: 200, objectFit: "contain", display: "block" }}
+                    src={qrImageSrc}
+                    onError={() => {
+                      if (qrImageSrc !== "/qr_bidv_admin.png") {
+                        setQrImageSrc("/qr_bidv_admin.png");
+                      }
+                    }}
+                    alt="Mã VietQR BIDV LE VU HAO 8890014407"
+                    style={{ width: "100%", maxWidth: 210, height: "auto", maxHeight: 240, objectFit: "contain", display: "block", borderRadius: 8 }}
                   />
                 </div>
-                <div style={{ marginTop: 10, fontSize: 12, color: "var(--primary)", fontWeight: 700 }}>
-                  Quét bằng App Ngân hàng bất kỳ
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--primary)", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                  <CheckCircle2 size={14} color="#10B981" /> Quét bằng App Ngân hàng bất kỳ
                 </div>
               </div>
 
@@ -175,25 +184,46 @@ const AdminContactQRWidget = () => {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)" }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Ngân hàng</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>BIDV (PGD Phù Cát)</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>{bankInfo.bankName}</div>
                 </div>
 
                 <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Số tài khoản</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{bankInfo.bankAccount}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Số tài khoản / Mã ID QR</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", letterSpacing: 0.5 }}>{bankInfo.bankAccount}</div>
                   </div>
                   <button
-                    onClick={() => copyToClipboard(bankInfo.bankAccount, "Số tài khoản")}
+                    onClick={() => copyToClipboard(bankInfo.bankAccount, "Số tài khoản / Mã ID QR")}
                     style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", borderRadius: 6, padding: "4px 8px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
                   >
-                    <Copy size={12} /> {copiedField === "Số tài khoản" ? "Đã chép" : "Chép"}
+                    <Copy size={12} /> {copiedField === "Số tài khoản / Mã ID QR" ? "Đã chép" : "Chép"}
                   </button>
                 </div>
 
-                <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Chủ tài khoản</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{bankInfo.accountHolder}</div>
+                <div style={{ background: "var(--bg-primary)", borderRadius: 10, padding: "10px 14px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Chủ tài khoản</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{bankInfo.accountHolder}</div>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(bankInfo.accountHolder, "Chủ tài khoản")}
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", borderRadius: 6, padding: "4px 8px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                  >
+                    <Copy size={12} /> {copiedField === "Chủ tài khoản" ? "Đã chép" : "Chép"}
+                  </button>
+                </div>
+
+                <div style={{ background: "rgba(245, 158, 11, 0.1)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(245, 158, 11, 0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#D97706", fontWeight: 600 }}>Cú pháp chuyển khoản gợi ý</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#D97706", fontFamily: "monospace" }}>{bankInfo.transferSyntax}</div>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(bankInfo.transferSyntax, "Cú pháp chuyển khoản")}
+                    style={{ background: "var(--bg-card)", border: "1px solid rgba(245, 158, 11, 0.4)", color: "#D97706", borderRadius: 6, padding: "4px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                  >
+                    <Copy size={12} /> {copiedField === "Cú pháp chuyển khoản" ? "Đã chép" : "Chép"}
+                  </button>
                 </div>
 
                 <div style={{ background: "rgba(59, 130, 246, 0.12)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>

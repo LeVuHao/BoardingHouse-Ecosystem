@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,6 +38,7 @@ public class PropertyService {
     private final ContractRepository contractRepository;
     private final TenantRepository tenantRepository;
     private final ForumPostRepository forumPostRepository;
+    private final FileStorageService fileStorageService;
 
     @Transactional
     public PropertyResponse createProperty(Long landlordId, CreatePropertyRequest req) {
@@ -174,6 +176,20 @@ public class PropertyService {
             room.getImages().add(image);
         }
         return room.getImages().stream().map(RoomImage::getImageUrl).collect(Collectors.toList());
+    }
+
+    /**
+     * [HUY] Tải ảnh phòng trọ trực tiếp (MultipartFile upload)
+     */
+    @Transactional
+    public List<String> uploadRoomImages(Long landlordId, Long roomId, List<MultipartFile> files) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng trọ"));
+        if (!room.getProperty().getLandlordId().equals(landlordId)) {
+            throw new BadRequestException("Bạn không có quyền tải ảnh cho phòng này");
+        }
+        List<String> storedUrls = fileStorageService.storeRoomImages(roomId, files);
+        return addRoomImages(landlordId, roomId, storedUrls);
     }
 
     public Page<RoomResponse> searchRooms(
