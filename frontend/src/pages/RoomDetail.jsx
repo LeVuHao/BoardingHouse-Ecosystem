@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { propertyApi, rentalApi } from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
 import ImageGalleryGrid from "../components/ImageGalleryGrid";
+import MonthlyCostCalculator from "../components/MonthlyCostCalculator";
 import { Flag } from "lucide-react";
 import ReportModal from "../components/ReportModal";
+
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1200",
@@ -314,6 +316,10 @@ const RoomDetail = () => {
               Miễn phí cho người thuê · Hợp đồng số tự động khi được duyệt
             </div>
           </div>
+
+          {/* Bảng tính chi phí hàng tháng */}
+          <MonthlyCostCalculator room={room} />
+
         </aside>
       </div>
       {modalType && (

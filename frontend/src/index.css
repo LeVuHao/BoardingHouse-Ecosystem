@@ -40,6 +40,17 @@
 .mobile-map-list-toggle {
   display: none;
 }
+.rooms-map-panel {
+  position: sticky;
+  top: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
 .rooms-right-sidebar {
   display: flex;
   flex-direction: column;
@@ -825,11 +836,21 @@
   }
   .results-wrap {
     padding: 16px 12px 32px;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .rooms-results-column {
+    display: contents;
+    height: auto;
+    overflow: visible;
+    padding: 0;
   }
   .rooms-results-column .filters {
     position: static;
     max-height: none;
     overflow-y: visible;
+    margin: 0 18px 20px;
   }
   .hero {
     padding-top: 44px;

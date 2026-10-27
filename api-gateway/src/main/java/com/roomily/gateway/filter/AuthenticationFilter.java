@@ -80,6 +80,13 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                     }
                 }
 
+                // Role-based access control for admin endpoints
+                if (path.startsWith("/api/v1/auth/admin")) {
+                    if (!"ADMIN".equalsIgnoreCase(role)) {
+                        return onError(exchange, "Bạn không có quyền truy cập tài nguyên này", HttpStatus.FORBIDDEN);
+                    }
+                }
+
                 // Mutate request with extracted user information headers
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-User-Id", userId)

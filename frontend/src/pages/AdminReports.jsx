@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   AlertTriangle, 
@@ -439,6 +440,7 @@ const AdminReports = () => {
                         <Eye size={14} />
                         <span>{report.status === 'PENDING' ? 'Xem & Xử lý' : 'Chi tiết'}</span>
                       </button>
+
                     </td>
                   </tr>
                 ))}
@@ -446,6 +448,7 @@ const AdminReports = () => {
             </table>
           </div>
         )}
+
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -467,9 +470,11 @@ const AdminReports = () => {
             >
               Trang sau
             </button>
+
           </div>
         )}
       </div>
+
 
       {/* DETAIL & ACTION MODAL */}
       {selectedReport && (
@@ -851,6 +856,7 @@ const AdminReports = () => {
             >
               <X size={18} />
             </button>
+
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { Link } from 'react-router-dom';
 import { propertyApi, rentalApi, contractApi, billingApi } from '../api/apiClient';
 import { Plus, Home, Eye, Check, X, Edit2, Image, Building, TrendingUp, Users, CheckCircle2, Sparkles, FileText, Trash2, Receipt, Zap, Droplet, CalendarDays, Wallet, UploadCloud } from 'lucide-react';
@@ -6,6 +7,7 @@ import toast from 'react-hot-toast';
 import AmenityPicker from '../components/AmenityPicker';
 import RoomLocationPicker from '../components/RoomLocationPicker';
 import AddressAutocomplete from '../components/AddressAutocomplete';
+
 
 const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
   const [properties, setProperties] = useState([]);
@@ -602,6 +604,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
           <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
             <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Thêm Khu Trọ Mới</h3>
             <form onSubmit={handleAddProperty} style={{ marginTop: '1rem' }}>
+
               <div className="form-group" style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tên khu trọ</label>
                 <input required value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
@@ -658,6 +661,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
                 <button type="button" onClick={() => setShowAddProperty(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Lưu khu trọ</button>
+
               </div>
             </form>
           </div>
@@ -670,6 +674,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
           <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', borderRadius: '16px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-color)' }}>
             <h3 style={{ margin: '0 0 18px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Chỉnh Sửa Khu Trọ</h3>
             <form onSubmit={handleEditProperty} style={{ marginTop: '1rem' }}>
+
               <div className="form-group" style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>Tên khu trọ</label>
                 <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
@@ -726,6 +731,7 @@ const LandlordProperties = ({ hideAnalytics = false, embedded = false }) => {
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', paddingTop: '10px' }}>
                 <button type="button" onClick={() => setShowEditProperty(false)} style={{ background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
                 <button type="submit" style={{ background: '#059669', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cập nhật</button>
+
               </div>
             </form>
           </div>

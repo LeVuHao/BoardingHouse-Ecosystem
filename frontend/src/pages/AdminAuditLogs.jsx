@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ShieldAlert, Search, MapPin, RotateCcw } from "lucide-react";
@@ -43,11 +44,13 @@ const ActionBadge = ({ action }) => {
   return (
     <span title={action} style={{ padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, color, backgroundColor: bg, border: `1px solid ${border}`, whiteSpace: "nowrap" }}>
       {ACTION_LABELS[action] || action}
+
     </span>
   );
 };
 
 const AdminAuditLogs = () => {
+
   const [keyword, setKeyword] = useState("");
   const [action, setAction] = useState("");
   const [from, setFrom] = useState("");
@@ -203,6 +206,7 @@ const AdminAuditLogs = () => {
           </div>
         )}
         <Pagination page={data.number ?? page} totalPages={data.totalPages} totalElements={data.totalElements} onChange={setPage} />
+
       </div>
     </div>
   );

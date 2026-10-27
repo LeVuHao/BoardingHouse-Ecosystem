@@ -126,7 +126,6 @@ public class AuthController {
         Map<String, String> res = authService.getUserStatus(userId);
         return ResponseEntity.ok(ApiResponse.success(res));
     }
-
     @GetMapping("/my-audit-logs")
     public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> getMyAuditLogs(
             @RequestHeader(value = "X-User-Email", required = false) String email,
@@ -134,4 +133,5 @@ public class AuthController {
         Page<AuditLogResponse> page = auditLogService.searchByEmail(email, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
+
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -17,7 +18,9 @@ import {
   Info
 } from "lucide-react";
 import toast from "react-hot-toast";
+
 import { authApi } from "../api/apiClient";
+import GoogleButton from "../components/GoogleButton";
 
 const RegisterLandlord = () => {
   const navigate = useNavigate();
@@ -30,6 +33,7 @@ const RegisterLandlord = () => {
   const [idCardNumber, setIdCardNumber] = useState("");
   const [desiredPassword, setDesiredPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
 
   // QR / Application submission result
   const [submittedData, setSubmittedData] = useState(null);
@@ -44,6 +48,7 @@ const RegisterLandlord = () => {
   };
 
   const handleRegisterOnline = async (e) => {
+
     e.preventDefault();
     if (desiredPassword.length < 6) {
       toast.error("Mật khẩu mong muốn phải có ít nhất 6 ký tự");
@@ -769,6 +774,8 @@ const RegisterLandlord = () => {
             </div>
           </div>
         )}
+
+
 
       </div>
     </div>

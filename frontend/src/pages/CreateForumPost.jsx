@@ -4,9 +4,11 @@ import { ImagePlus, X, MapPin, DollarSign, Phone, Home, Send, Maximize2 } from "
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { forumApi } from "../api/apiClient";
+
 import AmenityPicker from "../components/AmenityPicker";
 import RoomLocationPicker from "../components/RoomLocationPicker";
 import AddressAutocomplete from "../components/AddressAutocomplete";
+
 
 const CreateForumPost = () => {
   const { user } = useAuth();
