@@ -102,11 +102,13 @@ const AdminDashboard = () => {
   const StatCard = ({ title, value, icon: Icon, trend, isPositive, color }) => (
     <div
       style={{
+
         background: "var(--bg-card)",
         border: "1px solid var(--border-color)",
         borderRadius: "16px",
         padding: "24px",
         boxShadow: "var(--shadow-soft)",
+
         display: "flex",
         flexDirection: "column",
         gap: "12px",
@@ -115,17 +117,21 @@ const AdminDashboard = () => {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-4px)";
+
         e.currentTarget.style.boxShadow = "var(--shadow-card)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "none";
         e.currentTarget.style.boxShadow = "var(--shadow-soft)";
+
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
+
           <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "14px", fontWeight: "500" }}>{title}</p>
           <h3 style={{ margin: "8px 0 0 0", fontSize: "28px", fontWeight: "700", color: "var(--text-primary)" }}>
+
             {value !== undefined ? value : "..."}
           </h3>
         </div>
@@ -165,10 +171,12 @@ const AdminDashboard = () => {
     <div style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
       {/* HEADER SECTION */}
       <div>
+
         <h1 style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
           Overview Dashboard
         </h1>
         <p style={{ color: "var(--text-secondary)", margin: "4px 0 0 0", fontSize: "14px" }}>
+
           Theo dõi các chỉ số quan trọng của nền tảng Roomily.
         </p>
       </div>
@@ -211,8 +219,10 @@ const AdminDashboard = () => {
 
       {/* CHARTS SECTION */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
+
         <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "16px", boxShadow: "var(--shadow-soft)" }}>
           <h3 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "var(--text-primary)" }}>Tăng trưởng người dùng mới</h3>
+
           <div style={{ height: "300px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -222,11 +232,13 @@ const AdminDashboard = () => {
                     <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
+
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--text-secondary)", fontSize: 12 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{ background: "var(--bg-card)", borderRadius: "8px", border: "1px solid var(--border-color)", boxShadow: "var(--shadow-card)" }}
+
                   itemStyle={{ color: "#8B5CF6", fontWeight: "bold" }}
                 />
                 <Area type="monotone" dataKey="value" stroke="#8B5CF6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
@@ -235,8 +247,10 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+
         <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "24px", borderRadius: "16px", boxShadow: "var(--shadow-soft)" }}>
           <h3 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "var(--text-primary)" }}>Tỉ lệ lấp đầy phòng</h3>
+
           <div style={{ height: "300px", position: "relative" }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -254,6 +268,7 @@ const AdminDashboard = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
+
                 <Tooltip contentStyle={{ background: "var(--bg-card)", borderRadius: "8px", border: "1px solid var(--border-color)", boxShadow: "var(--shadow-card)" }} />
               </PieChart>
             </ResponsiveContainer>
@@ -261,15 +276,18 @@ const AdminDashboard = () => {
               <span style={{ fontSize: "28px", fontWeight: "700", color: "var(--text-primary)" }}>75%</span>
               <br />
               <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Đã thuê</span>
+
             </div>
           </div>
         </div>
       </div>
 
       {/* DATA TABLE SECTION */}
+
       <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "16px", padding: "24px", boxShadow: "var(--shadow-soft)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h3 style={{ margin: 0, fontSize: "16px", color: "var(--text-primary)" }}>Tài khoản hệ thống</h3>
+
           <div style={{ display: "flex", gap: "12px" }}>
             <input
               type="text"
@@ -279,9 +297,11 @@ const AdminDashboard = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: "8px",
+
                 border: "1px solid var(--border-color)",
                 background: "var(--bg-card)",
                 color: "var(--text-primary)",
+
                 outline: "none",
                 fontSize: "14px",
                 width: "250px",
@@ -290,7 +310,9 @@ const AdminDashboard = () => {
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
+
               style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border-color)", outline: "none", fontSize: "14px", background: "var(--bg-card)", color: "var(--text-primary)" }}
+
             >
               <option value="">Vai trò</option>
               <option value="USER">USER</option>
@@ -302,7 +324,9 @@ const AdminDashboard = () => {
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
             <thead>
+
               <tr style={{ borderBottom: "1px solid var(--border-color)", color: "var(--text-secondary)", fontSize: "13px", textTransform: "uppercase" }}>
+
                 <th style={{ padding: "12px 16px", fontWeight: "600" }}>Thành viên</th>
                 <th style={{ padding: "12px 16px", fontWeight: "600" }}>Vai trò</th>
                 <th style={{ padding: "12px 16px", fontWeight: "600" }}>Trạng thái</th>
@@ -311,6 +335,7 @@ const AdminDashboard = () => {
             </thead>
             <tbody>
               {users.map((u) => (
+
                 <tr key={u.id} style={{ borderBottom: "1px solid var(--border-color)", transition: "background 0.2s" }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-primary)")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
                   <td style={{ padding: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
                     <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "600", color: "var(--text-secondary)" }}>
@@ -323,6 +348,7 @@ const AdminDashboard = () => {
                   </td>
                   <td style={{ padding: "16px" }}>
                     <span style={{ padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600", background: u.role === "LANDLORD" ? "rgba(139, 92, 246, 0.15)" : "var(--bg-primary)", color: u.role === "LANDLORD" ? "#8B5CF6" : "var(--text-secondary)", border: u.role === "LANDLORD" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid var(--border-color)" }}>
+
                       {u.role}
                     </span>
                   </td>

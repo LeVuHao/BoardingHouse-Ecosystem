@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { propertyApi, forumApi, unwrapApiData } from "../api/apiClient";
 import { motion } from "framer-motion";
 import CountUpPkg from "react-countup";
+import { useCompare } from "../context/CompareContext";
+import { BarChart2 } from "lucide-react";
 
 const CountUp = CountUpPkg.default || CountUpPkg;
 
@@ -12,33 +14,72 @@ const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const roomImage = (room) =>
   room.images?.[0] || room.thumbnailUrl || fallbackImage;
 
-const RoomCard = ({ room }) => (
-  <Link to={`/rooms/${room.id}`} className="room-card hover-card-effect">
-    <div className="room-photo">
-      <img
-        src={roomImage(room)}
-        alt={room.propertyTitle || `Phòng ${room.roomNumber}`}
-        loading="lazy"
-      />
-      <span className="verified">Đã xác thực</span>
-      <span className="price-tag">{formatVnd(room.price)}</span>
+const RoomCard = ({ room }) => {
+  const { addToCompare, removeFromCompare, isInCompare } = useCompare();
+  const inCmp = isInCompare(room.id);
+
+  return (
+    <div className="room-card hover-card-effect" style={{ position: "relative" }}>
+      <Link to={`/rooms/${room.id}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+        <div className="room-photo">
+          <img
+            src={roomImage(room)}
+            alt={room.propertyTitle || `Phòng ${room.roomNumber}`}
+            loading="lazy"
+          />
+          <span className="verified">Đã xác thực</span>
+          <span className="price-tag">{formatVnd(room.price)}</span>
+        </div>
+        <div className="room-body">
+          <div className="room-address">
+            {room.address || `${room.district || ""}, ${room.city || ""}`}
+          </div>
+          <div className="room-title">
+            {room.propertyTitle || `Phòng ${room.roomNumber || ""}`}
+          </div>
+          <div className="room-meta">
+            <span>{room.area || "--"}m²</span>
+            <span>
+              {room.status === "ROOMMATE_OPEN" ? "🔥 Còn chỗ ở ghép" : room.status === "FULL" ? "🔒 Đã có người thuê" : "🟢 Còn trống"}
+            </span>
+          </div>
+        </div>
+      </Link>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (inCmp) removeFromCompare(room.id);
+          else addToCompare(room);
+        }}
+        style={{
+          position: "absolute",
+          top: "12px",
+          right: "12px",
+          zIndex: 3,
+          background: inCmp ? "#7c3aed" : "rgba(0,0,0,0.6)",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          padding: "5px 8px",
+          fontSize: "11px",
+          fontWeight: 700,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          backdropFilter: "blur(4px)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.25)"
+        }}
+        title={inCmp ? "Bỏ khỏi so sánh" : "Thêm vào so sánh"}
+      >
+        <BarChart2 size={12} />
+        {inCmp ? "Đang chọn" : "So sánh"}
+      </button>
     </div>
-    <div className="room-body">
-      <div className="room-address">
-        {room.address || `${room.district || ""}, ${room.city || ""}`}
-      </div>
-      <div className="room-title">
-        {room.propertyTitle || `Phòng ${room.roomNumber || ""}`}
-      </div>
-      <div className="room-meta">
-        <span>{room.area || "--"}m²</span>
-        <span>
-          {room.status === "ROOMMATE_OPEN" ? "🔥 Còn chỗ ở ghép" : room.status === "FULL" ? "🔒 Đã có người thuê" : "🟢 Còn trống"}
-        </span>
-      </div>
-    </div>
-  </Link>
-);
+  );
+};
 
 const Home = () => {
   const navigate = useNavigate();

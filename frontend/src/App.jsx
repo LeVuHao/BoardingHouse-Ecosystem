@@ -1,13 +1,14 @@
-import React from "react";
+﻿import React from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
+import { CompareProvider } from "./context/CompareContext";
+import CompareFloatingBar from "./components/CompareFloatingBar";
+import CompareModal from "./components/CompareModal";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Rooms from "./pages/Rooms";
-import SearchRooms from "./pages/SearchRooms";
 import RoomDetail from "./pages/RoomDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -21,7 +22,6 @@ import Notifications from "./pages/Notifications";
 import LandlordProperties from "./pages/LandlordProperties";
 import LandlordRequests from "./pages/LandlordRequests";
 import LandlordCreateBill from "./pages/LandlordCreateBill";
-import LandlordHub from "./pages/LandlordHub";
 import MyContracts from "./pages/MyContracts";
 import AdminDashboard from "./pages/AdminDashboard";
 import ForumFeed from "./pages/ForumFeed";
@@ -35,50 +35,30 @@ import AdminLayout from "./components/AdminLayout";
 import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminSettings from "./pages/AdminSettings";
 import AdminReports from "./pages/AdminReports";
-import AdminProperties from "./pages/AdminProperties";
-import AdminUsers from "./pages/AdminUsers";
-import AdminForumPosts from "./pages/AdminForumPosts";
-import AdminAmenities from "./pages/AdminAmenities";
-import AdminLandlordRequests from "./pages/AdminLandlordRequests";
-import AdminContactQRWidget from "./components/AdminContactQRWidget";
 
-// Component to handle layout logic based on route
 const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        background: isAdminRoute ? "transparent" : "inherit",
-      }}
-    >
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: isAdminRoute ? "transparent" : "inherit" }}>
       {!isAdminRoute && <Navbar />}
-      {!isAdminRoute && <AdminContactQRWidget />}
+      {!isAdminRoute && <CompareFloatingBar />}
+      {!isAdminRoute && <CompareModal />}
       <main style={{ flex: 1, display: isAdminRoute ? "flex" : "block" }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/rooms" element={<Rooms />} />
-          <Route path="/search" element={<SearchRooms />} />
-          <Route path="/rooms/:id" element={<RoomDetail />} />
+          <Route path="/search" element={<Rooms />} />
+          <Route path="/rooms/:id" element={<ForumPostDetail />} />
           <Route path="/roommates" element={<Roommates />} />
-          <Route path="/forum" element={<ForumFeed />} />
+          <Route path="/forum" element={<Rooms />} />
           <Route path="/forum/:id" element={<ForumPostDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register-landlord" element={<RegisterLandlord />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={["USER", "LANDLORD", "ADMIN"]}
-              />
-            }
-          >
+          <Route element={<ProtectedRoute allowedRoles={["USER", "LANDLORD", "ADMIN"]} />}>
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/my-contracts" element={<MyContracts />} />
             <Route path="/contracts" element={<MyContracts />} />
@@ -93,38 +73,13 @@ const AppContent = () => {
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["LANDLORD"]} />}>
             <Route path="/forum/create" element={<CreateForumPost />} />
-            <Route path="/landlord/management" element={<LandlordHub />} />
-            <Route path="/landlord/hub" element={<LandlordHub />} />
-            <Route path="/landlord/my-hub" element={<LandlordHub />} />
-            <Route path="/landlord/properties" element={<LandlordHub defaultTab="properties" />} />
-            <Route path="/landlord/occupied" element={<LandlordHub defaultTab="occupied" />} />
-            <Route path="/landlord/requests" element={<LandlordHub defaultTab="requests" />} />
-            <Route path="/landlord/bills" element={<LandlordHub defaultTab="bills" />} />
-            <Route path="/landlord/create-bill" element={<LandlordHub defaultTab="bills" />} />
-            <Route path="/landlord/tickets" element={<LandlordHub defaultTab="tickets" />} />
-            <Route path="/landlord/contracts" element={<LandlordHub defaultTab="contracts" />} />
+            <Route path="/landlord/properties" element={<LandlordProperties />} />
+            <Route path="/landlord/requests" element={<LandlordRequests />} />
+            <Route path="/landlord/create-bill" element={<LandlordCreateBill />} />
+            <Route path="/landlord/tickets" element={<LandlordTickets />} />
           </Route>
-          
-          {/* ADMIN ROUTES WRAPPED IN ADMIN LAYOUT */}
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route
-              path="/admin/*"
-              element={
-                <AdminLayout>
-                  <Routes>
-                    <Route path="/" element={<AdminDashboard />} />
-                    <Route path="/properties" element={<AdminProperties />} />
-                    <Route path="/users" element={<AdminUsers />} />
-                    <Route path="/landlord-requests" element={<AdminLandlordRequests />} />
-                    <Route path="/forum-posts" element={<AdminForumPosts />} />
-                    <Route path="/amenities" element={<AdminAmenities />} />
-                    <Route path="/reports" element={<AdminReports />} />
-                    <Route path="/audit-logs" element={<AdminAuditLogs />} />
-                    <Route path="/settings" element={<AdminSettings />} />
-                  </Routes>
-                </AdminLayout>
-              }
-            />
+            <Route path="/admin/*" element={<AdminLayout><Routes><Route path="/" element={<AdminDashboard />} /><Route path="/reports" element={<AdminReports />} /><Route path="/audit-logs" element={<AdminAuditLogs />} /><Route path="/settings" element={<AdminSettings />} /></Routes></AdminLayout>} />
           </Route>
         </Routes>
       </main>
@@ -134,16 +89,15 @@ const AppContent = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <CompareProvider>
         <Toaster position="top-right" />
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
+      </CompareProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
-

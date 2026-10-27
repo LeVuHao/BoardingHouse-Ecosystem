@@ -184,15 +184,19 @@ const ReviewSection = ({ postId, landlordId }) => {
   return (
     <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", overflow: "hidden", marginTop: 24, boxShadow: "var(--shadow-card)" }}>
       {/* Header & Stats */}
+
       <div style={{ padding: "24px 30px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
         <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 16px 0", display: "flex", alignItems: "center", gap: 8 }}>
+
           <Star size={22} color="#f59e0b" fill="#f59e0b" /> Đánh giá chân thực từ người thuê ({reviews.length})
         </h3>
         
         {reviews.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 32, alignItems: "center" }}>
             <div style={{ textAlign: "center" }}>
+
               <div style={{ fontSize: 42, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{averages.overall}</div>
+
               <div style={{ display: "flex", justifyContent: "center", margin: "6px 0" }}>
                 <StarRating value={Math.round(averages.overall)} readonly size={16} />
               </div>
@@ -206,13 +210,17 @@ const ReviewSection = ({ postId, landlordId }) => {
                 { label: "Giá cả", val: averages.price, icon: <DollarSign size={14} color="#f59e0b" /> },
                 { label: "Chủ trọ", val: averages.landlord, icon: <User size={14} color="#8b5cf6" /> },
               ].map(stat => (
+
                 <div key={stat.label} style={{ background: "var(--bg-primary)", border: "1px solid var(--border)", padding: "10px 14px", borderRadius: 10, display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 5px rgba(0,0,0,0.15)" }}>
+
                     {stat.icon}
                   </div>
                   <div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>{stat.label}</div>
+
                     <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{stat.val} <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>/5</span></div>
+
                   </div>
                 </div>
               ))}
@@ -240,7 +248,9 @@ const ReviewSection = ({ postId, landlordId }) => {
                       {r.reviewerName ? r.reviewerName[0].toUpperCase() : "U"}
                     </div>
                     <div>
+
                       <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>{r.reviewerName || "Người thuê ẩn danh"}</div>
+
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{timeAgo(r.createdAt)} {r.updatedAt && r.updatedAt !== r.createdAt && "(Đã chỉnh sửa)"}</div>
                     </div>
                   </div>
@@ -261,6 +271,7 @@ const ReviewSection = ({ postId, landlordId }) => {
                 {/* Sub ratings */}
                 <div style={{ display: "flex", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 4 }}>
+
                     <Shield size={14} /> An ninh: <strong style={{ color: "var(--text-primary)" }}>{r.securityRating || r.rating}/5</strong>
                   </div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 4 }}>
@@ -283,6 +294,7 @@ const ReviewSection = ({ postId, landlordId }) => {
                       <CornerDownRight size={14} /> Chủ trọ phản hồi:
                     </div>
                     <div style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.5 }}>{r.landlordReply}</div>
+
                   </div>
                 )}
 
@@ -290,13 +302,17 @@ const ReviewSection = ({ postId, landlordId }) => {
                 {isLandlord && !r.landlordReply && (
                   <div style={{ marginTop: 12 }}>
                     {replyingTo === r.id ? (
+
                       <div style={{ background: "var(--bg-primary)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+
                         <textarea
                           rows={2}
                           placeholder="Nhập phản hồi của bạn..."
                           value={replyText}
                           onChange={e => setReplyText(e.target.value)}
+
                           style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", marginBottom: 8, fontSize: 13 }}
+
                         />
                         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                           <button onClick={() => setReplyingTo(null)} className="btn btn-outline" style={{ padding: "4px 12px", fontSize: 12 }}>Hủy</button>
@@ -318,7 +334,9 @@ const ReviewSection = ({ postId, landlordId }) => {
 
       {/* Write Review Action */}
       {!isLandlord && (
+
         <div style={{ padding: "20px 30px", background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
+
           {!user ? (
             <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
               Vui lòng đăng nhập để đánh giá khu trọ này.
@@ -339,7 +357,9 @@ const ReviewSection = ({ postId, landlordId }) => {
               </button>
             </div>
           ) : (
+
             <form onSubmit={handleSubmit} style={{ background: "var(--bg-primary)", padding: 24, borderRadius: 12, border: "1px solid var(--border)", animation: "fadeIn 0.3s ease", color: "var(--text-primary)" }}>
+
               <h4 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 800 }}>{isEditing || hasReviewed ? "Chỉnh sửa đánh giá" : "Đánh giá chi tiết"}</h4>
               
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 32px", marginBottom: 20 }}>
@@ -366,7 +386,9 @@ const ReviewSection = ({ postId, landlordId }) => {
                   placeholder="Phòng có ồn không? Chủ trọ có hỗ trợ nhanh khi hỏng hóc không?..."
                   value={form.comment}
                   onChange={e => setForm({...form, comment: e.target.value})}
+
                   style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize: 14 }}
+
                 />
               </div>
 

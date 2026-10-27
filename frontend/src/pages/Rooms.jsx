@@ -4,18 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Clock, Plus, ChevronLeft, ChevronRight,
   MessageCircle, Eye, Users, Zap, FileText, X, Search, Filter, RotateCcw,
-  Phone, Maximize2, Sparkles, ShieldCheck, SlidersHorizontal, LayoutGrid, List, Layers, Flag
+  Phone, BarChart2, SlidersHorizontal, Sparkles, ShieldCheck, LayoutGrid, List, Maximize2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { useCompare } from "../context/CompareContext";
 import { forumApi, rentalApi, unwrapApiData } from "../api/apiClient";
-import useAmenities from "../hooks/useAmenities";
 import MapView from "../components/MapView";
 import WishlistButton from "../components/WishlistButton";
+import useAmenities from "../hooks/useAmenities";
 import ReportModal from "../components/ReportModal";
 
 const PAGE_SIZE = 6;
 const API_PAGE_SIZE = 100;
+
 const AMENITY_GROUPS = [
   { label: "Nội thất cơ bản", icon: "❄️", keywords: ["máy lạnh", "điều hòa", "tủ lạnh", "máy giặt", "giường", "nệm", "tủ quần áo"] },
   { label: "Kết cấu phòng", icon: "🏠", keywords: ["gác", "ban công", "cửa sổ", "bếp"] },
@@ -185,6 +187,7 @@ const PostImageCarousel = ({ images, post }) => {
 
 const Rooms = () => {
   const { user } = useAuth();
+  const { addToCompare, removeFromCompare, isInCompare } = useCompare();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -335,7 +338,6 @@ const Rooms = () => {
     setShowFlashBanner(false);
     sessionStorage.setItem("roomily_flash_banner_closed", "true");
   };
-
   useEffect(() => {
     const query = proximityQuery.trim();
     if (query.length < 2 || selectedSuggestion?.query === query) {
@@ -1678,45 +1680,52 @@ const Rooms = () => {
                           <MessageCircle size={14} />
                           Nhắn tin
                         </Link>
-                        
-                        {/* 5. Yêu thích */}
-                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }} showText={false} />
 
-                        {/* 6. Báo cáo vi phạm */}
+                        {/* 5. Yêu thích */}
+                        <WishlistButton post={post} style={{ padding: "8px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-card)" }} showText={false} />
+
+                        {/* 6. So sánh */}
                         <button
                           type="button"
                           onClick={() => {
-                            if (!user) {
-                              navigate("/login");
-                              return;
+                            if (isInCompare(post.id)) {
+                              removeFromCompare(post.id);
+                            } else {
+                              addToCompare(post);
                             }
-                            setReportingItem({ id: post.id, title: post.title });
                           }}
                           style={{
-                            padding: "8px",
+                            padding: "8px 10px",
                             borderRadius: "8px",
-                            border: "1px solid var(--border-color)",
-                            background: "var(--bg-card)",
-                            color: "var(--text-secondary)",
+                            border: isInCompare(post.id) ? "1px solid rgba(124,58,237,0.6)" : "1px solid var(--border)",
+                            background: isInCompare(post.id) ? "rgba(124,58,237,0.12)" : "var(--bg-card)",
+                            color: isInCompare(post.id) ? "#a78bfa" : "var(--text-secondary)",
                             cursor: "pointer",
                             display: "inline-flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.2s"
+                            gap: "5px",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            transition: "all 0.2s",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = "#EF4444";
-                            e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.4)";
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
+                            if (!isInCompare(post.id)) {
+                              e.currentTarget.style.color = "#a78bfa";
+                              e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)";
+                              e.currentTarget.style.background = "rgba(124,58,237,0.08)";
+                            }
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = "var(--text-secondary)";
-                            e.currentTarget.style.borderColor = "var(--border-color)";
-                            e.currentTarget.style.background = "var(--bg-card)";
+                            if (!isInCompare(post.id)) {
+                              e.currentTarget.style.color = "var(--text-secondary)";
+                              e.currentTarget.style.borderColor = "var(--border)";
+                              e.currentTarget.style.background = "var(--bg-card)";
+                            }
                           }}
-                          title="Báo cáo tin vi phạm / không đúng sự thật"
+                          title={isInCompare(post.id) ? "Bỏ khỏi so sánh" : "So sánh phòng này"}
                         >
-                          <Flag size={14} />
+                          <BarChart2 size={13} />
+                          {isInCompare(post.id) ? "Đang so sánh" : "So sánh"}
                         </button>
                       </div>
                     </div>
@@ -1755,6 +1764,7 @@ const Rooms = () => {
           )}
         </main>
         </div>
+
 
         {/* CỘT BÊN PHẢI: MAP THU NHỎ VUÔNG VỪA PHẢI + TIỆN ÍCH BỔ SUNG */}
         <aside className="rooms-right-sidebar">
@@ -1914,6 +1924,7 @@ const Rooms = () => {
               </div>
             </div>
           </div>
+
         </aside>
       </div>
 

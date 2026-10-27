@@ -13,6 +13,9 @@ import ReviewSection from "../components/ReviewSection";
 import WishlistButton from "../components/WishlistButton";
 import ImageGalleryGrid from "../components/ImageGalleryGrid";
 import ReportModal from "../components/ReportModal";
+import MonthlyCostCalculator from "../components/MonthlyCostCalculator";
+import { useCompare } from "../context/CompareContext";
+import { BarChart2 } from "lucide-react";
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const timeAgo = (dateStr) => {
@@ -63,6 +66,7 @@ const ForumPostDetail = () => {
   // Modal Cài Đặt Nhu Cầu Ở Ghép (Chủ trọ)
   const [roommateModalOpen, setRoommateModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const { addToCompare, removeFromCompare, isInCompare } = useCompare();
   const [roommateForm, setRoommateForm] = useState({
     roommateNeeded: false,
     roommateCount: 1,
@@ -307,6 +311,13 @@ const ForumPostDetail = () => {
     }
   };
 
+  const handleReportSubmit = (e) => {
+    e.preventDefault();
+    toast.success("Đã gửi báo cáo vi phạm tới Ban Quản Trị. Xin cảm ơn!");
+    setReportModalOpen(false);
+    setReportReason("");
+  };
+
   if (loading) {
     return (
       <div className="page-shell">
@@ -518,6 +529,28 @@ const ForumPostDetail = () => {
               </div>
             )}
 
+            {/* Gallery */}
+            {post.images && post.images.length > 0 && (
+              <div className="forum-detail-gallery">
+                <div className="forum-detail-main-img">
+                  <img src={post.images[selectedImg]} alt="Ảnh phòng trọ" />
+                </div>
+                {post.images.length > 1 && (
+                  <div className="forum-detail-thumbs">
+                    {post.images.map((img, i) => (
+                      <button
+                        key={i}
+                        className={`forum-thumb ${i === selectedImg ? "active" : ""}`}
+                        onClick={() => setSelectedImg(i)}
+                      >
+                        <img src={img} alt={`Ảnh ${i + 1}`} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
 
 
             {/* Messages Section */}
@@ -689,9 +722,39 @@ const ForumPostDetail = () => {
                   👥 Tìm bạn ở ghép / Đồng hành
                 </button>
 
-                {/* Tertiary CTA: Yêu thích / Lưu phòng */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "var(--bg-card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
-                  <WishlistButton post={post} style={{ fontSize: "15px", fontWeight: "600", width: "100%", justifyContent: "center" }} showText={true} />
+                {/* Tertiary CTA: Yêu thích & So sánh phòng */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "8px", background: "var(--bg-card)", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                    <WishlistButton post={post} style={{ fontSize: "13px", fontWeight: "600", width: "100%", justifyContent: "center" }} showText={true} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isInCompare(post.id)) {
+                        removeFromCompare(post.id);
+                      } else {
+                        addToCompare(post);
+                      }
+                    }}
+                    className="btn btn-outline"
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      padding: "8px",
+                      borderRadius: "12px",
+                      border: isInCompare(post.id) ? "1px solid rgba(124,58,237,0.6)" : "1px solid var(--border)",
+                      background: isInCompare(post.id) ? "rgba(124,58,237,0.12)" : "var(--bg-card)",
+                      color: isInCompare(post.id) ? "#a78bfa" : "var(--text-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px"
+                    }}
+                    title={isInCompare(post.id) ? "Bỏ khỏi so sánh" : "Thêm vào so sánh"}
+                  >
+                    <BarChart2 size={15} />
+                    {isInCompare(post.id) ? "Đang so sánh" : "So sánh"}
+                  </button>
                 </div>
 
                 {/* Quaternary CTA: Nhắn tin trao đổi */}
@@ -706,7 +769,7 @@ const ForumPostDetail = () => {
                 </button>
                 <button
                   className="btn-block btn-outline"
-                  style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)", backgroundColor: "rgba(239, 68, 68, 0.1)", marginTop: "10px" }}
+                  style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)", backgroundColor: "rgba(239, 68, 68, 0.1)", marginTop: "4px" }}
                   onClick={() => setReportModalOpen(true)}
                 >
                   <AlertCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
@@ -729,6 +792,9 @@ const ForumPostDetail = () => {
                 Miễn phí cho người thuê · Chủ trọ đã ký cam kết chính sách minh bạch trên Roomily.
               </p>
             </div>
+
+            {/* BẢNG TÍNH CHI PHÍ HÀNG THÁNG THỰC TẾ (Nhiệm vụ 2) */}
+            <MonthlyCostCalculator room={post} />
           </div>
         </div>
       </div>

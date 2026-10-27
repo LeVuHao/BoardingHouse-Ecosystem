@@ -51,13 +51,17 @@ const ForumFeed = () => {
   });
 
   return (
+
     <div className="page-shell" style={{ background: "var(--bg-primary)", minHeight: "100vh", paddingTop: "24px" }}>
+
       <div className="wrap" style={{ display: "grid", gridTemplateColumns: "280px 1fr 300px", gap: "24px", maxWidth: "1200px" }}>
         
         {/* Sidebar Left: Menu */}
         <div style={{ position: "sticky", top: "80px", height: "fit-content" }}>
+
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "16px", borderRadius: "16px", boxShadow: "var(--shadow-sm)" }}>
             <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px", color: "var(--ink)" }}>
+
               <Sparkles size={18} color="var(--primary)" /> Diễn Đàn Trọ
             </h3>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -80,7 +84,9 @@ const ForumFeed = () => {
               <li>
                 <button 
                   onClick={() => setFilter("ROOMMATE")} 
+
                   style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: "8px", background: filter === "ROOMMATE" ? "rgba(245, 158, 11, 0.15)" : "transparent", color: filter === "ROOMMATE" ? "var(--accent)" : "var(--ink)", fontWeight: filter === "ROOMMATE" ? "600" : "500", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
+
                 >
                   <Users size={18} /> Tìm bạn ở ghép
                 </button>
@@ -93,13 +99,17 @@ const ForumFeed = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: "20px", paddingBottom: "60px" }}>
           {/* Create Post Box */}
           {user?.role === "LANDLORD" && (
+
              <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "20px", borderRadius: "16px", boxShadow: "var(--shadow-sm)", display: "flex", gap: "16px", alignItems: "center" }}>
+
                 <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
                   {(user?.fullName || "L")[0].toUpperCase()}
                 </div>
                 <button 
                   onClick={() => navigate("/forum/create")}
+
                   style={{ flex: 1, textAlign: "left", padding: "12px 20px", borderRadius: "30px", background: "var(--bg-primary)", border: "1px solid var(--border-color)", color: "var(--text-secondary)", cursor: "pointer", fontSize: "15px" }}
+
                 >
                   Bạn đang có phòng trống cần cho thuê?
                 </button>
@@ -114,8 +124,10 @@ const ForumFeed = () => {
                ))}
              </div>
           ) : filteredPosts.length === 0 ? (
+
              <div style={{ textAlign: "center", padding: "40px", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "16px" }}>
                <MessageCircle size={48} color="var(--text-muted)" style={{ marginBottom: "16px" }} />
+
                <h3 style={{ margin: 0, color: "var(--ink)" }}>Chưa có bài đăng nào</h3>
                <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>Hãy là người đầu tiên đăng bài trong mục này.</p>
              </div>
@@ -127,7 +139,9 @@ const ForumFeed = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="feed-post-card"
+
                   style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "16px", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}
+
                 >
                   {/* Header */}
                   <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -145,7 +159,9 @@ const ForumFeed = () => {
                       </div>
                     </div>
                     {post.roommateNeeded && (
+
                       <span style={{ background: "rgba(245, 158, 11, 0.15)", color: "var(--accent)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
+
                         <Users size={12} /> Tìm ở ghép
                       </span>
                     )}
@@ -158,15 +174,19 @@ const ForumFeed = () => {
                         {post.title}
                       </h3>
                     </Link>
+
                     <p style={{ margin: "0 0 12px 0", color: "var(--text-secondary)", fontSize: "15px", lineHeight: "1.5" }}>
+
                       {post.description && post.description.length > 200 ? post.description.substring(0, 200) + '...' : post.description}
                     </p>
                     
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+
                       <span style={{ background: "var(--bg-primary)", border: "1px solid var(--border-color)", padding: "6px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: "600", color: "var(--primary)" }}>
                         💰 {Number(post.price).toLocaleString("vi-VN")} đ/tháng
                       </span>
                       <span style={{ background: "var(--bg-primary)", border: "1px solid var(--border-color)", padding: "6px 12px", borderRadius: "8px", fontSize: "13px", color: "var(--text-secondary)" }}>
+
                         📍 {post.district}, {post.city}
                       </span>
                     </div>
@@ -176,7 +196,9 @@ const ForumFeed = () => {
                   {(post.images || post.imageUrls) && (post.images || post.imageUrls).length > 0 && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px" }}>
                       {(post.images || post.imageUrls).slice(0, 2).map((img, idx) => (
+
                         <div key={idx} style={{ height: "200px", background: "var(--bg-primary)" }}>
+
                           <img src={img} alt="Room" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                       ))}
@@ -184,12 +206,14 @@ const ForumFeed = () => {
                   )}
 
                   {/* Actions */}
+
                   <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border-color)", display: "flex", gap: "24px" }}>
                     <WishlistButton post={post} />
                     <Link to={`/rooms/${post.id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontWeight: "500", fontSize: "14px" }}>
                       <MessageCircle size={18} /> Bình luận / Nhắn tin
                     </Link>
                     <button style={{ background: "transparent", border: "none", display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontWeight: "500", cursor: "pointer", fontSize: "14px" }}>
+
                       <Share2 size={18} /> Chia sẻ
                     </button>
                   </div>
@@ -201,11 +225,13 @@ const ForumFeed = () => {
 
         {/* Sidebar Right: Widget */}
         <div style={{ position: "sticky", top: "80px", height: "fit-content" }}>
+
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "20px", borderRadius: "16px", boxShadow: "var(--shadow-sm)" }}>
             <h4 style={{ margin: "0 0 16px 0", fontSize: "15px", fontWeight: "700", color: "var(--ink)" }}>Nổi bật hôm nay</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                  <div style={{ width: "60px", height: "60px", borderRadius: "8px", background: "var(--bg-primary)", overflow: "hidden" }}>
+
                     <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=200" alt="Trending" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                  </div>
                  <div>
@@ -214,7 +240,9 @@ const ForumFeed = () => {
                  </div>
               </div>
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+
                  <div style={{ width: "60px", height: "60px", borderRadius: "8px", background: "var(--bg-primary)", overflow: "hidden" }}>
+
                     <img src="https://images.unsplash.com/photo-1502672260266-1c1e525044c7?w=200" alt="Trending" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                  </div>
                  <div>

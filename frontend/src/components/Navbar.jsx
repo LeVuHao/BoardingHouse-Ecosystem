@@ -121,6 +121,18 @@ const Navbar = () => {
                   }}>{ticketUrgentCount}</span>
                 )}
               </Link>
+              <Link to="/landlord/tickets" className="site-nav-link" style={{ position: "relative" }}>
+                Sự cố
+                {ticketUrgentCount > 0 && (
+                  <span style={{
+                    position: "absolute", top: -6, right: -12,
+                    background: "#ef4444", color: "#fff",
+                    fontSize: 10, fontWeight: 800, borderRadius: 20,
+                    padding: "1px 5px", minWidth: 16, textAlign: "center",
+                    animation: "pulse 2s ease-in-out infinite"
+                  }}>{ticketUrgentCount}</span>
+                )}
+              </Link>
             </>
           )}
 
@@ -273,6 +285,15 @@ const Navbar = () => {
                         <Link to="/landlord/management?tab=bills" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
                           <FileText size={14} />
                           <span>Tạo hóa đơn</span>
+                        </Link>
+                        <Link to="/landlord/tickets" className="nav-menu-item">
+                          <Wrench size={16} />
+                          <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
+                          {ticketUrgentCount > 0 && (
+                            <span className="nav-menu-pill" style={{ background: "#fef2f2", color: "#ef4444" }}>
+                              {ticketUrgentCount} mới
+                            </span>
+                          )}
                         </Link>
                       </>
                     )}

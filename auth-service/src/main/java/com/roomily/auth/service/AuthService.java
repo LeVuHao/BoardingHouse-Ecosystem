@@ -219,7 +219,6 @@ public class AuthService {
         return true;
     }
 
-
     @Transactional
     public UserResponse register(RegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {

@@ -26,7 +26,9 @@ const ForgotPassword = () => {
   if (sent) {
     return (
       <div className="container" style={{ maxWidth: "450px", marginTop: "3rem" }}>
+
         <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", padding: "2.5rem", borderRadius: "16px", boxShadow: "var(--shadow)", textAlign: "center" }}>
+
           <h2 style={{ color: "var(--primary)", marginBottom: "1rem" }}>Đã gửi mã xác thực</h2>
           <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
             Kiểm tra email <strong>{email}</strong> để lấy mã đặt lại mật khẩu. Mã có hiệu lực trong 10 phút.
@@ -48,7 +50,9 @@ const ForgotPassword = () => {
 
   return (
     <div className="container" style={{ maxWidth: "450px", marginTop: "3rem" }}>
+
       <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", padding: "2.5rem", borderRadius: "16px", boxShadow: "var(--shadow)" }}>
+
         <h2 style={{ textAlign: "center", marginBottom: "0.5rem", color: "var(--primary)" }}>Quên mật khẩu</h2>
         <p style={{ textAlign: "center", fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
           Nhập email đã đăng ký để nhận mã xác thực

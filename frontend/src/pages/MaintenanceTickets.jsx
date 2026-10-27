@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+
 import { useSearchParams } from "react-router-dom";
 import { maintenanceApi, contractApi } from "../api/apiClient";
+
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import {
@@ -20,6 +22,7 @@ const CATEGORIES = [
 ];
 
 const URGENCIES = [
+
   { value: "LOW", label: "Thấp", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)" },
   { value: "NORMAL", label: "Bình thường", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)" },
   { value: "HIGH", label: "Cao", color: "#f97316", bg: "rgba(249, 115, 22, 0.15)" },
@@ -32,6 +35,7 @@ const STATUS_CONFIG = {
   RESOLVED: { label: "Đã xử lý", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", icon: <CheckCircle2 size={14} /> },
   CLOSED: { label: "Đã đóng", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", icon: <CheckCircle2 size={14} /> },
   CANCELLED: { label: "Đã hủy", color: "#9ca3af", bg: "rgba(156, 163, 175, 0.15)", icon: <XCircle size={14} /> },
+
 };
 
 const timeAgo = (dateStr) => {
@@ -49,11 +53,13 @@ const timeAgo = (dateStr) => {
 
 const MaintenanceTickets = () => {
   const { user } = useAuth();
+
   const [searchParams] = useSearchParams();
   const queryRoomId = searchParams.get('roomId');
 
   const [tickets, setTickets] = useState([]);
   const [myRooms, setMyRooms] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
@@ -81,6 +87,7 @@ const MaintenanceTickets = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadTickets();
@@ -111,17 +118,20 @@ const MaintenanceTickets = () => {
     }
     if (!form.category || !form.title || !form.description) {
       toast.error("Vui lòng điền đầy đủ loại sự cố, tiêu đề và mô tả!");
+
       return;
     }
     setSubmitting(true);
     try {
       await maintenanceApi.createTicket({
         ...form,
+
         roomId: sanitizedId,
       });
       toast.success("🔧 Đã gửi báo hỏng thành công!");
       setShowCreate(false);
       setForm({ roomId: myRooms.length > 0 ? String(myRooms[0].roomId) : "", category: "", title: "", description: "", urgency: "NORMAL", imageUrls: [] });
+
       loadTickets();
     } catch (err) {
       toast.error(err.message || "Không thể gửi báo hỏng");
@@ -210,6 +220,7 @@ const MaintenanceTickets = () => {
             </div>
 
             <form onSubmit={handleSubmit}>
+
               {/* Room ID / Code Selection */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -259,6 +270,7 @@ const MaintenanceTickets = () => {
                     </div>
                   </div>
                 )}
+
               </div>
 
               {/* Category grid */}
@@ -402,8 +414,10 @@ const MaintenanceTickets = () => {
               onClick={() => setFilter(f.key)}
               style={{
                 padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
+
                 border: filter === f.key ? "1.5px solid var(--accent)" : "1px solid var(--border)",
                 background: filter === f.key ? "var(--accent)" : "var(--surface)",
+
                 color: filter === f.key ? "#fff" : "var(--text)", cursor: "pointer",
                 transition: "all 0.2s"
               }}>
@@ -470,7 +484,9 @@ const MaintenanceTickets = () => {
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
                             padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+
                             background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)",
+
                             animation: "pulse 2s ease-in-out infinite"
                           }}>
                             <AlertTriangle size={11} /> KHẨN CẤP
@@ -525,6 +541,7 @@ const MaintenanceTickets = () => {
                       {ticket.landlordNote && (
                         <div style={{
                           padding: "12px 16px", borderRadius: 10,
+
                           background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.25)",
                           marginBottom: 14
                         }}>
@@ -532,13 +549,16 @@ const MaintenanceTickets = () => {
                             💬 Ghi chú từ chủ trọ:
                           </p>
                           <p style={{ fontSize: 14, color: "var(--text)" }}>{ticket.landlordNote}</p>
+
                         </div>
                       )}
 
                       {/* Timeline */}
                       <div style={{
                         display: "flex", alignItems: "center", gap: 0, marginBottom: 16,
+
                         background: "var(--bg-primary)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 4px", overflow: "hidden"
+
                       }}>
                         {["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((step, i) => {
                           const stepCfg = STATUS_CONFIG[step];
