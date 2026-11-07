@@ -216,58 +216,80 @@ public class BillingService {
             return false;
         }
 
-        // 4. XỬ LÝ IDEMPOTENCY: Nếu hóa đơn đã được thanh toán trước đó (SePay retry)
+        // 4. XỬ LÝ IDEMPOTENCY: Kiểm tra xem giao dịch SePay này đã được ghi nhận trước đó chưa
+        String sepayTxnNo = webhook.getId() != null ? String.valueOf(webhook.getId()) : webhook.getReferenceCode();
+        String txnRef = "SEPAY_" + (sepayTxnNo != null ? sepayTxnNo : (billId + "_" + System.currentTimeMillis()));
+        if (sepayTxnNo != null && paymentTransactionRepository.findByVnpTxnRef(txnRef).isPresent()) {
+            log.info("[SePay Bill Webhook] [Idempotent] Giao dịch SePay #{} đã được xử lý trước đó. Bỏ qua.", sepayTxnNo);
+            return true;
+        }
+
         if ("PAID".equalsIgnoreCase(bill.getStatus())) {
             log.info("[SePay Bill Webhook] [Idempotent] Hóa đơn #{} đã được gạch nợ PAID trước đó. Trả về thành công để SePay ngừng retry.", billId);
             return true;
         }
 
-        // 5. ĐỐI SOÁT SỐ TIỀN: Tiền chuyển phải >= tổng tiền của hóa đơn
-        if (webhook.getTransferAmount().compareTo(bill.getTotalAmount()) < 0) {
-            log.warn("[SePay Bill Webhook] Số tiền thanh toán không đủ cho hóa đơn #{}: nhận {} đ, yêu cầu {} đ",
-                    billId, webhook.getTransferAmount(), bill.getTotalAmount());
-            return false;
-        }
-
-        log.info("[SePay Bill Webhook] Khớp hóa đơn #{}, Tenant ID: {}, Số tiền: {}",
-                billId, bill.getTenantId(), webhook.getTransferAmount());
-
-        // 6. Gạch nợ hóa đơn sang PAID
-        bill.setStatus("PAID");
-        billRepository.save(bill);
-
-        // 7. Cập nhật bản ghi giao dịch
-        String paymentCode = "BILL" + bill.getId();
-        PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(paymentCode)
-                .orElse(null);
-
-        if (txn == null) {
-            txn = PaymentTransaction.builder()
-                    .userId(bill.getTenantId())
-                    .billId(bill.getId())
-                    .transactionType("BILL_PAYMENT")
-                    .vnpTxnRef(paymentCode)
-                    .build();
-        }
-        txn.setStatus("SUCCESS");
-        txn.setPaymentMethod("SEPAY_VIETQR");
-        txn.setAmount(webhook.getTransferAmount());
-        txn.setVnpTransactionNo(webhook.getId() != null ? String.valueOf(webhook.getId()) : webhook.getReferenceCode());
-        txn.setVnpResponseCode("00");
+        // 5. GHI NHẬN GIAO DỊCH VÀO PAYMENT TRANSACTIONS VỚI STATUS SUCCESS
+        PaymentTransaction txn = PaymentTransaction.builder()
+                .userId(bill.getTenantId())
+                .billId(bill.getId())
+                .transactionType("BILL_PAYMENT")
+                .vnpTxnRef(txnRef)
+                .vnpTransactionNo(sepayTxnNo)
+                .paymentMethod("SEPAY_VIETQR")
+                .amount(webhook.getTransferAmount())
+                .vnpResponseCode("00")
+                .status("SUCCESS")
+                .build();
         paymentTransactionRepository.save(txn);
 
-        // 8. Bắn sự kiện RabbitMQ thông báo cho Chủ trọ & Người thuê
-        publishEvent("bill.paid", bill.getLandlordId(),
-                "Hóa đơn tháng " + bill.getMonthYear() + " đã được thanh toán",
-                "Người thuê đã thanh toán tự động qua VietQR SePay số tiền: " + bill.getTotalAmount() + " đ.",
-                bill.getId());
+        // 6. ĐỐI SOÁT CỘNG DỒN SỐ TIỀN ĐÃ THANH TOÁN (Hỗ trợ chia tiền / thanh toán từng phần cho phòng ở ghép)
+        BigDecimal totalPaid = paymentTransactionRepository.findByBillId(billId).stream()
+                .filter(t -> "SUCCESS".equalsIgnoreCase(t.getStatus()))
+                .map(PaymentTransaction::getAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        publishEvent("bill.paid", bill.getTenantId(),
-                "Thanh toán hóa đơn tháng " + bill.getMonthYear() + " thành công",
-                "Hệ thống đã tự động gạch nợ thành công hóa đơn tiền phòng tháng " + bill.getMonthYear() + ".",
-                bill.getId());
+        log.info("[SePay Bill Webhook] Hóa đơn #{}, Tổng tiền: {} đ, Đã thanh toán cộng dồn: {} đ",
+                billId, bill.getTotalAmount(), totalPaid);
 
-        log.info("[SePay Bill Webhook] Đã gạch nợ hóa đơn #{} thành công", billId);
+        if (totalPaid.compareTo(bill.getTotalAmount()) >= 0) {
+            // Đã trả đủ hoặc thừa -> Gạch nợ hoàn tất
+            bill.setStatus("PAID");
+            billRepository.save(bill);
+
+            // Bắn sự kiện RabbitMQ thông báo cho Chủ trọ & Người thuê
+            publishEvent("bill.paid", bill.getLandlordId(),
+                    "Hóa đơn tháng " + bill.getMonthYear() + " đã được thanh toán đủ",
+                    "Đã nhận đủ số tiền: " + totalPaid + " đ cho hóa đơn tháng " + bill.getMonthYear() + " qua VietQR SePay.",
+                    bill.getId());
+
+            publishEvent("bill.paid", bill.getTenantId(),
+                    "Thanh toán hóa đơn tháng " + bill.getMonthYear() + " thành công",
+                    "Hệ thống đã tự động gạch nợ thành công hóa đơn tiền phòng tháng " + bill.getMonthYear() + ".",
+                    bill.getId());
+
+            log.info("[SePay Bill Webhook] Đã gạch nợ PAID hóa đơn #{} thành công", billId);
+        } else {
+            // Thanh toán một phần (Partial Payment)
+            bill.setStatus("PARTIALLY_PAID");
+            billRepository.save(bill);
+
+            BigDecimal remaining = bill.getTotalAmount().subtract(totalPaid);
+            publishEvent("bill.partial_paid", bill.getLandlordId(),
+                    "Hóa đơn tháng " + bill.getMonthYear() + " vừa nhận thanh toán một phần",
+                    "Đã nhận " + webhook.getTransferAmount() + " đ. Tổng đã thanh toán: " + totalPaid + " đ. Còn thiếu: " + remaining + " đ.",
+                    bill.getId());
+
+            publishEvent("bill.partial_paid", bill.getTenantId(),
+                    "Ghi nhận thanh toán một phần hóa đơn tháng " + bill.getMonthYear(),
+                    "Đã ghi nhận chuyển khoản " + webhook.getTransferAmount() + " đ. Số tiền còn lại cần đóng: " + remaining + " đ.",
+                    bill.getId());
+
+            log.info("[SePay Bill Webhook] Hóa đơn #{} đã thanh toán 1 phần: {}/{}. Còn lại: {}",
+                    billId, totalPaid, bill.getTotalAmount(), remaining);
+        }
+
         return true;
     }
 

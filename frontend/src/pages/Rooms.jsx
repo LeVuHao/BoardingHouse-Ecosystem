@@ -9,7 +9,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { useCompare } from "../context/CompareContext";
-import { forumApi, rentalApi, unwrapApiData } from "../api/apiClient";
+import { forumApi, rentalApi, contractApi, unwrapApiData } from "../api/apiClient";
 import MapView from "../components/MapView";
 import WishlistButton from "../components/WishlistButton";
 import useAmenities from "../hooks/useAmenities";
@@ -239,7 +239,7 @@ const Rooms = () => {
   const [submittingRental, setSubmittingRental] = useState(false);
   const [reportingItem, setReportingItem] = useState(null);
 
-  // Modal Tìm Người Ở Ghép
+  // Modal Tìm Người Ở Ghép (Dành cho Chủ trọ / Người đang thuê phòng)
   const [roommateModalPost, setRoommateModalPost] = useState(null);
   const [roommateForm, setRoommateForm] = useState({
     roommateNeeded: true,
@@ -249,6 +249,46 @@ const Rooms = () => {
     roommateNote: "",
   });
   const [savingRoommate, setSavingRoommate] = useState(false);
+
+  // Danh sách hợp đồng đang thuê của user
+  const [myContracts, setMyContracts] = useState([]);
+
+  // Modal Xin Ở Ghép (Dành cho Cư dân / Khách ứng tuyển vào ở ghép)
+  const [joinModalPost, setJoinModalPost] = useState(null);
+  const [joinForm, setJoinForm] = useState({
+    fullName: "",
+    phone: "",
+    gender: "MALE",
+    occupation: "",
+    habits: "",
+    moveInDate: "",
+    durationMonths: 6,
+    introduction: "",
+  });
+  const [submittingJoin, setSubmittingJoin] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      contractApi
+        .getMyContracts()
+        .then((res) => setMyContracts(res.data || []))
+        .catch((err) => console.warn("Lỗi tải danh sách hợp đồng cá nhân:", err));
+    } else {
+      setMyContracts([]);
+    }
+  }, [user]);
+
+  // Kiểm tra quyền quản lý ở ghép (Chủ bài đăng HOẶC Người đang thuê phòng này)
+  const checkCanManageRoommate = useCallback(
+    (post) => {
+      if (!user || !post) return false;
+      if (isUserPost(post, user)) return true;
+      return myContracts.some(
+        (c) => c.status === "ACTIVE" && (c.roomId === post.roomId || c.postId === post.id)
+      );
+    },
+    [user, myContracts]
+  );
 
   // Tải danh sách phòng từ diễn đàn trọ
   const fetchPosts = async () => {
@@ -581,9 +621,54 @@ const Rooms = () => {
     }
   };
 
-  // Xử lý lưu nhu cầu ở ghép
-  const handleRoommateSubmit = async (e) => {
+  // Xử lý nộp đơn xin ở ghép (Khách / Cư dân vãng lai gửi yêu cầu)
+  const handleJoinSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để gửi đơn xin ở ghép!");
+      navigate("/login");
+      return;
+    }
+    if (!joinForm.fullName.trim() || !joinForm.phone.trim()) {
+      toast.error("Vui lòng điền họ tên và số điện thoại liên hệ");
+      return;
+    }
+
+    setSubmittingJoin(true);
+    try {
+      const criteriaSummary = `[ĐƠN XIN Ở GHÉP - ${joinModalPost.title}] | Ứng viên: ${joinForm.fullName} (${joinForm.gender === "MALE" ? "Nam" : joinForm.gender === "FEMALE" ? "Nữ" : "Khác"}) | Nghề nghiệp: ${joinForm.occupation || "Tự do"} | SĐT: ${joinForm.phone} | Ngày dự kiến dọn vào: ${joinForm.moveInDate || "Sớm nhất"} | Thói quen sinh hoạt: ${joinForm.habits || "Sạch sẽ, giờ giấc sinh hoạt linh hoạt"} | Giới thiệu: ${joinForm.introduction || "Mong muốn tìm bạn ở ghép hòa đồng, tôn trọng không gian chung"}`;
+
+      await rentalApi.createRentalRequest({
+        postId: joinModalPost.id,
+        roomId: joinModalPost.roomId || null,
+        senderName: joinForm.fullName,
+        senderPhone: joinForm.phone,
+        note: criteriaSummary,
+        durationMonths: Number(joinForm.durationMonths) || 6,
+      });
+
+      try {
+        await forumApi.sendMessage(joinModalPost.id, {
+          senderName: joinForm.fullName,
+          senderPhone: joinForm.phone,
+          content: `🤝 ${criteriaSummary}`,
+        });
+      } catch (msgErr) {
+        console.warn("Message sending fallback:", msgErr);
+      }
+
+      toast.success("🎉 Đã gửi đơn xin ở ghép thành công! Vui lòng chờ phản hồi từ người đăng.");
+      setJoinModalPost(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể gửi đơn xin ở ghép");
+    } finally {
+      setSubmittingJoin(false);
+    }
+  };
+
+  // Xử lý lưu nhu cầu ở ghép (Chủ trọ hoặc người thuê đang ở trong phòng)
+  const handleRoommateSubmit = async (e, turnOff = false) => {
+    if (e) e.preventDefault();
     if (!user) {
       toast.error("Vui lòng đăng nhập");
       navigate("/login");
@@ -592,15 +677,25 @@ const Rooms = () => {
 
     setSavingRoommate(true);
     try {
-      const fullCriteria = `[Giới tính: ${roommateForm.gender === "MALE" ? "Nam" : roommateForm.gender === "FEMALE" ? "Nữ" : "Tất cả"}] ${roommateForm.expectedCost ? `• Chia: ${formatVnd(roommateForm.expectedCost)}/người` : ""} • ${roommateForm.roommateNote || "Tìm bạn cùng chia sẻ chi phí phòng"}`;
+      if (turnOff) {
+        await forumApi.updateRoommateStatus(roommateModalPost.id, {
+          roommateNeeded: false,
+          roommateCount: 0,
+          roommateNote: "",
+        });
+        toast.success("Đã tắt trạng thái tìm người ở ghép! 👍");
+      } else {
+        const fullCriteria = `[Giới tính: ${roommateForm.gender === "MALE" ? "Nam" : roommateForm.gender === "FEMALE" ? "Nữ" : "Tất cả"}] ${roommateForm.expectedCost ? `• Chia: ${formatVnd(roommateForm.expectedCost)}/người` : ""} • ${roommateForm.roommateNote || "Tìm bạn cùng chia sẻ chi phí phòng"}`;
 
-      await forumApi.updateRoommateStatus(roommateModalPost.id, {
-        roommateNeeded: true,
-        roommateCount: Number(roommateForm.roommateCount) || 1,
-        roommateNote: fullCriteria,
-      });
+        await forumApi.updateRoommateStatus(roommateModalPost.id, {
+          roommateNeeded: true,
+          roommateCount: Number(roommateForm.roommateCount) || 1,
+          roommateNote: fullCriteria,
+        });
 
-      toast.success("Đã đăng nhu cầu tìm người ở ghép thành công! 🔥");
+        toast.success("Đã cập nhật nhu cầu tìm người ở ghép thành công! 🔥");
+      }
+
       setRoommateModalPost(null);
       fetchPosts();
     } catch (err) {
@@ -1651,23 +1746,63 @@ const Rooms = () => {
                           ⚡ Yêu cầu thuê
                         </button>
 
-                        {/* 2. Tìm bạn ở ghép */}
-                        <button
-                          onClick={() => {
-                            setRoommateModalPost(post);
-                            setRoommateForm({
-                              roommateNeeded: true,
-                              roommateCount: post.roommateCount || 1,
-                              gender: "ALL",
-                              expectedCost: "",
-                              roommateNote: post.roommateNote || "",
-                            });
-                          }}
-                          className="btn btn-accent forum-action-btn"
-                        >
-                          <Users size={14} />
-                          👥 Ở ghép
-                        </button>
+                        {/* 2. Ở GHÉP: PHÂN BIỆT RÕ VAI TRÒ GIỮA NGƯỜI QUẢN LÝ PHÒNG & KHÁCH XEM BÀI */}
+                        {(() => {
+                          const canManage = checkCanManageRoommate(post);
+                          if (canManage) {
+                            return (
+                              <button
+                                onClick={() => {
+                                  setRoommateModalPost(post);
+                                  setRoommateForm({
+                                    roommateNeeded: post.roommateNeeded ?? true,
+                                    roommateCount: post.roommateCount || 1,
+                                    gender: "ALL",
+                                    expectedCost: "",
+                                    roommateNote: post.roommateNote || "",
+                                  });
+                                }}
+                                className={`btn ${post.roommateNeeded ? "btn-warning" : "btn-outline"} forum-action-btn`}
+                                title={post.roommateNeeded ? "Phòng đang tìm người ở ghép - Bấm để chỉnh sửa hoặc tắt" : "Bật tìm bạn ở ghép cho phòng này"}
+                              >
+                                <Users size={14} />
+                                {post.roommateNeeded ? "⚙️ Quản lý ở ghép" : "👥 Bật tìm ở ghép"}
+                              </button>
+                            );
+                          }
+                          // Nếu là khách / cư dân khác xem phòng:
+                          if (post.roommateNeeded) {
+                            return (
+                              <button
+                                onClick={() => {
+                                  if (!user) {
+                                    toast.error("Vui lòng đăng nhập để gửi đơn xin ở ghép!");
+                                    navigate("/login");
+                                    return;
+                                  }
+                                  setJoinModalPost(post);
+                                  setJoinForm({
+                                    fullName: user.fullName || "",
+                                    phone: user.phoneNumber || "",
+                                    gender: "MALE",
+                                    occupation: "",
+                                    habits: "",
+                                    moveInDate: "",
+                                    durationMonths: 6,
+                                    introduction: "",
+                                  });
+                                }}
+                                className="btn btn-accent forum-action-btn"
+                                title="Phòng này đang tìm người ở ghép - Bấm để gửi đơn xin ứng tuyển"
+                              >
+                                <Users size={14} />
+                                🤝 Xin ở ghép
+                              </button>
+                            );
+                          }
+                          // Nếu phòng không tìm ở ghép và người xem là khách -> Không hiện nút ở ghép
+                          return null;
+                        })()}
 
                         {/* 3. Xem chi tiết */}
                         <Link to={`/rooms/${post.id}`} className="btn forum-action-btn">
@@ -2163,14 +2298,19 @@ const Rooms = () => {
         </div>
       )}
 
-      {/* MODAL ĐĂNG NHU CẦU Ở GHÉP */}
+      {/* MODAL 1: CÀI ĐẶT NHU CẦU Ở GHÉP (DÀNH CHO CHỦ TRỌ HOẶC NGƯỜI ĐANG THUÊ PHÒNG) */}
       {roommateModalPost && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 520 }}>
+          <div className="modal" style={{ maxWidth: 540 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>
-                👥 Đăng nhu cầu tìm người ở ghép
-              </h3>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>
+                  ⚙️ Cài đặt nhu cầu tìm người ở ghép
+                </h3>
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  Dành cho Chủ trọ hoặc Người đang thuê phòng này
+                </span>
+              </div>
               <button
                 onClick={() => setRoommateModalPost(null)}
                 style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
@@ -2182,15 +2322,18 @@ const Rooms = () => {
             <div style={{ background: "#fff7ed", border: "1px dashed #fdba74", padding: "10px 14px", borderRadius: 10, marginBottom: 14 }}>
               <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#c2410c" }}>{roommateModalPost.title}</div>
               <div style={{ fontSize: "0.82rem", color: "#9a3412", marginTop: 2 }}>
-                Giá phòng gốc: <strong>{formatVnd(roommateModalPost.price)}/tháng</strong>
+                Giá phòng gốc: <strong>{formatVnd(roommateModalPost.price)}/tháng</strong> • Trạng thái hiện tại:{" "}
+                <strong style={{ color: roommateModalPost.roommateNeeded ? "#16a34a" : "#dc2626" }}>
+                  {roommateModalPost.roommateNeeded ? "Đang tìm ở ghép" : "Chưa bật tìm ở ghép"}
+                </strong>
               </div>
             </div>
 
-            <form onSubmit={handleRoommateSubmit}>
+            <form onSubmit={(e) => handleRoommateSubmit(e, false)}>
               <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                    Cần tìm số lượng
+                    Cần tìm số lượng (người)
                   </label>
                   <input
                     type="number"
@@ -2244,21 +2387,218 @@ const Rooms = () => {
                 />
               </div>
 
+              <div style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  {roommateModalPost.roommateNeeded && (
+                    <button
+                      type="button"
+                      disabled={savingRoommate}
+                      onClick={(e) => handleRoommateSubmit(e, true)}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: 8,
+                        border: "1px solid #f87171",
+                        background: "#fef2f2",
+                        color: "#dc2626",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      🛑 Tắt tìm ở ghép
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setRoommateModalPost(null)}
+                    className="btn btn-outline"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingRoommate}
+                    className="btn btn-accent"
+                    style={{ fontWeight: 700 }}
+                  >
+                    {savingRoommate ? "Đang lưu..." : "Lưu cài đặt ở ghép 🔥"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: MẪU ĐƠN ỨNG TUYỂN XIN Ở GHÉP (DÀNH CHO CƯ DÂN / KHÁCH XIN VÀO Ở GHÉP) */}
+      {joinModalPost && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 540 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>
+                  🤝 Đơn xin ứng tuyển ở ghép
+                </h3>
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  Gửi hồ sơ cá nhân và nguyện vọng tới người đăng phòng
+                </span>
+              </div>
+              <button
+                onClick={() => setJoinModalPost(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Thông tin phòng & Tiêu chí đang tìm */}
+            <div style={{ background: "#f0fdf4", border: "1px dashed #86efac", padding: "12px 14px", borderRadius: 10, marginBottom: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#166534" }}>{joinModalPost.title}</div>
+              <div style={{ fontSize: "0.82rem", color: "#15803d", marginTop: 2 }}>
+                Giá gốc: <strong>{formatVnd(joinModalPost.price)}/tháng</strong> • Cần tìm: <strong>{joinModalPost.roommateCount || 1} bạn</strong>
+              </div>
+              {joinModalPost.roommateNote && (
+                <div style={{ marginTop: 6, fontSize: "0.82rem", color: "#166534", background: "rgba(255,255,255,0.7)", padding: "6px 8px", borderRadius: 6 }}>
+                  💡 <em>Tiêu chí phòng: {joinModalPost.roommateNote}</em>
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleJoinSubmit}>
+              {/* Họ tên & SĐT */}
+              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+                <div style={{ flex: 1.2 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Họ và tên của bạn *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Nguyễn Văn A"
+                    value={joinForm.fullName}
+                    onChange={(e) => setJoinForm({ ...joinForm, fullName: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Số điện thoại / Zalo *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="0912345678"
+                    value={joinForm.phone}
+                    onChange={(e) => setJoinForm({ ...joinForm, phone: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  />
+                </div>
+              </div>
+
+              {/* Giới tính & Nghề nghiệp */}
+              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Giới tính
+                  </label>
+                  <select
+                    value={joinForm.gender}
+                    onChange={(e) => setJoinForm({ ...joinForm, gender: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
+                  >
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="MALE">Nam</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="FEMALE">Nữ</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="OTHER">Khác</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1.5 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Nghề nghiệp / Trường học
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: Sinh viên Bách Khoa / Nhân viên IT"
+                    value={joinForm.occupation}
+                    onChange={(e) => setJoinForm({ ...joinForm, occupation: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  />
+                </div>
+              </div>
+
+              {/* Ngày dự kiến dọn vào & Thời gian ở */}
+              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Ngày dự kiến dọn vào
+                  </label>
+                  <input
+                    type="date"
+                    value={joinForm.moveInDate}
+                    onChange={(e) => setJoinForm({ ...joinForm, moveInDate: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                    Dự kiến thuê (tháng)
+                  </label>
+                  <select
+                    value={joinForm.durationMonths}
+                    onChange={(e) => setJoinForm({ ...joinForm, durationMonths: e.target.value })}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
+                  >
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={3}>3 tháng</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={6}>6 tháng</option>
+                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={12}>12 tháng</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Thói quen sinh hoạt */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                  Thói quen sinh hoạt cá nhân
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Giờ giấc tự do, không hút thuốc, ít nấu ăn, gọn gàng..."
+                  value={joinForm.habits}
+                  onChange={(e) => setJoinForm({ ...joinForm, habits: e.target.value })}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                />
+              </div>
+
+              {/* Lời giới thiệu */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                  Đôi dòng tự giới thiệu & Lời nhắn *
+                </label>
+                <textarea
+                  rows="3"
+                  required
+                  placeholder="Chào bạn, mình muốn tìm phòng ở ghép yên tĩnh, vui vẻ hòa đồng. Rất mong được kết nối..."
+                  value={joinForm.introduction}
+                  onChange={(e) => setJoinForm({ ...joinForm, introduction: e.target.value })}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                />
+              </div>
+
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button
                   type="button"
-                  onClick={() => setRoommateModalPost(null)}
+                  onClick={() => setJoinModalPost(null)}
                   className="btn btn-outline"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  disabled={savingRoommate}
+                  disabled={submittingJoin}
                   className="btn btn-accent"
                   style={{ fontWeight: 700 }}
                 >
-                  {savingRoommate ? "Đang lưu..." : "Bật tìm bạn ở ghép ngay 🔥"}
+                  {submittingJoin ? "Đang gửi đơn..." : "Gửi đơn xin ở ghép 🚀"}
                 </button>
               </div>
             </form>
