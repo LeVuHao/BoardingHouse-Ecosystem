@@ -207,19 +207,17 @@ public class ForumPostService {
         boolean isLandlord = post.getLandlordId().equals(userId);
         boolean isTenant = false;
 
+        if (post.getRoomId() == null) {
+            ensureRoomForPost(post);
+        }
+
         if (post.getRoomId() != null) {
             isTenant = tenantRepository.existsByUserIdAndRoomIdAndIsStayingTrue(userId, post.getRoomId())
                     || contractRepository.findByRoomIdAndUserIdAndStatus(post.getRoomId(), userId, "ACTIVE").isPresent();
         }
 
-        // Nếu bài đăng chưa gắn roomId, kiểm tra xem người này có hợp đồng thuê nào của chủ trọ đó không
         if (!isLandlord && !isTenant) {
-            isTenant = contractRepository.findByUserId(userId).stream()
-                    .anyMatch(c -> c.getLandlordId().equals(post.getLandlordId()) && "ACTIVE".equalsIgnoreCase(c.getStatus()));
-        }
-
-        if (!isLandlord && !isTenant) {
-            throw new BadRequestException("Chỉ chủ trọ hoặc người đã được duyệt thuê phòng này mới có quyền đăng nhu cầu ở ghép!");
+            throw new BadRequestException("Chỉ chủ trọ hoặc người đã được duyệt thuê phòng này mới có quyền cập nhật nhu cầu ở ghép!");
         }
 
         post.setRoommateNeeded(Boolean.TRUE.equals(roommateNeeded));

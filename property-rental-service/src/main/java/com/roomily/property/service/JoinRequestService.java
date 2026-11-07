@@ -5,10 +5,12 @@ import com.roomily.common.exception.ResourceNotFoundException;
 import com.roomily.property.config.RabbitMQConfig;
 import com.roomily.property.dto.request.JoinRequestCreateRequest;
 import com.roomily.property.dto.response.JoinRequestResponse;
+import com.roomily.property.entity.Contract;
 import com.roomily.property.entity.JoinRequest;
 import com.roomily.property.entity.Room;
 import com.roomily.property.entity.RoommatePost;
 import com.roomily.property.entity.Tenant;
+import com.roomily.property.repository.ContractRepository;
 import com.roomily.property.repository.JoinRequestRepository;
 import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.repository.RoommatePostRepository;
@@ -21,6 +23,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +40,7 @@ public class JoinRequestService {
     private final RoommatePostRepository roommatePostRepository;
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
+    private final ContractRepository contractRepository;
     private final RedissonClient redissonClient;
     private final RabbitTemplate rabbitTemplate;
 
@@ -122,8 +127,10 @@ public class JoinRequestService {
         Room room = roomRepository.findById(post.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin phòng"));
 
-        // Xác thực quyền chủ trọ
-        if (!room.getProperty().getLandlordId().equals(landlordUserId)) {
+        // Xác thực quyền: Chủ trọ HOẶC Người đăng bài tìm bạn ở ghép
+        boolean isLandlord = room.getProperty().getLandlordId().equals(landlordUserId);
+        boolean isCreator = post.getCreatorId().equals(landlordUserId);
+        if (!isLandlord && !isCreator) {
             throw new BadRequestException("Bạn không có quyền duyệt yêu cầu cho phòng này");
         }
 
@@ -160,6 +167,20 @@ public class JoinRequestService {
                 .isStaying(true)
                 .build();
         tenantRepository.save(tenant);
+
+        // Tạo hợp đồng chính thức cho người ở ghép để có đầy đủ quyền lợi, quản lý bill và thanh lý
+        Contract contract = Contract.builder()
+                .roomId(room.getId())
+                .tenantId(joinRequest.getUserId())
+                .landlordId(room.getProperty().getLandlordId())
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusMonths(6))
+                .rentalPrice(post.getPriceShare() != null ? post.getPriceShare() : room.getPrice())
+                .deposit(post.getPriceShare() != null ? post.getPriceShare() : BigDecimal.ZERO)
+                .depositAmount(post.getPriceShare() != null ? post.getPriceShare() : BigDecimal.ZERO)
+                .status("ACTIVE")
+                .build();
+        contractRepository.save(contract);
 
         // Bắn Notification Event qua RabbitMQ
         Map<String, Object> event = new HashMap<>();
