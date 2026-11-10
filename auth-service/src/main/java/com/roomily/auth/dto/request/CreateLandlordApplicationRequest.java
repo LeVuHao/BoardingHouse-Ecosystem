@@ -28,8 +28,6 @@ public class CreateLandlordApplicationRequest {
 
     private String idCardNumber;
 
-    @NotBlank(message = "Mật khẩu mong muốn không được để trống")
-    @Size(min = 6, message = "Mật khẩu phải từ 6 ký tự trở lên")
     private String desiredPassword;
 
     private BigDecimal amount;

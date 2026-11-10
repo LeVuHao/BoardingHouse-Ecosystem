@@ -48,10 +48,15 @@ public class AuthService {
 
     @Transactional
     public com.roomily.auth.dto.response.LandlordRegistrationResponse createLandlordRequest(com.roomily.auth.dto.request.CreateLandlordApplicationRequest req) {
-        if (userRepository.existsByEmail(req.getEmail())) {
-            User existing = userRepository.findByEmail(req.getEmail()).orElse(null);
+        boolean userExists = userRepository.existsByEmail(req.getEmail().trim().toLowerCase());
+        if (userExists) {
+            User existing = userRepository.findByEmail(req.getEmail().trim().toLowerCase()).orElse(null);
             if (existing != null && "LANDLORD".equalsIgnoreCase(existing.getRole())) {
                 throw new BadRequestException("Email này đã có tài khoản chủ trọ trong hệ thống");
+            }
+        } else {
+            if (req.getDesiredPassword() == null || req.getDesiredPassword().trim().length() < 6) {
+                throw new BadRequestException("Tài khoản mới bắt buộc phải nhập mật khẩu từ 6 ký tự trở lên");
             }
         }
 
@@ -63,12 +68,16 @@ public class AuthService {
                 ? req.getAmount()
                 : java.math.BigDecimal.valueOf(5000);
 
+        String encodedPassword = (req.getDesiredPassword() != null && !req.getDesiredPassword().trim().isEmpty())
+                ? passwordEncoder.encode(req.getDesiredPassword().trim())
+                : null;
+
         com.roomily.auth.entity.LandlordRegistrationRequest request = com.roomily.auth.entity.LandlordRegistrationRequest.builder()
                 .fullName(req.getFullName().trim())
                 .email(req.getEmail().trim().toLowerCase())
                 .phoneNumber(req.getPhoneNumber().trim())
                 .idCardNumber(req.getIdCardNumber() != null ? req.getIdCardNumber().trim() : null)
-                .desiredPassword(passwordEncoder.encode(req.getDesiredPassword()))
+                .desiredPassword(encodedPassword)
                 .amount(reqAmount)
                 .paymentCode(code)
                 .paymentStatus("PENDING")

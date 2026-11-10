@@ -37,5 +37,6 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
 
     long countByModerationStatusAndStatusNot(String moderationStatus, String status);
 
+    List<ForumPost> findByRoomId(Long roomId);
     List<ForumPost> findByRoomIdIn(Collection<Long> roomIds);
 }

@@ -4,10 +4,11 @@ import {
   FileText, Calendar, DollarSign, Home, MapPin, Phone, 
   MessageSquare, Star, CheckCircle2, Shield, Users, 
   ChevronLeft, ChevronRight, ExternalLink, Zap, Clock, 
-  AlertCircle, Receipt, Edit3, Trash2, ShieldCheck, ArrowRight, Printer, Wrench
+  AlertCircle, Receipt, Edit3, Trash2, ShieldCheck, ArrowRight, Printer, Wrench,
+  QrCode, Copy, Check, RefreshCw, X, Sparkles, CalendarClock, PlusCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { contractApi, reviewApi } from '../api/apiClient';
+import { contractApi, reviewApi, billingApi } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -22,6 +23,7 @@ const MyContracts = ({ embedded = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [contracts, setContracts] = useState([]);
+  const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePhotoIdx, setActivePhotoIdx] = useState({});
 
@@ -32,6 +34,233 @@ const MyContracts = ({ embedded = false }) => {
   const [commentMap, setCommentMap] = useState({});
   const [submittingReview, setSubmittingReview] = useState(false);
   const [contractModal, setContractModal] = useState(null);
+
+  // Billing VietQR Modal states
+  const [qrModalData, setQrModalData] = useState(null);
+  const [loadingQrId, setLoadingQrId] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
+
+  const copyToClipboard = (text, field) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success(`Đã sao chép ${field}!`);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  // Mở Modal Quét mã VietQR SePay cho hóa đơn
+  const handleOpenPayModal = async (bill) => {
+    try {
+      setLoadingQrId(bill.id);
+      const res = await billingApi.getBillPaymentQr(bill.id);
+      const data = res.data?.data || res.data;
+      setQrModalData({
+        ...data,
+        originalBill: bill,
+      });
+    } catch (err) {
+      toast.error(err.message || 'Không thể lấy thông tin VietQR thanh toán');
+    } finally {
+      setLoadingQrId(null);
+    }
+  };
+
+  // Auto-polling kiểm tra trạng thái thanh toán khi Modal QR đang mở
+  useEffect(() => {
+    let timer = null;
+    if (qrModalData && qrModalData.status !== 'PAID') {
+      timer = setInterval(async () => {
+        try {
+          const res = await billingApi.getMyBills();
+          const latestBills = res.data || [];
+          setBills(latestBills);
+
+          const current = latestBills.find((b) => b.id === qrModalData.billId);
+          if (current && current.status === 'PAID') {
+            setQrModalData((prev) => (prev ? { ...prev, status: 'PAID' } : null));
+            toast.success('🎉 Thanh toán thành công! Hóa đơn đã được gạch nợ tự động.');
+          }
+        } catch {
+          // Im lặng khi poll nền
+        }
+      }, 4000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [qrModalData]);
+
+  // In hóa đơn / biên lai A4 chuyên nghiệp
+  const handlePrintInvoice = (bill, contract) => {
+    const isPaid = bill.status === 'PAID';
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Trình duyệt đã chặn popup. Vui lòng cho phép popup để in biên lai!');
+      return;
+    }
+
+    const tenantName = user?.fullName || 'Khách thuê trọ (ID #' + (bill.tenantId || '') + ')';
+    const tenantPhone = user?.phoneNumber || 'Đã liên kết tài khoản';
+    const landlordName = contract?.landlordName || 'Chủ nhà trọ Roomily';
+    const landlordPhone = contract?.landlordPhone || '1900 8890';
+    const roomInfo = contract?.roomNumber ? `Phòng ${contract.roomNumber}` : `Phòng #${bill.roomId || 'N/A'}`;
+    const propertyTitle = contract?.propertyTitle || 'Hệ sinh thái Quản lý Nhà trọ Roomily';
+    const printDate = new Date().toLocaleDateString('vi-VN');
+    const createdDate = bill.createdAt ? new Date(bill.createdAt).toLocaleDateString('vi-VN') : printDate;
+    const dueDate = bill.dueDate ? new Date(bill.dueDate).toLocaleDateString('vi-VN') : 'Theo thỏa thuận';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Bien_Lai_Tien_Tro_BILL_${bill.id}.pdf</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Times New Roman', Times, serif; color: #111; background: #fff; margin: 0; padding: 20px; font-size: 13.5pt; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; }
+          .brand { font-size: 20pt; font-weight: bold; color: #2563eb; letter-spacing: -0.5px; }
+          .brand-sub { font-size: 10pt; color: #64748b; font-family: sans-serif; }
+          .receipt-title { text-align: center; margin: 25px 0 15px; }
+          .receipt-title h1 { font-size: 22pt; font-weight: bold; margin: 0; text-transform: uppercase; color: #0f172a; }
+          .receipt-title p { font-size: 11pt; color: #475569; font-style: italic; margin: 4px 0 0; }
+          .meta-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8fafc; padding: 14px 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 11pt; }
+          .meta-info div { margin-bottom: 3px; }
+          table.billing-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+          table.billing-table th, table.billing-table td { border: 1px solid #cbd5e1; padding: 10px 14px; text-align: left; }
+          table.billing-table th { background-color: #f1f5f9; font-weight: bold; font-size: 11.5pt; }
+          table.billing-table .text-right { text-align: right; }
+          table.billing-table .total-row td { font-size: 13pt; font-weight: bold; background-color: #eff6ff; color: #1e3a8a; }
+          .status-stamp { display: inline-block; padding: 5px 14px; border-radius: 6px; font-weight: bold; font-size: 10.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
+          .stamp-paid { background: #dcfce7; color: #15803d; border: 1.5px solid #22c55e; }
+          .stamp-unpaid { background: #fef3c7; color: #b45309; border: 1.5px solid #f59e0b; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; text-align: center; margin-top: 40px; page-break-inside: avoid; }
+          .sig-box { font-size: 12pt; }
+          .sig-box em { font-size: 10pt; color: #64748b; }
+          .sig-space { height: 80px; display: flex; align-items: center; justify-content: center; }
+          .watermark-badge { display: inline-block; padding: 4px 12px; border: 1.5px dashed #22c55e; color: #16a34a; font-weight: bold; font-size: 10pt; border-radius: 4px; transform: rotate(-5deg); }
+          @media print { .no-print { display: none !important; } body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand">ROOMILY ECOSYSTEM</div>
+            <div class="brand-sub">${propertyTitle}</div>
+          </div>
+          <div style="text-align: right; font-size: 10pt; color: #475569;">
+            <div>Chủ trọ: ${landlordName} (${landlordPhone})</div>
+            <div>Hotline đối soát: 1900 8890</div>
+          </div>
+        </div>
+
+        <div class="receipt-title">
+          <h1>PHIẾU BÁO CƯỚC & BIÊN LAI TIỀN TRỌ</h1>
+          <p>Mã hóa đơn: #BILL-${bill.id} • Kỳ thu cước: Tháng ${bill.monthYear}</p>
+        </div>
+
+        <div class="meta-info">
+          <div>
+            <div><strong>Khách thuê:</strong> ${tenantName}</div>
+            <div><strong>Điện thoại:</strong> ${tenantPhone}</div>
+            <div><strong>Vị trí:</strong> ${roomInfo} (Hợp đồng: #${bill.contractId || contract?.id || 'N/A'})</div>
+          </div>
+          <div>
+            <div><strong>Ngày phát hành:</strong> ${createdDate}</div>
+            <div><strong>Hạn thanh toán:</strong> ${dueDate}</div>
+            <div>
+              <strong>Trạng thái: </strong>
+              <span class="status-stamp ${isPaid ? 'stamp-paid' : 'stamp-unpaid'}">
+                ${isPaid ? '✓ ĐÃ THANH TOÁN' : '⏳ CHƯA THANH TOÁN'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <table class="billing-table">
+          <thead>
+            <tr>
+              <th style="width: 8%; text-align: center;">STT</th>
+              <th>Danh mục chi phí</th>
+              <th style="width: 28%;">Kỳ hạn / Ghi chú</th>
+              <th class="text-right" style="width: 25%;">Thành tiền (VNĐ)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align: center;">1</td>
+              <td><strong>Tiền thuê phòng trọ</strong></td>
+              <td>Kỳ tháng ${bill.monthYear}</td>
+              <td class="text-right"><strong>${formatVnd(bill.roomAmount)}</strong></td>
+            </tr>
+            <tr>
+              <td style="text-align: center;">2</td>
+              <td><strong>Tiền điện sinh hoạt</strong></td>
+              <td>Theo công tơ đo đếm</td>
+              <td class="text-right"><strong>${formatVnd(bill.electricityAmount)}</strong></td>
+            </tr>
+            <tr>
+              <td style="text-align: center;">3</td>
+              <td><strong>Tiền nước sinh hoạt</strong></td>
+              <td>Theo chỉ số thực tế / định mức</td>
+              <td class="text-right"><strong>${formatVnd(bill.waterAmount)}</strong></td>
+            </tr>
+            ${Number(bill.otherAmount) > 0 ? `
+            <tr>
+              <td style="text-align: center;">4</td>
+              <td><strong>Phí dịch vụ khác</strong></td>
+              <td>Rác thải, vệ sinh, wifi</td>
+              <td class="text-right"><strong>${formatVnd(bill.otherAmount)}</strong></td>
+            </tr>
+            ` : ''}
+            <tr class="total-row">
+              <td colspan="3" style="text-align: right; padding-right: 15px;">TỔNG CỘNG THANH TOÁN:</td>
+              <td class="text-right">${formatVnd(bill.totalAmount)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-size: 10.5pt; color: #334155; margin-bottom: 25px;">
+          <em>* Ghi chú: Biên lai có giá trị xác nhận nghĩa vụ tài chính giữa Khách thuê và Bên cho thuê trên nền tảng Roomily.</em>
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <strong>NGƯỜI THUÊ PHÒNG</strong><br/>
+            <em>(Ký, ghi rõ họ tên)</em>
+            <div class="sig-space">
+              ${isPaid ? '<span class="watermark-badge">✓ XÁC NHẬN NỘP TIỀN</span>' : ''}
+            </div>
+            <strong>${tenantName}</strong>
+          </div>
+          <div class="sig-box">
+            <strong>ĐẠI DIỆN CHỦ TRỌ / QUẢN LÝ</strong><br/>
+            <em>(Ký, ghi rõ họ tên)</em>
+            <div class="sig-space">
+              <span class="watermark-badge" style="border-color: #2563eb; color: #2563eb;">✓ ROOMILY SYSTEM VERIFIED</span>
+            </div>
+            <strong>${landlordName}</strong>
+          </div>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+          <button onclick="window.print()" style="padding: 12px 28px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;">
+            🖨️ Nhấn vào đây để In biên lai hoặc Lưu file PDF (A4)
+          </button>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 
   // In / Xuất hợp đồng thuê phòng ra file PDF chuẩn mẫu văn bản tiếng Việt
   const handlePrintContract = (contract) => {
@@ -165,11 +394,14 @@ const MyContracts = ({ embedded = false }) => {
 
   const fetchContracts = async () => {
     try {
-      const res = user?.role === 'LANDLORD'
-        ? await contractApi.getLandlordContracts()
-        : await contractApi.getMyContracts();
-      const list = res.data || [];
+      const [contractsRes, billsRes] = await Promise.allSettled([
+        user?.role === 'LANDLORD' ? contractApi.getLandlordContracts() : contractApi.getMyContracts(),
+        billingApi.getMyBills()
+      ]);
+      const list = contractsRes.status === 'fulfilled' ? (contractsRes.value?.data || []) : [];
+      const billList = billsRes.status === 'fulfilled' ? (billsRes.value?.data || []) : [];
       setContracts(list);
+      setBills(billList);
 
       // Tải reviews cho các bài đăng gắn với hợp đồng
       list.forEach(async (c) => {
@@ -297,12 +529,12 @@ const MyContracts = ({ embedded = false }) => {
                 <span>{user?.role === 'LANDLORD' ? 'CỔNG QUẢN LÝ HỢP ĐỒNG CHO THUÊ' : 'CỔNG THÔNG TIN CƯ DÂN CHÍNH THỨC'}</span>
               </div>
               <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 10px 0', letterSpacing: '-0.5px' }}>
-                {user?.role === 'LANDLORD' ? 'Quản lý Hợp đồng Cho thuê Phòng' : 'Hợp đồng & Trọ của tôi'}
+                {user?.role === 'LANDLORD' ? 'Quản lý Hợp đồng Cho thuê Phòng' : 'Trọ của tôi & Hợp đồng cư dân'}
               </h1>
               <p style={{ margin: 0, fontSize: '15px', opacity: 0.92, maxWidth: '640px', lineHeight: 1.5 }}>
                 {user?.role === 'LANDLORD'
                   ? 'Theo dõi toàn bộ hợp đồng thuê phòng của khách thuê, tải/in hợp đồng điện tử pháp lý khổ A4 và quản lý tiền phòng, tiền cọc.'
-                  : 'Quản lý hợp đồng số, thông tin chi tiết phòng trọ đang thuê, hóa đơn tiền điện nước hàng tháng và trao đổi trực tiếp với chủ trọ.'}
+                  : 'Không gian căn phòng bạn đang thuê, ngày phê duyệt thuê, liên kết bài đăng gốc, thông tin liên lạc chủ trọ và hóa đơn hàng tháng.'}
               </p>
             </div>
             <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '220px', height: '220px', background: 'rgba(255,255,255,0.06)', borderRadius: '50%', pointerEvents: 'none' }} />
@@ -413,6 +645,20 @@ const MyContracts = ({ embedded = false }) => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        color: '#059669',
+                        padding: '5px 12px',
+                        borderRadius: '9999px',
+                        fontSize: '0.82rem',
+                        fontWeight: '800'
+                      }}>
+                        <CalendarClock size={14} />
+                        Duyệt ngày: {c.createdAt ? new Date(c.createdAt).toLocaleDateString('vi-VN') : (c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'Đã duyệt')}
+                      </span>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
                         background: 'rgba(99, 102, 241, 0.18)',
                         color: '#818cf8',
                         padding: '5px 12px',
@@ -463,32 +709,22 @@ const MyContracts = ({ embedded = false }) => {
                           Trả phòng / Thanh lý
                         </button>
                       )}
-                      {user?.role === 'LANDLORD' ? (
-                        c.status !== 'TERMINATED' && (
-                          <Link
-                            to="/landlord/create-bill"
-                            className="btn btn-primary"
-                            style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
-                          >
-                            <Receipt size={14} /> Tạo hóa đơn
-                          </Link>
-                        )
-                      ) : (
+                      {user?.role === 'LANDLORD' && c.status !== 'TERMINATED' && (
                         <Link
-                          to="/my-bills"
+                          to="/landlord/create-bill"
                           className="btn btn-primary"
                           style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', background: 'var(--primary)', color: '#ffffff' }}
                         >
-                          <Receipt size={14} /> Hóa đơn phòng
+                          <Receipt size={14} /> Tạo hóa đơn
                         </Link>
                       )}
                     </div>
                   </div>
 
-                  {/* 4 QUICK METRIC TILES */}
+                  {/* 5 QUICK METRIC TILES */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
                     gap: '1px',
                     background: 'var(--border)',
                     borderBottom: '1px solid var(--border)'
@@ -503,6 +739,12 @@ const MyContracts = ({ embedded = false }) => {
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Tiền cọc an toàn</div>
                       <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#059669', fontFamily: 'Manrope, sans-serif' }}>
                         {formatVnd(c.depositAmount || c.rentalPrice)}
+                      </div>
+                    </div>
+                    <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Ngày chủ trọ duyệt thuê</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#059669' }}>
+                        {c.createdAt ? new Date(c.createdAt).toLocaleDateString('vi-VN') : (c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'Đã duyệt')}
                       </div>
                     </div>
                     <div style={{ background: 'var(--bg-card)', padding: '18px 24px' }}>
@@ -650,6 +892,52 @@ const MyContracts = ({ embedded = false }) => {
                           {c.propertyTitle || `Phòng trọ tiện nghi #${c.roomNumber || c.roomId}`}
                         </h2>
 
+                        {c.postId && (
+                          <div style={{
+                            margin: '10px 0 16px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                            flexWrap: 'wrap'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{
+                                background: '#ef4444',
+                                color: '#ffffff',
+                                fontSize: '11px',
+                                fontWeight: '800',
+                                padding: '3px 8px',
+                                borderRadius: '8px',
+                                letterSpacing: '0.3px'
+                              }}>
+                                ⚡ ĐÃ CÓ NGƯỜI THUÊ
+                              </span>
+                              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ink)' }}>
+                                Bài đăng gốc của phòng trên Diễn đàn
+                              </span>
+                            </div>
+                            <Link
+                              to={`/rooms/${c.postId}`}
+                              style={{
+                                fontSize: '12.5px',
+                                color: '#2563eb',
+                                fontWeight: '700',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              Xem bài đăng <ExternalLink size={13} />
+                            </Link>
+                          </div>
+                        )}
+
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '18px', lineHeight: 1.5 }}>
                           <MapPin size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
                           <span>{c.address ? `${c.address}, ${c.ward || ''}, ${c.district || ''}, ${c.city || ''}` : 'Khu vực Dĩ An, gần các trường đại học TP.HCM'}</span>
@@ -724,15 +1012,26 @@ const MyContracts = ({ embedded = false }) => {
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           {(user?.role === 'LANDLORD' ? c.tenantPhone : c.landlordPhone) && (
-                            <a
-                              href={`tel:${user?.role === 'LANDLORD' ? c.tenantPhone : c.landlordPhone}`}
-                              className="btn btn-outline"
-                              style={{ padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                            >
-                              <Phone size={14} color="#2563eb" /> Gọi điện
-                            </a>
+                            <>
+                              <a
+                                href={`tel:${user?.role === 'LANDLORD' ? c.tenantPhone : c.landlordPhone}`}
+                                className="btn btn-outline"
+                                style={{ padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                              >
+                                <Phone size={14} color="#2563eb" /> Gọi điện
+                              </a>
+                              <a
+                                href={`https://zalo.me/${(user?.role === 'LANDLORD' ? c.tenantPhone : c.landlordPhone).replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-outline"
+                                style={{ padding: '8px 14px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#0284c7', borderColor: 'rgba(2, 132, 199, 0.3)', background: 'rgba(2, 132, 199, 0.08)', fontWeight: 700 }}
+                              >
+                                💬 Nhắn Zalo
+                              </a>
+                            </>
                           )}
                           <Link
                             to="/forum/messages"
@@ -745,6 +1044,190 @@ const MyContracts = ({ embedded = false }) => {
                       </div>
 
                     </div>
+                  </div>
+
+                  {/* INTEGRATED BILLING SECTION FOR THIS ROOM */}
+                  <div style={{
+                    padding: '24px 28px',
+                    background: 'var(--bg-primary)',
+                    borderTop: '1px solid var(--border)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Receipt size={18} color="#2563eb" />
+                          Hóa đơn tiền phòng & Dịch vụ sinh hoạt
+                        </h4>
+                        <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                          Toàn bộ hóa đơn tiền phòng, tiền điện, nước và dịch vụ hàng tháng của phòng này.
+                        </p>
+                      </div>
+
+                      {user?.role === 'LANDLORD' && (
+                        <Link
+                          to="/landlord/create-bill"
+                          className="btn btn-primary"
+                          style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+                        >
+                          <PlusCircle size={14} /> + Tạo hóa đơn tháng này
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Bills list for this contract */}
+                    {(() => {
+                      const roomBills = bills.filter((b) => b.contractId === c.id || (b.roomId && b.roomId === c.roomId));
+                      if (roomBills.length === 0) {
+                        return (
+                          <div style={{
+                            background: 'var(--bg-card)',
+                            borderRadius: '16px',
+                            padding: '28px 20px',
+                            textAlign: 'center',
+                            border: '1px dashed var(--border)'
+                          }}>
+                            <Receipt size={32} color="var(--text-muted)" style={{ margin: '0 auto 8px', opacity: 0.6 }} />
+                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>
+                              Chưa có hóa đơn nào cho phòng này
+                            </div>
+                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px auto 0', maxWidth: 440 }}>
+                              {user?.role === 'LANDLORD'
+                                ? 'Bạn có thể bấm nút "+ Tạo hóa đơn" ở trên để gửi bảng tính tiền phòng và điện nước cho khách thuê.'
+                                : 'Chủ trọ sẽ phát hành hóa đơn định kỳ hàng tháng. Khi có hóa đơn mới, bạn sẽ nhận được thông báo để kiểm tra và thanh toán tại đây.'}
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                          {roomBills.map((bill) => {
+                            const isPaid = bill.status === 'PAID';
+                            const isPartial = bill.status === 'PARTIALLY_PAID';
+                            return (
+                              <div
+                                key={bill.id}
+                                style={{
+                                  background: 'var(--bg-card)',
+                                  borderRadius: '16px',
+                                  border: isPaid ? '1px solid rgba(16, 185, 129, 0.3)' : isPartial ? '1px solid rgba(37, 99, 235, 0.3)' : '1.5px solid rgba(245, 158, 11, 0.35)',
+                                  padding: '18px 20px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '14px',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                    <span style={{
+                                      padding: '4px 10px',
+                                      borderRadius: '8px',
+                                      fontSize: '12px',
+                                      fontWeight: '800',
+                                      background: isPaid ? 'rgba(16, 185, 129, 0.15)' : isPartial ? 'rgba(37, 99, 235, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                      color: isPaid ? '#10b981' : isPartial ? '#2563eb' : '#d97706',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}>
+                                      {isPaid ? <CheckCircle2 size={13} /> : <AlertCircle size={13} />}
+                                      {isPaid ? 'ĐÃ THANH TOÁN' : isPartial ? 'THANH TOÁN 1 PHẦN' : 'CHƯA THANH TOÁN'}
+                                    </span>
+                                    <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--ink)' }}>
+                                      Kỳ cước: Tháng {bill.monthYear}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                      Mã hóa đơn: #BILL-{bill.id}
+                                    </span>
+                                  </div>
+
+                                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                    Hạn thanh toán: <strong>{bill.dueDate ? new Date(bill.dueDate).toLocaleDateString('vi-VN') : 'Theo thông báo'}</strong>
+                                  </div>
+                                </div>
+
+                                {/* Fee Breakdown Tiles */}
+                                <div style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                                  gap: '8px',
+                                  background: 'var(--bg-primary)',
+                                  padding: '12px 14px',
+                                  borderRadius: '12px',
+                                  border: '1px solid var(--border)'
+                                }}>
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền phòng</div>
+                                    <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--ink)' }}>{formatVnd(bill.roomAmount)}</div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền điện</div>
+                                    <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#eab308' }}>{formatVnd(bill.electricityAmount)}</div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền nước</div>
+                                    <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#06b6d4' }}>{formatVnd(bill.waterAmount)}</div>
+                                  </div>
+                                  {Number(bill.otherAmount) > 0 && (
+                                    <div>
+                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Dịch vụ khác</div>
+                                      <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--ink)' }}>{formatVnd(bill.otherAmount)}</div>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tổng thanh toán</div>
+                                    <div style={{ fontSize: '15px', fontWeight: '900', color: '#2563eb' }}>{formatVnd(bill.totalAmount)}</div>
+                                  </div>
+                                  {isPartial && (
+                                    <div>
+                                      <div style={{ fontSize: '11px', color: '#16a34a' }}>Đã đóng</div>
+                                      <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#16a34a' }}>{formatVnd(bill.paidAmount)} (Còn: {formatVnd(bill.remainingAmount)})</div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Action buttons */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <button
+                                    onClick={() => handlePrintInvoice(bill, c)}
+                                    className="btn btn-outline"
+                                    style={{ padding: '6px 12px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+                                    title="In biên lai thu tiền khổ A4"
+                                  >
+                                    <Printer size={13} /> In biên lai A4
+                                  </button>
+
+                                  {!isPaid && (
+                                    <>
+                                      {c.landlordPhone && (
+                                        <a
+                                          href={`https://zalo.me/${c.landlordPhone.replace(/[^0-9]/g, '')}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline"
+                                          style={{ padding: '6px 12px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0284c7', borderColor: 'rgba(2, 132, 199, 0.3)', background: 'rgba(2, 132, 199, 0.08)', fontWeight: 700 }}
+                                        >
+                                          💬 Báo tiền qua Zalo
+                                        </a>
+                                      )}
+                                      <button
+                                        onClick={() => handleOpenPayModal(bill)}
+                                        disabled={loadingQrId === bill.id}
+                                        className="btn btn-primary"
+                                        style={{ padding: '6px 14px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff' }}
+                                      >
+                                        <QrCode size={14} /> {loadingQrId === bill.id ? 'Đang tạo QR...' : 'Quét VietQR SePay'}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* 5-STAR RATING & REVIEW SECTION EMBEDDED DIRECTLY IN MY ROOM */}
@@ -975,6 +1458,224 @@ const MyContracts = ({ embedded = false }) => {
                   Đã hiểu & Đóng
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL QUÉT MÃ VIETQR SEPAY THANH TOÁN TỰ ĐỘNG */}
+        {qrModalData && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px'
+          }}>
+            <div style={{
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              borderRadius: '24px',
+              maxWidth: '560px',
+              width: '100%',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: '28px',
+              position: 'relative',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.4)',
+              border: '1px solid var(--border)'
+            }}>
+              {/* Close button */}
+              <button
+                onClick={() => setQrModalData(null)}
+                style={{
+                  position: 'absolute',
+                  top: 18,
+                  right: 18,
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} />
+              </button>
+
+              {/* Modal Header */}
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  background: qrModalData.status === 'PAID' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(37, 99, 235, 0.12)',
+                  color: qrModalData.status === 'PAID' ? '#10b981' : '#2563eb',
+                  marginBottom: '8px'
+                }}>
+                  <Sparkles size={14} /> {qrModalData.status === 'PAID' ? 'GIAO DỊCH THÀNH CÔNG' : 'CỔNG THANH TOÁN VIETQR SEPAY'}
+                </div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.35rem', fontWeight: 800 }}>
+                  {qrModalData.status === 'PAID' ? 'Hóa đơn đã thanh toán!' : `Thanh toán Hóa đơn tháng ${qrModalData.monthYear}`}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  {qrModalData.status === 'PAID'
+                    ? 'Hệ thống đã nhận được tiền và tự động gạch nợ hóa đơn.'
+                    : 'Mở app ngân hàng bất kỳ để quét mã và chuyển khoản chính xác.'}
+                </p>
+              </div>
+
+              {qrModalData.status === 'PAID' ? (
+                /* Success State */
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{
+                    width: 76,
+                    height: 76,
+                    borderRadius: '50%',
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px'
+                  }}>
+                    <CheckCircle2 size={44} />
+                  </div>
+                  <h4 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
+                    Thanh Toán Hoàn Tất!
+                  </h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', maxWidth: 380, margin: '0 auto 24px' }}>
+                    Hóa đơn kỳ tháng <strong>{qrModalData.monthYear}</strong> với số tiền <strong>{formatVnd(qrModalData.amount)}</strong> đã được ghi nhận. Chủ trọ cũng đã nhận được thông báo.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => {
+                        if (qrModalData.originalBill) {
+                          handlePrintInvoice({ ...qrModalData.originalBill, status: 'PAID' }, contracts.find(c => c.id === qrModalData.originalBill.contractId));
+                        }
+                      }}
+                      className="btn btn-outline"
+                      style={{ padding: '10px 20px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <Printer size={16} /> In biên lai A4
+                    </button>
+                    <button
+                      onClick={() => setQrModalData(null)}
+                      className="btn btn-primary"
+                      style={{ padding: '10px 28px', fontWeight: 700 }}
+                    >
+                      Đóng & Hoàn tất
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Payment QR State */
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    background: 'var(--bg-primary)',
+                    padding: '20px',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border)',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{
+                      background: '#fff',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
+                      marginBottom: '12px'
+                    }}>
+                      <img
+                        src={qrModalData.qrImageUrl || '/qr_bidv_admin.png'}
+                        alt="VietQR Payment"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/qr_bidv_admin.png';
+                        }}
+                        style={{ width: '230px', height: '230px', objectFit: 'contain', display: 'block' }}
+                      />
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                      Quét mã bằng app ngân hàng (BIDV, MB, Vietcombank,...) hoặc chuyển khoản theo thông tin:
+                    </div>
+                  </div>
+
+                  {/* Transfer Details with copy */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Ngân hàng thụ hưởng:</span>
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>{qrModalData.bankName || 'BIDV'}</strong>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Số tài khoản:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ fontSize: '14px', color: '#2563eb' }}>{qrModalData.accountNumber || '8867375252'}</strong>
+                        <button
+                          onClick={() => copyToClipboard(qrModalData.accountNumber || '8867375252', 'Số tài khoản')}
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                          title="Sao chép"
+                        >
+                          {copiedField === 'Số tài khoản' ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Chủ tài khoản:</span>
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>{qrModalData.accountName || 'LE VU HAO'}</strong>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Số tiền cần chuyển:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ fontSize: '16px', color: '#16a34a', fontWeight: '900' }}>{formatVnd(qrModalData.amount)}</strong>
+                        <button
+                          onClick={() => copyToClipboard(String(qrModalData.amount), 'Số tiền')}
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                          title="Sao chép"
+                        >
+                          {copiedField === 'Số tiền' ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(37, 99, 235, 0.08)', borderRadius: '10px', border: '1px solid rgba(37, 99, 235, 0.25)' }}>
+                      <div>
+                        <span style={{ fontSize: '12px', color: '#2563eb', fontWeight: 700, display: 'block' }}>NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC):</span>
+                        <strong style={{ fontSize: '15px', color: '#1e40af', letterSpacing: '0.5px' }}>{qrModalData.transferContent || `SEPAYBILL${qrModalData.billId}`}</strong>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(qrModalData.transferContent || `SEPAYBILL${qrModalData.billId}`, 'Nội dung chuyển khoản')}
+                        className="btn btn-outline"
+                        style={{ padding: '6px 12px', fontSize: '12px', background: '#fff', borderColor: '#2563eb', color: '#2563eb', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        {copiedField === 'Nội dung chuyển khoản' ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                        {copiedField === 'Nội dung chuyển khoản' ? 'Đã chép' : 'Sao chép'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                    <RefreshCw size={13} className="animate-spin" />
+                    Đang tự động đối soát giao dịch chuyển khoản...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

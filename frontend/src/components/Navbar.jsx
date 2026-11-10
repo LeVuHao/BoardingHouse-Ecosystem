@@ -144,11 +144,8 @@ const Navbar = () => {
 
           {user?.role === "USER" && (
             <>
-              <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" ? "active" : ""}`}>
-                Hợp đồng thuê
-              </Link>
-              <Link to="/my-bills" className={`site-nav-link ${location.pathname === "/my-bills" ? "active" : ""}`}>
-                Hóa đơn
+              <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" || location.pathname === "/my-room" ? "active" : ""}`}>
+                Trọ của tôi
               </Link>
               <Link to="/maintenance" className={`site-nav-link ${location.pathname === "/maintenance" ? "active" : ""}`}>
                 Báo hỏng
@@ -300,13 +297,13 @@ const Navbar = () => {
 
                     {user.role === "USER" && (
                       <>
-                        <Link to="/my-contracts" className="nav-menu-item">
-                          <FileText size={16} />
-                          <span>Hợp đồng của tôi</span>
+                        <Link to="/contracts" className="nav-menu-item">
+                          <Home size={16} />
+                          <span>Trọ của tôi & Hóa đơn</span>
                         </Link>
-                        <Link to="/my-bills" className="nav-menu-item">
-                          <Building2 size={16} />
-                          <span>Hóa đơn phòng</span>
+                        <Link to="/register-landlord" className="nav-menu-item" style={{ color: "#4f46e5", fontWeight: 700 }}>
+                          <Sparkles size={16} color="#4f46e5" />
+                          <span>Nâng cấp lên Chủ trọ</span>
                         </Link>
                       </>
                     )}

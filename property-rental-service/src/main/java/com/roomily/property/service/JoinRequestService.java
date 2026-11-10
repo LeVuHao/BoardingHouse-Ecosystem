@@ -11,6 +11,7 @@ import com.roomily.property.entity.Room;
 import com.roomily.property.entity.RoommatePost;
 import com.roomily.property.entity.Tenant;
 import com.roomily.property.repository.ContractRepository;
+import com.roomily.property.repository.ForumPostRepository;
 import com.roomily.property.repository.JoinRequestRepository;
 import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.repository.RoommatePostRepository;
@@ -41,6 +42,7 @@ public class JoinRequestService {
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
     private final ContractRepository contractRepository;
+    private final ForumPostRepository forumPostRepository;
     private final RedissonClient redissonClient;
     private final RabbitTemplate rabbitTemplate;
 
@@ -181,6 +183,17 @@ public class JoinRequestService {
                 .status("ACTIVE")
                 .build();
         contractRepository.save(contract);
+
+        // Đánh dấu bài đăng diễn đàn tương ứng là đã có người thuê
+        try {
+            forumPostRepository.findByRoomId(room.getId()).forEach(p -> {
+                p.setIsRented(true);
+                forumPostRepository.save(p);
+                log.info("Auto-marked forum post {} as rented after join approval", p.getId());
+            });
+        } catch (Exception ex) {
+            log.warn("Không thể cập nhật forum post status khi duyệt ở ghép: {}", ex.getMessage());
+        }
 
         // Bắn Notification Event qua RabbitMQ
         Map<String, Object> event = new HashMap<>();

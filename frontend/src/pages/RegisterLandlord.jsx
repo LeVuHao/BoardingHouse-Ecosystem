@@ -20,10 +20,12 @@ import {
 import toast from "react-hot-toast";
 
 import { authApi } from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 import GoogleButton from "../components/GoogleButton";
 
 const RegisterLandlord = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("online"); // 'online' | 'offline'
 
   // Form states
@@ -40,6 +42,16 @@ const RegisterLandlord = () => {
   const [copiedField, setCopiedField] = useState(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
+  // Tự động điền thông tin nếu cư dân đã đăng nhập
+  useEffect(() => {
+    if (user) {
+      if (user.fullName && !fullName) setFullName(user.fullName);
+      if (user.email && !email) setEmail(user.email);
+      if (user.phoneNumber && !phoneNumber) setPhoneNumber(user.phoneNumber);
+      if (user.idCardNumber && !idCardNumber) setIdCardNumber(user.idCardNumber);
+    }
+  }, [user]);
+
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
@@ -48,10 +60,13 @@ const RegisterLandlord = () => {
   };
 
   const handleRegisterOnline = async (e) => {
-
     e.preventDefault();
-    if (desiredPassword.length < 6) {
+    if (!user && (!desiredPassword || desiredPassword.length < 6)) {
       toast.error("Mật khẩu mong muốn phải có ít nhất 6 ký tự");
+      return;
+    }
+    if (desiredPassword && desiredPassword.length < 6) {
+      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự");
       return;
     }
 
@@ -59,10 +74,10 @@ const RegisterLandlord = () => {
     try {
       const res = await authApi.createLandlordRequest({
         fullName,
-        email,
+        email: user?.email || email,
         phoneNumber,
         idCardNumber,
-        desiredPassword,
+        desiredPassword: desiredPassword || undefined,
         amount: 5000,
       });
 
@@ -245,7 +260,27 @@ const RegisterLandlord = () => {
         {/* TAB 1: ONLINE REGISTRATION */}
         {activeTab === "online" && (
           <div>
-            {!submittedData ? (
+            {user?.role === "LANDLORD" ? (
+              <div style={{ background: "var(--bg-card)", borderRadius: 24, padding: "48px 32px", border: "1px solid var(--border)", textAlign: "center", boxShadow: "var(--shadow-soft)", maxWidth: 640, margin: "0 auto" }}>
+                <div style={{ width: 68, height: 68, borderRadius: "50%", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+                  <CheckCircle2 size={40} />
+                </div>
+                <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--ink)", margin: "0 0 10px 0" }}>
+                  Bạn hiện đã là Chủ Trọ trên Roomily!
+                </h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 14.5, margin: "0 auto 28px auto", lineHeight: 1.6 }}>
+                  Tài khoản <strong>{user.email}</strong> của bạn đã có đầy đủ đặc quyền của Chủ trọ xác thực. Bạn có thể đăng tin phòng mới hoặc truy cập khu vực quản lý trọ ngay bây giờ.
+                </p>
+                <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+                  <Link to="/landlord/management" className="btn btn-primary" style={{ padding: "12px 28px", fontWeight: 700 }}>
+                    Quản lý trọ của tôi
+                  </Link>
+                  <Link to="/forum/create" className="btn btn-outline" style={{ padding: "12px 28px", fontWeight: 700 }}>
+                    + Đăng tin phòng mới
+                  </Link>
+                </div>
+              </div>
+            ) : !submittedData ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 28 }}>
                 {/* Form Registration */}
                 <div style={{ background: "var(--bg-card)", borderRadius: 20, padding: 32, border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}>
@@ -254,10 +289,23 @@ const RegisterLandlord = () => {
                       <Building size={20} />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>Điền thông tin tài khoản</h3>
-                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>Nhập thông tin và mật khẩu bạn mong muốn tạo</p>
+                      <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)" }}>
+                        {user ? "Nâng cấp tài khoản lên Chủ trọ" : "Điền thông tin tài khoản"}
+                      </h3>
+                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
+                        {user ? "Nâng cấp tài khoản cư dân hiện tại để quản lý & đăng tin trọ" : "Nhập thông tin và mật khẩu bạn mong muốn tạo"}
+                      </p>
                     </div>
                   </div>
+
+                  {user && (
+                    <div style={{ background: "rgba(79, 70, 229, 0.08)", border: "1px solid rgba(79, 70, 229, 0.25)", borderRadius: 14, padding: "12px 16px", marginBottom: 18, display: "flex", alignItems: "center", gap: 12 }}>
+                      <Sparkles size={20} color="#4f46e5" style={{ flexShrink: 0 }} />
+                      <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.45 }}>
+                        Tài khoản hiện tại: <strong>{user.fullName || user.email}</strong> ({user.email}). Hệ thống sẽ nâng cấp trực tiếp quyền Chủ trọ cho tài khoản này ngay khi xác nhận thanh toán.
+                      </div>
+                    </div>
+                  )}
 
                   <form onSubmit={handleRegisterOnline} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <div>
@@ -283,9 +331,26 @@ const RegisterLandlord = () => {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
+                          disabled={Boolean(user)}
                           placeholder="chutro@gmail.com"
-                          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          style={{
+                            width: "100%",
+                            padding: "10px 14px",
+                            borderRadius: 10,
+                            border: "1px solid var(--border)",
+                            background: user ? "rgba(0,0,0,0.04)" : "var(--bg-primary)",
+                            color: "var(--ink)",
+                            fontSize: 14,
+                            outline: "none",
+                            boxSizing: "border-box",
+                            cursor: user ? "not-allowed" : "text"
+                          }}
                         />
+                        {user && (
+                          <span style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
+                            Email cố định theo tài khoản đang đăng nhập
+                          </span>
+                        )}
                       </div>
                       <div>
                         <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
@@ -315,14 +380,14 @@ const RegisterLandlord = () => {
                       </div>
                       <div>
                         <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
-                          Mật khẩu mong muốn <span style={{ color: "#EF4444" }}>*</span>
+                          {user ? "Mật khẩu mới (Tùy chọn)" : <>Mật khẩu mong muốn <span style={{ color: "#EF4444" }}>*</span></>}
                         </label>
                         <input
-                          required
+                          required={!user}
                           type="password"
                           value={desiredPassword}
                           onChange={(e) => setDesiredPassword(e.target.value)}
-                          placeholder="Mật khẩu từ 6 ký tự"
+                          placeholder={user ? "Để trống để giữ mật khẩu hiện tại" : "Mật khẩu từ 6 ký tự"}
                           style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-primary)", color: "var(--ink)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                         />
                       </div>
@@ -331,7 +396,7 @@ const RegisterLandlord = () => {
                     <div style={{ background: "var(--bg-primary)", padding: "14px 16px", borderRadius: 12, border: "1px dashed var(--border)", fontSize: 13, color: "var(--ink-2)", display: "flex", gap: 10 }}>
                       <Info size={18} color="var(--primary)" style={{ flexShrink: 0, marginTop: 2 }} />
                       <div>
-                        Sau khi bấm <strong>"Tiếp tục thanh toán VietQR"</strong>, hệ thống sẽ tự sinh mã QR thanh toán chuẩn ngân hàng kèm mã định danh duy nhất của bạn.
+                        Sau khi bấm <strong>"{user ? "Tiếp tục nâng cấp qua VietQR" : "Tiếp tục thanh toán VietQR"}"</strong>, hệ thống sẽ tự sinh mã QR thanh toán chuẩn ngân hàng kèm mã định danh duy nhất của bạn.
                       </div>
                     </div>
 
@@ -358,7 +423,7 @@ const RegisterLandlord = () => {
                       {loading ? (
                         <>Đang xử lý...</>
                       ) : (
-                        <>Tiếp tục thanh toán VietQR <ArrowRight size={18} /></>
+                        <>{user ? "Tiến hành nâng cấp tài khoản VietQR" : "Tiếp tục thanh toán VietQR"} <ArrowRight size={18} /></>
                       )}
                     </button>
                   </form>
@@ -378,13 +443,25 @@ const RegisterLandlord = () => {
                     </ul>
                   </div>
 
-                  <div style={{ background: "var(--bg-primary)", borderRadius: 20, padding: 24, border: "1px solid var(--border)" }}>
-                    <h4 style={{ margin: "0 0 10px 0", color: "var(--ink)", fontSize: "1rem" }}>Đã có tài khoản?</h4>
-                    <p style={{ margin: "0 0 16px 0", fontSize: 13.5, color: "var(--text-muted)" }}>Nếu bạn đã được Admin cấp tài khoản hoặc đăng ký trước đó, hãy đăng nhập ngay.</p>
-                    <Link to="/login" style={{ display: "inline-block", padding: "10px 18px", borderRadius: 10, background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
-                      Đăng nhập ngay
-                    </Link>
-                  </div>
+                  {!user ? (
+                    <div style={{ background: "var(--bg-primary)", borderRadius: 20, padding: 24, border: "1px solid var(--border)" }}>
+                      <h4 style={{ margin: "0 0 10px 0", color: "var(--ink)", fontSize: "1rem" }}>Đã có tài khoản?</h4>
+                      <p style={{ margin: "0 0 16px 0", fontSize: 13.5, color: "var(--text-muted)" }}>Nếu bạn đã được Admin cấp tài khoản hoặc đăng ký trước đó, hãy đăng nhập ngay.</p>
+                      <Link to="/login" style={{ display: "inline-block", padding: "10px 18px", borderRadius: 10, background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--ink)", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+                        Đăng nhập ngay
+                      </Link>
+                    </div>
+                  ) : (
+                    <div style={{ background: "var(--bg-primary)", borderRadius: 20, padding: 24, border: "1px solid var(--border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981" }}></div>
+                        <h4 style={{ margin: 0, color: "var(--ink)", fontSize: "1rem" }}>Tài khoản hợp lệ</h4>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                        Bạn đang nâng cấp trực tiếp tài khoản cư dân hiện tại mà không cần tạo mới hay đăng ký lại email. Mọi lịch sử và thông tin sẽ được giữ nguyên.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -401,28 +478,32 @@ const RegisterLandlord = () => {
                           KÍCH HOẠT TÀI KHOẢN CHỦ TRỌ THÀNH CÔNG!
                         </h4>
                         <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink-2)" }}>
-                          Admin đã xác nhận thanh toán. Bạn có thể sử dụng email <strong>{submittedData.email}</strong> và mật khẩu đã đặt để đăng nhập ngay bây giờ.
+                          Admin & SePay đã xác nhận giao dịch. Tài khoản <strong>{submittedData.email}</strong> của bạn đã được nâng cấp lên Chủ trọ. Vui lòng đăng nhập lại để làm mới phiên phân quyền.
                         </p>
                       </div>
                     </div>
-                    <Link
-                      to="/login"
+                    <button
+                      onClick={() => {
+                        logout();
+                        navigate("/login");
+                      }}
                       style={{
                         padding: "12px 24px",
                         borderRadius: 12,
                         background: "#059669",
                         color: "#FFFFFF",
+                        border: "none",
+                        cursor: "pointer",
                         fontWeight: 700,
                         fontSize: 14,
-                        textDecoration: "none",
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 8,
                         boxShadow: "0 4px 14px rgba(5, 150, 105, 0.35)",
                       }}
                     >
-                      Đăng nhập ngay <ArrowRight size={16} />
-                    </Link>
+                      Đăng nhập lại để áp dụng quyền <ArrowRight size={16} />
+                    </button>
                   </div>
                 )}
 
