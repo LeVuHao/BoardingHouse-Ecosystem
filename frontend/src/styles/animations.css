@@ -162,3 +162,24 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Blinking dot & red badge glow */
+@keyframes dotBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes redBadgePulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.85);
+  }
+}

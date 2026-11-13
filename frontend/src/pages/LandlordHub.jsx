@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { 
-  Building2, CheckCircle2, Users, FileText, Wrench, Receipt, 
-  Plus, Search, Phone, MessageSquare, Printer, ExternalLink, 
+  Building2, CheckCircle2, Users, FileText, Wrench, 
+  Plus, Search, Phone, MessageSquare, ExternalLink, 
   Sparkles, TrendingUp, AlertTriangle, ShieldCheck, Home, Calendar,
   DollarSign, ArrowRight, RefreshCw, Zap, Activity, Clock, Trash2
 } from 'lucide-react';
@@ -13,8 +13,6 @@ import { useAuth } from '../context/AuthContext';
 import LandlordProperties from './LandlordProperties';
 import LandlordRequests from './LandlordRequests';
 import LandlordTickets from './LandlordTickets';
-import LandlordBills from './LandlordBills';
-import MyContracts from './MyContracts';
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -230,118 +228,24 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
     );
   }, [occupiedContracts, occupiedSearch]);
 
-  // In / Xuất hợp đồng PDF (A4) trực tiếp từ tab phòng đã thuê
-  const handlePrintContractDirect = (contract) => {
-    if (!contract) return;
-    const printWindow = window.open('', '_blank', 'width=850,height=950');
-    if (!printWindow) {
-      toast.error('Vui lòng cho phép popup trình duyệt để in hợp đồng');
-      return;
-    }
-    const startDateStr = contract.startDate ? new Date(contract.startDate).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN');
-    const endDateStr = contract.endDate ? new Date(contract.endDate).toLocaleDateString('vi-VN') : '12 tháng';
-
-    const contractHtml = `
-      <!DOCTYPE html>
-      <html lang="vi">
-      <head>
-        <meta charset="UTF-8">
-        <title>Hop_Dong_Thue_Phong_${contract.roomNumber || contract.id}.pdf</title>
-        <style>
-          @page { size: A4; margin: 20mm; }
-          body { font-family: 'Times New Roman', Times, serif; line-height: 1.6; color: #111; padding: 25px; font-size: 13pt; }
-          .national-header { text-align: center; margin-bottom: 25px; }
-          .national-header h3 { margin: 0; font-size: 12.5pt; text-transform: uppercase; font-weight: bold; }
-          .national-header h4 { margin: 4px 0 0; font-size: 11.5pt; font-weight: normal; }
-          .national-header hr { width: 160px; border: 0.5px solid #222; margin: 8px auto; }
-          .doc-title { text-align: center; margin: 25px 0 15px; }
-          .doc-title h1 { margin: 0; font-size: 17pt; text-transform: uppercase; font-weight: bold; }
-          .doc-title p { margin: 4px 0; font-style: italic; font-size: 11pt; color: #555; }
-          .section-title { font-weight: bold; margin-top: 16px; margin-bottom: 6px; text-transform: uppercase; font-size: 12.5pt; }
-          p { margin: 5px 0; text-align: justify; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 45px; page-break-inside: avoid; }
-          .sig-box { width: 45%; text-align: center; }
-          .sig-space { height: 75px; display: flex; align-items: center; justify-content: center; }
-          .badge-verified { display: inline-block; padding: 4px 10px; border: 1.5px solid #16a34a; color: #16a34a; font-size: 10pt; border-radius: 6px; font-weight: bold; }
-          @media print { body { padding: 0; } .no-print { display: none !important; } }
-        </style>
-      </head>
-      <body>
-        <div class="national-header">
-          <h3>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h3>
-          <h4>Độc lập – Tự do – Hạnh phúc</h4>
-          <hr />
-        </div>
-        <div class="doc-title">
-          <h1>HỢP ĐỒNG THUÊ PHÒNG TRỌ ĐIỆN TỬ</h1>
-          <p>Mã số hợp đồng: #ROOMILY-${contract.id} • Lập ngày: ${new Date().toLocaleDateString('vi-VN')}</p>
-        </div>
-        <div class="section-title">BÊN CHO THUÊ (BÊN A):</div>
-        <p>
-          - Họ và tên: <strong>${user?.fullName || contract.landlordName || 'Chủ nhà trọ'}</strong><br/>
-          - Số điện thoại liên hệ: ${user?.phoneNumber || contract.landlordPhone || 'Chính chủ'}<br/>
-          - Đại diện quản lý khu trọ Roomily Ecosystem
-        </p>
-        <div class="section-title">BÊN THUÊ PHÒNG (BÊN B):</div>
-        <p>
-          - Họ và tên: <strong>${contract.tenantName || 'Khách thuê phòng (ID #' + contract.tenantId + ')'}</strong><br/>
-          - Số điện thoại / Định danh: ${contract.tenantPhone || 'Đã xác thực trên hệ thống'}<br/>
-        </p>
-        <div class="section-title">ĐIỀU 1: ĐỐI TƯỢNG HỢP ĐỒNG & HIỆN TRẠNG</div>
-        <p>
-          - Phòng số: <strong>${contract.roomNumber || contract.roomId}</strong> - Khu trọ: ${contract.propertyTitle || 'Roomily'}<br/>
-          - Địa chỉ: ${contract.address || 'Khu vực Dĩ An, TP.HCM'}<br/>
-          - Diện tích sử dụng: ${contract.roomArea || 25} m²
-        </p>
-        <div class="section-title">ĐIỀU 2: GIÁ THUÊ & TIỀN CỌC</div>
-        <p>
-          - Giá thuê phòng: <strong>${formatVnd(contract.rentalPrice)}/tháng</strong><br/>
-          - Tiền đặt cọc bảo đảm: <strong>${formatVnd(contract.depositAmount || contract.rentalPrice)}</strong><br/>
-          - Thời hạn thuê: Từ ngày ${startDateStr} đến ngày ${endDateStr}
-        </p>
-        <div class="signatures">
-          <div class="sig-box">
-            <strong>ĐẠI DIỆN BÊN B (BÊN THUÊ)</strong><br/><em>(Ký điện tử)</em>
-            <div class="sig-space"><span class="badge-verified">✓ ĐÃ KÝ ĐIỆN TỬ</span></div>
-            <strong>${contract.tenantName || 'Bên thuê'}</strong>
-          </div>
-          <div class="sig-box">
-            <strong>ĐẠI DIỆN BÊN A (BÊN CHO THUÊ)</strong><br/><em>(Ký điện tử)</em>
-            <div class="sig-space"><span class="badge-verified">✓ ĐÃ XÁC THỰC ROOMILY</span></div>
-            <strong>${user?.fullName || 'Chủ nhà trọ'}</strong>
-          </div>
-        </div>
-        <div class="no-print" style="text-align: center; margin-top: 35px;">
-          <button onclick="window.print()" style="padding: 10px 24px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-            🖨️ Nhấn vào đây để In / Lưu file PDF (A4)
-          </button>
-        </div>
-        <script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>
-      </body>
-      </html>
-    `;
-    printWindow.document.write(contractHtml);
-    printWindow.document.close();
-  };
-
   const tabsConfig = [
     {
       id: 'properties',
-      label: 'Trọ của tôi (Khu & Phòng)',
+      label: 'Khu trọ & Phòng trọ',
       badge: totalProperties > 0 ? totalProperties : null,
       badgeColor: '#2563eb',
       icon: Building2,
     },
     {
       id: 'posts',
-      label: 'Tin đăng & Quản lý tin',
+      label: 'Tin đăng cho thuê',
       badge: pendingModerationCount > 0 ? `${pendingModerationCount} chờ duyệt` : (myForumPosts.length > 0 ? myForumPosts.length : null),
       badgeColor: pendingModerationCount > 0 ? '#ea580c' : '#2563eb',
       icon: MessageSquare,
     },
     {
       id: 'occupied',
-      label: 'Trọ đã cho thuê',
+      label: 'Phòng đã có người ở',
       badge: occupiedRoomsCount > 0 ? occupiedRoomsCount : null,
       badgeColor: '#059669',
       icon: CheckCircle2,
@@ -352,20 +256,6 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
       badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} mới` : null,
       badgeColor: '#ea580c',
       icon: Users,
-    },
-    {
-      id: 'contracts',
-      label: 'Hợp đồng thuê (In PDF)',
-      badge: contracts.length > 0 ? contracts.length : null,
-      badgeColor: '#7c3aed',
-      icon: FileText,
-    },
-    {
-      id: 'bills',
-      label: 'Quản lý hóa đơn',
-      badge: 'Thu tiền',
-      badgeColor: '#059669',
-      icon: Receipt,
     },
     {
       id: 'tickets',
@@ -407,18 +297,18 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                 Quản Lý Trọ Của Tôi
               </h1>
               <p style={{ margin: 0, opacity: 0.9, fontSize: '14.5px', maxWidth: '680px', lineHeight: 1.5 }}>
-                Không gian quản trị toàn diện: theo dõi các khu trọ, danh sách phòng đã cho thuê, khách thuê, hợp đồng số, hóa đơn và sự cố báo hỏng.
+                Không gian kết nối & quản lý tiện lợi: theo dõi phòng trọ, danh sách phòng đã có người ở, thông tin liên hệ khách thuê, tin đăng cho thuê và sự cố báo hỏng.
               </p>
             </div>
 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
-                onClick={() => switchTab('bills')}
+                onClick={() => switchTab('occupied')}
                 className="btn"
                 style={{
-                  color: activeTab === 'bills' ? '#fff' : '#1e3a8a',
-                  background: activeTab === 'bills' ? '#1d4ed8' : '#ffffff',
-                  border: '1.5px solid #93c5fd',
+                  color: activeTab === 'occupied' ? '#fff' : '#1e3a8a',
+                  background: activeTab === 'occupied' ? '#059669' : '#ffffff',
+                  border: '1.5px solid #6ee7b7',
                   padding: '10px 18px',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -430,8 +320,8 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                   borderRadius: '10px'
                 }}
               >
-                <Receipt size={17} color={activeTab === 'bills' ? '#fff' : '#2563eb'} />
-                Quản Lý Hóa Đơn
+                <CheckCircle2 size={17} color={activeTab === 'occupied' ? '#fff' : '#059669'} />
+                Khách Đang Ở ({occupiedRoomsCount})
               </button>
               <button
                 onClick={loadSummaryData}
@@ -687,6 +577,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '20px' }}>
                 {filteredOccupiedContracts.map((c) => {
                   const photo = (c.images && c.images.length > 0) ? c.images[0] : fallbackImages[0];
+                  const targetPostId = c.postId || myForumPosts.find(p => (p.roomId && p.roomId === c.roomId) || (c.roomNumber && p.title && p.title.toLowerCase().includes(c.roomNumber.toLowerCase())))?.id;
                   return (
                     <div
                       key={c.id}
@@ -737,9 +628,54 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                             {c.propertyTitle || `Phòng trọ tiện nghi #${c.roomNumber || c.roomId}`}
                           </h4>
 
-                          <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                          <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                             📍 {c.address ? `${c.address}, ${c.ward || ''}, ${c.district || ''}` : 'Khu trọ Roomily'}
                           </p>
+
+                          {/* Liên kết bài đăng cho thuê trên diễn đàn */}
+                          {targetPostId ? (
+                            <div style={{ marginBottom: '14px' }}>
+                              <Link
+                                to={`/rooms/${targetPostId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '12.5px',
+                                  fontWeight: 700,
+                                  color: '#2563eb',
+                                  background: 'rgba(37, 99, 235, 0.08)',
+                                  border: '1px solid rgba(37, 99, 235, 0.25)',
+                                  padding: '5px 10px',
+                                  borderRadius: '8px',
+                                  textDecoration: 'none',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                title="Bấm để mở bài đăng cho thuê trên Diễn đàn"
+                              >
+                                <ExternalLink size={13} />
+                                <span>Bài đăng cho thuê #{targetPostId} (⚡ ĐÃ CÓ NGƯỜI THUÊ) ↗</span>
+                              </Link>
+                            </div>
+                          ) : (
+                            <div style={{ marginBottom: '14px' }}>
+                              <Link
+                                to="/forum/create"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  fontSize: '12px',
+                                  color: 'var(--text-muted)',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <Plus size={12} /> Chưa liên kết bài đăng • Bấm tạo tin cho phòng này
+                              </Link>
+                            </div>
+                          )}
 
                           {/* Price & Deposit Strip */}
                           <div style={{ background: 'var(--bg-primary)', padding: '10px 14px', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '14px' }}>
@@ -754,43 +690,156 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                           </div>
 
                           {/* Tenant Info Box */}
-                          <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '12px', padding: '10px 14px', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '4px' }}>
-                              👤 Khách thuê đang lưu trú:
-                            </div>
-                            <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)' }}>
-                              {c.tenantName || `Khách thuê (ID #${c.tenantId})`}
-                            </div>
-                            {c.tenantPhone && (
-                              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                SĐT: {c.tenantPhone}
+                          <div style={{
+                            background: 'rgba(16, 185, 129, 0.08)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: '12px',
+                            padding: '12px 14px',
+                            marginBottom: '16px'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Users size={12} /> Khách thuê đang lưu trú:
                               </div>
-                            )}
+                              {c.startDate && (
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                  Từ {new Date(c.startDate).toLocaleDateString('vi-VN')}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <div style={{ fontWeight: 800, fontSize: '14.5px', color: 'var(--text-primary)' }}>
+                                  {c.tenantName || `Khách thuê (ID #${c.tenantId})`}
+                                </div>
+                                {c.tenantPhone ? (
+                                  <a
+                                    href={`tel:${c.tenantPhone}`}
+                                    style={{
+                                      fontSize: '12.5px',
+                                      color: '#2563eb',
+                                      fontWeight: 700,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      marginTop: '2px',
+                                      textDecoration: 'none'
+                                    }}
+                                    title="Bấm để gọi hoặc liên hệ Zalo"
+                                  >
+                                    <Phone size={12} /> {c.tenantPhone} (Gọi / Zalo)
+                                  </a>
+                                ) : (
+                                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                    Đã xác thực tài khoản
+                                  </div>
+                                )}
+                              </div>
+                              {targetPostId && (
+                                <Link
+                                  to={`/rooms/${targetPostId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-outline"
+                                  style={{ padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                                  title="Xem bài đăng phòng này"
+                                >
+                                  <ExternalLink size={11} /> Xem tin ↗
+                                </Link>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        {/* Card Action Buttons */}
+                        {/* Card Action Buttons: Liên hệ & Quản lý phòng */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
+                          {c.tenantPhone ? (
+                            <a
+                              href={`tel:${c.tenantPhone}`}
+                              className="btn btn-primary"
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '12.5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                background: '#10b981',
+                                borderColor: '#10b981',
+                                color: '#ffffff',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                                borderRadius: '8px'
+                              }}
+                              title="Gọi hoặc liên hệ Zalo trực tiếp"
+                            >
+                              <Phone size={13} /> Gọi / Zalo
+                            </a>
+                          ) : (
+                            <button
+                              disabled
+                              className="btn btn-outline"
+                              style={{ padding: '8px 12px', fontSize: '12px', opacity: 0.6, borderRadius: '8px' }}
+                            >
+                              Chưa có SĐT
+                            </button>
+                          )}
+
+                          {targetPostId ? (
+                            <Link
+                              to={`/rooms/${targetPostId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-outline"
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '12.5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                color: 'var(--primary)',
+                                textDecoration: 'none',
+                                fontWeight: 600,
+                                borderRadius: '8px'
+                              }}
+                            >
+                              <ExternalLink size={13} /> Xem bài đăng ↗
+                            </Link>
+                          ) : (
+                            <Link
+                              to="/forum/create"
+                              className="btn btn-outline"
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '5px',
+                                borderRadius: '8px'
+                              }}
+                            >
+                              <Plus size={12} /> Đăng tin phòng
+                            </Link>
+                          )}
+
                           <button
-                            onClick={() => handlePrintContractDirect(c)}
+                            onClick={() => switchTab('tickets')}
                             className="btn btn-outline"
-                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: 'var(--primary)', borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}
+                            style={{
+                              padding: '8px 12px',
+                              fontSize: '12.5px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              gridColumn: 'span 2',
+                              background: 'var(--bg-primary)',
+                              borderRadius: '8px'
+                            }}
                           >
-                            <Printer size={13} /> In PDF (A4)
-                          </button>
-                          <button
-                            onClick={() => switchTab('contracts')}
-                            className="btn btn-outline"
-                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
-                          >
-                            <FileText size={13} /> Hợp đồng
-                          </button>
-                          <button
-                            onClick={() => switchTab('bills')}
-                            className="btn btn-primary"
-                            style={{ padding: '7px 10px', fontSize: '12.5px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', gridColumn: 'span 2', background: 'var(--primary)', color: '#ffffff', fontWeight: 700 }}
-                          >
-                            <Receipt size={13} /> Tạo Hóa Đơn Điện Nước
+                            <Wrench size={13} /> Lịch sử sự cố & Báo hỏng phòng này
                           </button>
                         </div>
                       </div>
@@ -803,7 +852,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 3: KHÁCH THUÊ & YÊU CẦU THUÊ PHÒNG
+            TAB 3: KHÁCH THUÊ & YÊU CẦU XEM / THUÊ PHÒNG
             ───────────────────────────────────────────────────────────── */}
         {activeTab === 'requests' && (
           <div>
@@ -812,16 +861,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 4: HỢP ĐỒNG THUÊ PHÒNG (IN PDF)
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'contracts' && (
-          <div>
-            <MyContracts embedded={true} />
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────────────
-            TAB 5: SỰ CỐ & BÁO HỎNG
+            TAB 4: SỰ CỐ & BÁO HỎNG
             ───────────────────────────────────────────────────────────── */}
         {activeTab === 'tickets' && (
           <div>
@@ -830,16 +870,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 6: TẠO HÓA ĐƠN TIỀN TRỌ
-            ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'bills' && (
-          <div>
-            <LandlordBills embedded={true} />
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────────────
-            TAB 7: TIN ĐĂNG TRỌ & TRẠNG THÁI KIỂM DUYỆT CỦA ADMIN
+            TAB 5: TIN ĐĂNG TRỌ & TRẠNG THÁI KIỂM DUYỆT CỦA ADMIN
             ───────────────────────────────────────────────────────────── */}
         {activeTab === 'posts' && (
           <div>
@@ -871,6 +902,7 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                   const isApproved = post.moderationStatus === 'APPROVED';
                   const isRejected = post.moderationStatus === 'REJECTED';
                   const img = post.images?.[0] || post.imageUrls?.[0] || fallbackImages[0];
+                  const linkedContract = contracts.find((c) => (c.postId && c.postId === post.id) || (post.roomId && c.roomId === post.roomId));
 
                   return (
                     <div
@@ -977,6 +1009,52 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
                             {post.roommateNeeded ? 'Tắt Tìm Người Ở Ghép' : 'Bật Tìm Người Ở Ghép'}
                           </button>
                         </div>
+
+                        {/* Thông tin người đang thuê phòng (nếu đã cho thuê) */}
+                        {linkedContract && (
+                          <div style={{
+                            marginTop: 10,
+                            padding: '10px 14px',
+                            borderRadius: 10,
+                            background: 'rgba(16, 185, 129, 0.08)',
+                            border: '1px solid rgba(16, 185, 129, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 10
+                          }}>
+                            <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                              👤 <strong>Khách đang thuê:</strong> <span style={{ fontWeight: 800 }}>{linkedContract.tenantName || `Khách thuê #${linkedContract.tenantId}`}</span>
+                              {linkedContract.tenantPhone && (
+                                <a
+                                  href={`tel:${linkedContract.tenantPhone}`}
+                                  style={{ marginLeft: 8, color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}
+                                >
+                                  📞 {linkedContract.tenantPhone}
+                                </a>
+                              )}
+                              <span style={{ marginLeft: 8, color: 'var(--text-secondary)', fontSize: '12px' }}>
+                                (Hợp đồng #{linkedContract.id})
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => switchTab('occupied')}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#059669',
+                                fontWeight: 700,
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                padding: 0,
+                                textDecoration: 'underline'
+                              }}
+                            >
+                              Xem phòng & Liên hệ khách →
+                            </button>
+                          </div>
+                        )}
 
                         {isRejected && post.rejectReason && (
                           <div style={{ marginTop: 8, background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '6px 10px', borderRadius: 8, fontSize: 12 }}>

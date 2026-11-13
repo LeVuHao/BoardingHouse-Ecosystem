@@ -89,9 +89,9 @@ const Login = () => {
             margin: '1.25rem 0 0.25rem',
           }}
         >
-          <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--border-color)' }} />
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>HOẶC</span>
-          <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--border-color)' }} />
         </div>
 
         <GoogleButton defaultRole="USER" onSuccess={handleAuthenticated} />

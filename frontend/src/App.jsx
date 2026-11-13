@@ -1,6 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { CompareProvider } from "./context/CompareContext";
 import CompareFloatingBar from "./components/CompareFloatingBar";
@@ -22,8 +23,14 @@ import Notifications from "./pages/Notifications";
 import LandlordProperties from "./pages/LandlordProperties";
 import LandlordRequests from "./pages/LandlordRequests";
 import LandlordCreateBill from "./pages/LandlordCreateBill";
+import LandlordHub from "./pages/LandlordHub";
 import MyContracts from "./pages/MyContracts";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProperties from "./pages/AdminProperties";
+import AdminUsers from "./pages/AdminUsers";
+import AdminLandlordRequests from "./pages/AdminLandlordRequests";
+import AdminForumPosts from "./pages/AdminForumPosts";
+import AdminAmenities from "./pages/AdminAmenities";
 import ForumFeed from "./pages/ForumFeed";
 import CreateForumPost from "./pages/CreateForumPost";
 import ForumPostDetail from "./pages/ForumPostDetail";
@@ -73,13 +80,34 @@ const AppContent = () => {
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["LANDLORD"]} />}>
             <Route path="/forum/create" element={<CreateForumPost />} />
+            <Route path="/landlord/management" element={<LandlordHub />} />
+            <Route path="/landlord/management/*" element={<LandlordHub />} />
+            <Route path="/landlord/hub" element={<LandlordHub />} />
             <Route path="/landlord/properties" element={<LandlordProperties />} />
             <Route path="/landlord/requests" element={<LandlordRequests />} />
             <Route path="/landlord/create-bill" element={<LandlordCreateBill />} />
             <Route path="/landlord/tickets" element={<LandlordTickets />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route path="/admin/*" element={<AdminLayout><Routes><Route path="/" element={<AdminDashboard />} /><Route path="/reports" element={<AdminReports />} /><Route path="/audit-logs" element={<AdminAuditLogs />} /><Route path="/settings" element={<AdminSettings />} /></Routes></AdminLayout>} />
+            <Route
+              path="/admin/*"
+              element={
+                <AdminLayout>
+                  <Routes>
+                    <Route path="/" element={<AdminDashboard />} />
+                    <Route path="/properties" element={<AdminProperties />} />
+                    <Route path="/users" element={<AdminUsers />} />
+                    <Route path="/landlord-requests" element={<AdminLandlordRequests />} />
+                    <Route path="/forum-posts" element={<AdminForumPosts />} />
+                    <Route path="/amenities" element={<AdminAmenities />} />
+                    <Route path="/audit-logs" element={<AdminAuditLogs />} />
+                    <Route path="/reports" element={<AdminReports />} />
+                    <Route path="/settings" element={<AdminSettings />} />
+                    <Route path="*" element={<AdminDashboard />} />
+                  </Routes>
+                </AdminLayout>
+              }
+            />
           </Route>
         </Routes>
       </main>
@@ -89,14 +117,16 @@ const AppContent = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <CompareProvider>
-        <Toaster position="top-right" />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </CompareProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CompareProvider>
+          <Toaster position="top-right" />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </CompareProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -37,6 +37,40 @@ const POPULAR_LANDMARKS = [
   { id: "san-bay", name: "Sân bay Tân Sơn Nhất", query: "Sân bay Tân Sơn Nhất", icon: "✈️", coords: [10.8185, 106.6588], city: "Tân Bình, TP.HCM" },
 ];
 
+export const ALL_LOCATION_LABEL = "Tất cả khu vực";
+
+export const isAllLocation = (val) => {
+  if (!val || !val.trim()) return true;
+  const clean = val.trim().toLowerCase();
+  return (
+    clean === "tất cả" ||
+    clean === "tat ca" ||
+    clean === "tất cả khu vực" ||
+    clean === "toàn thành phố" ||
+    clean === "all" ||
+    clean === "toàn quốc" ||
+    clean === "mọi nơi"
+  );
+};
+
+export const POPULAR_LOCATION_SUGGESTIONS = [
+  ALL_LOCATION_LABEL,
+  // 1. Các quận trung tâm TP.HCM
+  "Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 10", "Bình Thạnh", "Phú Nhuận",
+  // 2. TP. Thủ Đức & Khu công nghệ cao
+  "TP. Thủ Đức", "Quận 2", "Quận 9", "Thủ Đức", "ĐHQG / Làng Đại học", "ĐH FPT / Khu CNC",
+  // 3. Khu Tây & Nam TP.HCM
+  "Quận 7", "Quận 8", "Quận 6", "Quận 11", "Quận 12", "Tân Bình", "Tân Phú", "Gò Vấp", "Bình Tân",
+  // 4. Huyện ngoại thành TP.HCM
+  "Bình Chánh", "Hóc Môn", "Củ Chi", "Nhà Bè", "Cần Giờ",
+  // 5. Gần các trường Đại học lớn
+  "ĐH Bách Khoa TP.HCM", "ĐH Kinh Tế (UEH)", "ĐH Khoa Học Tự Nhiên", "ĐH Sư Phạm Kỹ Thuật",
+  "ĐH Tôn Đức Thắng", "ĐH Công Nghiệp TP.HCM (IUH)", "ĐH Y Dược TP.HCM", "ĐH Sài Gòn",
+  "ĐH Ngoại Thương CS2", "ĐH Hutech", "ĐH Văn Lang",
+  // 6. Các Tỉnh/Thành phố lớn
+  "TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Bình Dương", "Đồng Nai", "Cần Thơ", "Hải Phòng"
+];
+
 const formatVnd = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 
 const formatDistance = (meters) => {
@@ -130,6 +164,39 @@ const PostImageCarousel = ({ images, post }) => {
   if (imgList.length === 0) {
     return (
       <div className="forum-card-photo forum-card-photo-empty" style={{ position: "relative", overflow: "hidden" }}>
+        {/* Đèn đỏ phát sáng: ĐÃ CÓ NGƯỜI THUÊ (góc trái bên trên) */}
+        {post?.isRented && (
+          <div style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            zIndex: 4,
+            background: 'rgba(220, 38, 38, 0.95)',
+            backdropFilter: 'blur(8px)',
+            color: '#ffffff',
+            padding: '3px 9px',
+            borderRadius: '20px',
+            fontSize: '11px',
+            fontWeight: 800,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: '0 2px 8px rgba(220, 38, 38, 0.5)',
+            letterSpacing: '0.3px',
+            animation: 'redBadgePulse 2s infinite ease-in-out',
+          }}>
+            <span style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              backgroundColor: '#ffffff',
+              display: 'inline-block',
+              boxShadow: '0 0 6px #ffffff',
+              animation: 'dotBlink 1.2s infinite',
+            }} />
+            ĐÃ CÓ NGƯỜI THUÊ
+          </div>
+        )}
         <img 
           src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600" 
           alt="Ảnh phòng trọ mặc định" 
@@ -146,7 +213,40 @@ const PostImageCarousel = ({ images, post }) => {
     );
   }
   return (
-    <div className="forum-card-photo">
+    <div className="forum-card-photo" style={{ position: "relative" }}>
+      {/* Đèn đỏ phát sáng: ĐÃ CÓ NGƯỜI THUÊ (góc trái bên trên) */}
+      {post?.isRented && (
+        <div style={{
+          position: 'absolute',
+          top: 10,
+          left: 10,
+          zIndex: 4,
+          background: 'rgba(220, 38, 38, 0.95)',
+          backdropFilter: 'blur(8px)',
+          color: '#ffffff',
+          padding: '3px 9px',
+          borderRadius: '20px',
+          fontSize: '11px',
+          fontWeight: 800,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '5px',
+          boxShadow: '0 2px 8px rgba(220, 38, 38, 0.5)',
+          letterSpacing: '0.3px',
+          animation: 'redBadgePulse 2s infinite ease-in-out',
+        }}>
+          <span style={{
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            backgroundColor: '#ffffff',
+            display: 'inline-block',
+            boxShadow: '0 0 6px #ffffff',
+            animation: 'dotBlink 1.2s infinite',
+          }} />
+          ĐÃ CÓ NGƯỜI THUÊ
+        </div>
+      )}
       <img src={imgList[idx]} alt="Ảnh phòng trọ" />
       <div className="room-photo-actions">
         <span className="room-photo-status">{post?.isRented ? "Đã cho thuê" : "Đang nhận khách"}</span>
@@ -256,6 +356,7 @@ const Rooms = () => {
   // Modal Xin Ở Ghép (Dành cho Cư dân / Khách ứng tuyển vào ở ghép)
   const [joinModalPost, setJoinModalPost] = useState(null);
   const [joinForm, setJoinForm] = useState({
+    peopleCount: 1,
     fullName: "",
     phone: "",
     gender: "MALE",
@@ -264,6 +365,7 @@ const Rooms = () => {
     moveInDate: "",
     durationMonths: 6,
     introduction: "",
+    agreedToTerms: false,
   });
   const [submittingJoin, setSubmittingJoin] = useState(false);
 
@@ -278,16 +380,27 @@ const Rooms = () => {
     }
   }, [user]);
 
-  // Kiểm tra quyền quản lý ở ghép (Chủ bài đăng HOẶC Người đang thuê phòng này)
+  // Danh sách địa điểm tìm kiếm phong phú: "Tất cả khu vực" + Quận/Huyện TP.HCM + Trường ĐH + Tỉnh/Thành
+  const allLocationList = useMemo(() => {
+    const fromPosts = new Set();
+    posts.forEach((p) => {
+      if (p.district?.trim()) fromPosts.add(p.district.trim());
+      if (p.city?.trim()) fromPosts.add(p.city.trim());
+    });
+    return [
+      ALL_LOCATION_LABEL,
+      ...POPULAR_LOCATION_SUGGESTIONS.filter((loc) => loc !== ALL_LOCATION_LABEL),
+      ...Array.from(fromPosts).filter((loc) => !POPULAR_LOCATION_SUGGESTIONS.includes(loc)),
+    ];
+  }, [posts]);
+
+  // Kiểm tra quyền quản lý ở ghép: CHỈ CHỦ TRỌ SỞ HỮU BÀI ĐĂNG MỚI ĐƯỢC CÀI ĐẶT
   const checkCanManageRoommate = useCallback(
     (post) => {
       if (!user || !post) return false;
-      if (isUserPost(post, user)) return true;
-      return myContracts.some(
-        (c) => c.status === "ACTIVE" && (c.roomId === post.roomId || c.postId === post.id)
-      );
+      return user.role === "LANDLORD" && isUserPost(post, user);
     },
-    [user, myContracts]
+    [user]
   );
 
   // Tải danh sách phòng từ diễn đàn trọ
@@ -633,10 +746,14 @@ const Rooms = () => {
       toast.error("Vui lòng điền họ tên và số điện thoại liên hệ");
       return;
     }
+    if (!joinForm.agreedToTerms) {
+      toast.error("Vui lòng xác nhận đồng ý với tiêu chí của chủ trọ");
+      return;
+    }
 
     setSubmittingJoin(true);
     try {
-      const criteriaSummary = `[ĐƠN XIN Ở GHÉP - ${joinModalPost.title}] | Ứng viên: ${joinForm.fullName} (${joinForm.gender === "MALE" ? "Nam" : joinForm.gender === "FEMALE" ? "Nữ" : "Khác"}) | Nghề nghiệp: ${joinForm.occupation || "Tự do"} | SĐT: ${joinForm.phone} | Ngày dự kiến dọn vào: ${joinForm.moveInDate || "Sớm nhất"} | Thói quen sinh hoạt: ${joinForm.habits || "Sạch sẽ, giờ giấc sinh hoạt linh hoạt"} | Giới thiệu: ${joinForm.introduction || "Mong muốn tìm bạn ở ghép hòa đồng, tôn trọng không gian chung"}`;
+      const criteriaSummary = `[XIN Ở GHÉP: ${joinForm.peopleCount || 1} người - ${joinModalPost.title}] | Ứng viên: ${joinForm.fullName} | SĐT: ${joinForm.phone} | Cam kết: Đã đồng ý và tuân thủ tiêu chí chủ trọ. | Lời nhắn: ${joinForm.introduction || "Mong muốn kết nối ở ghép cùng phòng"}`;
 
       await rentalApi.createRentalRequest({
         postId: joinModalPost.id,
@@ -710,8 +827,8 @@ const Rooms = () => {
     // Quy tắc: Những phòng đã có người thuê mà không tìm ở ghép thì không hiển thị ngoài diễn đàn
     let result = posts.filter((p) => !p.isRented || Boolean(p.roommateNeeded));
 
-    // Lọc theo từ khóa / khu vực
-    if (city.trim()) {
+    // Lọc theo từ khóa / khu vực (Bỏ qua nếu chọn "Tất cả khu vực")
+    if (city.trim() && !isAllLocation(city)) {
       const kw = city.trim().toLowerCase();
       result = result.filter((p) => {
         const fullAddr = `${p.title || ""} ${p.address || ""} ${p.ward || ""} ${p.district || ""} ${p.city || ""}`.toLowerCase();
@@ -929,7 +1046,7 @@ const Rooms = () => {
   };
 
   const activeFilters = [
-    city && { label: city, clear: () => setCity("") },
+    (city && !isAllLocation(city)) && { label: `Khu vực: ${city}`, clear: () => setCity("") },
     minPrice && { label: `Từ ${formatVnd(minPrice)}`, clear: () => { setMinPrice(""); setPriceRange((range) => [1000000, range[1]]); } },
     maxPrice && { label: `Đến ${formatVnd(maxPrice)}`, clear: () => { setMaxPrice(""); setPriceRange((range) => [range[0], 15000000]); } },
     roomTypeFilter && { label: roomTypeFilter, clear: () => setRoomTypeFilter("") },
@@ -956,22 +1073,55 @@ const Rooms = () => {
               setPage(0);
             }}
           >
-            <div className="search-field" style={{ flex: 1.5 }}>
+            <div className="search-field" style={{ flex: 1.5, position: "relative" }}>
               <label>Khu vực, địa chỉ, quận huyện</label>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, position: "relative" }}>
                 <Search size={16} color="var(--text-muted)" />
                 <input
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Thử Bình Thạnh, Quận 10, ĐH Bách Khoa..."
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === ALL_LOCATION_LABEL) {
+                      setCity("");
+                    } else {
+                      setCity(val);
+                    }
+                    setPage(0);
+                  }}
+                  placeholder="Chọn 'Tất cả khu vực' hoặc nhập Quận 1, Bình Thạnh..."
                   list="room-location-suggestions"
+                  style={{ width: "100%", paddingRight: city ? "28px" : "8px" }}
                 />
+                {city && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCity("");
+                      setPage(0);
+                    }}
+                    style={{
+                      position: "absolute",
+                      right: 6,
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--text-muted)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 2
+                    }}
+                    title="Xóa tìm kiếm để xem Tất cả khu vực"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
                 <datalist id="room-location-suggestions">
-                  {[
-                    "Quận 1", "Quận 3", "Quận 10", "Bình Thạnh", "Thủ Đức",
-                    "ĐHQG / Làng Đại học", "ĐH Bách Khoa TP.HCM", "ĐH Kinh Tế (UEH)",
-                    "ĐH FPT / Khu CNC", "ĐH Sư Phạm Kỹ Thuật",
-                  ].map((location) => <option key={location} value={location} />)}
+                  {allLocationList.map((location) => (
+                    <option key={location} value={location}>
+                      {location === ALL_LOCATION_LABEL ? "🌐 Tất cả khu vực (Toàn bộ bài đăng)" : location}
+                    </option>
+                  ))}
                 </datalist>
               </div>
             </div>
@@ -1073,6 +1223,19 @@ const Rooms = () => {
           </form>
 
           <div className="rooms-quick-prices" aria-label="Lọc nhanh theo giá">
+            <button
+              type="button"
+              className={`rooms-quick-price${(!city || isAllLocation(city)) ? " active" : ""}`}
+              onClick={() => {
+                setCity("");
+                setProximityLocation(null);
+                setPage(0);
+              }}
+              style={{ fontWeight: 800, color: (!city || isAllLocation(city)) ? "#ffffff" : "var(--primary)" }}
+              title="Xem bài đăng trên toàn bộ khu vực"
+            >
+              🌐 Tất cả khu vực
+            </button>
             <span>Giá nhanh:</span>
             {[
               { label: "Dưới 2 triệu", min: "", max: "2000000" },
@@ -1586,15 +1749,37 @@ const Rooms = () => {
               ))}
             </div>
           ) : currentItems.length === 0 ? (
-            <div className="empty-state" style={{ background: "var(--bg-card)", borderRadius: 16, padding: "60px 20px", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Rất tiếc, chưa tìm thấy phòng khớp 100% tiêu chí của bạn!</h3>
-              <p style={{ color: "var(--text-muted)", margin: "8px 0 16px 0", fontSize: 14 }}>
-                Bạn có thể bỏ bớt bộ lọc, nới rộng khoảng giá hoặc chọn khu vực lân cận để xem thêm phòng.
+            <div className="empty-state" style={{ background: "var(--bg-card)", borderRadius: 16, padding: "50px 24px", border: "1px solid var(--border-color)", color: "var(--text-primary)", textAlign: "center" }}>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>
+                {city && !isAllLocation(city) ? "📍" : "🔍"}
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
+                {city && !isAllLocation(city)
+                  ? `Khu vực "${city}" hiện đang vắng bài đăng phòng trọ!`
+                  : "Rất tiếc, chưa tìm thấy phòng khớp 100% tiêu chí của bạn!"}
+              </h3>
+              <p style={{ color: "var(--text-secondary)", margin: "8px auto 20px auto", fontSize: 14, maxWidth: 540, lineHeight: 1.5 }}>
+                {city && !isAllLocation(city)
+                  ? `Hiện tại khu vực này chưa có chủ trọ nào đăng phòng trống hoặc các phòng đã được thuê hết. Bạn có thể bấm "Xem tất cả khu vực" để xem tất cả ${posts.length} bài đăng trên toàn hệ thống hoặc tham khảo các khu vực lân cận.`
+                  : "Bạn có thể bỏ bớt bộ lọc, nới rộng khoảng giá hoặc chọn khu vực lân cận để xem thêm phòng."}
               </p>
-              <button onClick={clearAllFilters} className="btn btn-primary btn-ripple">
-                <RotateCcw size={14} style={{ marginRight: 6 }} /> Bỏ bớt bộ lọc
-              </button>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                {city && !isAllLocation(city) && (
+                  <button
+                    onClick={() => {
+                      setCity("");
+                      setPage(0);
+                    }}
+                    className="btn btn-primary btn-ripple"
+                    style={{ fontWeight: 800, padding: "10px 22px" }}
+                  >
+                    ✨ Xem tất cả khu vực ({posts.length} phòng)
+                  </button>
+                )}
+                <button onClick={clearAllFilters} className="btn btn-outline btn-ripple" style={{ fontWeight: 700, padding: "10px 20px" }}>
+                  <RotateCcw size={14} style={{ marginRight: 6 }} /> Đặt lại toàn bộ bộ lọc
+                </button>
+              </div>
             </div>
           ) : (
             <motion.div layout className={`forum-posts-list rooms-cards-list${viewMode === "GRID" ? " is-grid" : ""}`} style={{ gap: 20 }}>
@@ -1782,6 +1967,7 @@ const Rooms = () => {
                                   }
                                   setJoinModalPost(post);
                                   setJoinForm({
+                                    peopleCount: 1,
                                     fullName: user.fullName || "",
                                     phone: user.phoneNumber || "",
                                     gender: "MALE",
@@ -1790,6 +1976,7 @@ const Rooms = () => {
                                     moveInDate: "",
                                     durationMonths: 6,
                                     introduction: "",
+                                    agreedToTerms: false,
                                   });
                                 }}
                                 className="btn btn-accent forum-action-btn"
@@ -2433,18 +2620,19 @@ const Rooms = () => {
 
       {/* MODAL 2: MẪU ĐƠN ỨNG TUYỂN XIN Ở GHÉP (DÀNH CHO CƯ DÂN / KHÁCH XIN VÀO Ở GHÉP) */}
       {joinModalPost && (
-        <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 540 }}>
+        <div className="modal-overlay" onClick={() => setJoinModalPost(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>
+                <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "var(--text-primary)" }}>
                   🤝 Đơn xin ứng tuyển ở ghép
                 </h3>
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                  Gửi hồ sơ cá nhân và nguyện vọng tới người đăng phòng
+                <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>
+                  Gửi yêu cầu tới chủ trọ {joinModalPost.landlordName || "chính chủ"}
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => setJoinModalPost(null)}
                 style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
               >
@@ -2452,24 +2640,88 @@ const Rooms = () => {
               </button>
             </div>
 
-            {/* Thông tin phòng & Tiêu chí đang tìm */}
-            <div style={{ background: "#f0fdf4", border: "1px dashed #86efac", padding: "12px 14px", borderRadius: 10, marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#166534" }}>{joinModalPost.title}</div>
-              <div style={{ fontSize: "0.82rem", color: "#15803d", marginTop: 2 }}>
-                Giá gốc: <strong>{formatVnd(joinModalPost.price)}/tháng</strong> • Cần tìm: <strong>{joinModalPost.roommateCount || 1} bạn</strong>
+            {/* Thông tin phòng & Tiêu chí do chủ trọ quy định */}
+            <div style={{
+              background: "rgba(16, 185, 129, 0.08)",
+              border: "1.5px solid rgba(16, 185, 129, 0.3)",
+              padding: "14px 16px",
+              borderRadius: 12,
+              marginBottom: 16
+            }}>
+              <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--text-primary)", marginBottom: 4 }}>
+                {joinModalPost.title}
               </div>
-              {joinModalPost.roommateNote && (
-                <div style={{ marginTop: 6, fontSize: "0.82rem", color: "#166534", background: "rgba(255,255,255,0.7)", padding: "6px 8px", borderRadius: 6 }}>
-                  💡 <em>Tiêu chí phòng: {joinModalPost.roommateNote}</em>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: 6 }}>
+                Giá phòng gốc: <strong style={{ color: "var(--primary)" }}>{formatVnd(joinModalPost.price)}/tháng</strong> • Nhu cầu: <strong>Cần tìm thêm {joinModalPost.roommateCount || 1} bạn ở ghép</strong>
+              </div>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-primary)", background: "var(--bg-card)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border-color)" }}>
+                📌 <strong>Tiêu chí & Ràng buộc từ chủ trọ:</strong>
+                <div style={{ marginTop: 4, color: "var(--text-secondary)", fontStyle: "italic", lineHeight: 1.5 }}>
+                  {joinModalPost.roommateNote || "Giữ gìn vệ sinh chung, tôn trọng không gian riêng, giờ giấc sinh hoạt văn minh."}
                 </div>
-              )}
+              </div>
             </div>
 
             <form onSubmit={handleJoinSubmit}>
+              {/* Tick chọn số lượng người muốn xin vào ghép */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, marginBottom: 8, color: "var(--text-primary)" }}>
+                  Bạn muốn xin ở ghép mấy người? *
+                </label>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <label style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    border: joinForm.peopleCount === 1 ? "2px solid #2563eb" : "1px solid var(--border-color)",
+                    background: joinForm.peopleCount === 1 ? "rgba(37, 99, 235, 0.08)" : "var(--bg-primary)",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "13.5px",
+                    color: "var(--text-primary)"
+                  }}>
+                    <input
+                      type="radio"
+                      name="roomsPeopleCount"
+                      checked={joinForm.peopleCount === 1}
+                      onChange={() => setJoinForm({ ...joinForm, peopleCount: 1 })}
+                    />
+                    <span>Đi 1 mình (1 bạn)</span>
+                  </label>
+                  {Number(joinModalPost.roommateCount || 1) >= 2 && (
+                    <label style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      border: joinForm.peopleCount === 2 ? "2px solid #2563eb" : "1px solid var(--border-color)",
+                      background: joinForm.peopleCount === 2 ? "rgba(37, 99, 235, 0.08)" : "var(--bg-primary)",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      fontSize: "13.5px",
+                      color: "var(--text-primary)"
+                    }}>
+                      <input
+                        type="radio"
+                        name="roomsPeopleCount"
+                        checked={joinForm.peopleCount === 2}
+                        onChange={() => setJoinForm({ ...joinForm, peopleCount: 2 })}
+                      />
+                      <span>Đi cùng bạn (2 bạn)</span>
+                    </label>
+                  )}
+                </div>
+              </div>
+
               {/* Họ tên & SĐT */}
               <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
                 <div style={{ flex: 1.2 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
                     Họ và tên của bạn *
                   </label>
                   <input
@@ -2478,11 +2730,11 @@ const Rooms = () => {
                     placeholder="Nguyễn Văn A"
                     value={joinForm.fullName}
                     onChange={(e) => setJoinForm({ ...joinForm, fullName: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-card)", color: "var(--text-primary)", boxSizing: "border-box" }}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
                     Số điện thoại / Zalo *
                   </label>
                   <input
@@ -2491,97 +2743,45 @@ const Rooms = () => {
                     placeholder="0912345678"
                     value={joinForm.phone}
                     onChange={(e) => setJoinForm({ ...joinForm, phone: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-card)", color: "var(--text-primary)", boxSizing: "border-box" }}
                   />
                 </div>
               </div>
 
-              {/* Giới tính & Nghề nghiệp */}
-              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                    Giới tính
-                  </label>
-                  <select
-                    value={joinForm.gender}
-                    onChange={(e) => setJoinForm({ ...joinForm, gender: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
-                  >
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="MALE">Nam</option>
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="FEMALE">Nữ</option>
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value="OTHER">Khác</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1.5 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                    Nghề nghiệp / Trường học
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Sinh viên Bách Khoa / Nhân viên IT"
-                    value={joinForm.occupation}
-                    onChange={(e) => setJoinForm({ ...joinForm, occupation: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
-                  />
-                </div>
-              </div>
-
-              {/* Ngày dự kiến dọn vào & Thời gian ở */}
-              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                    Ngày dự kiến dọn vào
-                  </label>
-                  <input
-                    type="date"
-                    value={joinForm.moveInDate}
-                    onChange={(e) => setJoinForm({ ...joinForm, moveInDate: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                    Dự kiến thuê (tháng)
-                  </label>
-                  <select
-                    value={joinForm.durationMonths}
-                    onChange={(e) => setJoinForm({ ...joinForm, durationMonths: e.target.value })}
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
-                  >
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={3}>3 tháng</option>
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={6}>6 tháng</option>
-                    <option style={{ background: "var(--bg-card)", color: "var(--text-primary)" }} value={12}>12 tháng</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Thói quen sinh hoạt */}
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                  Thói quen sinh hoạt cá nhân
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: Giờ giấc tự do, không hút thuốc, ít nấu ăn, gọn gàng..."
-                  value={joinForm.habits}
-                  onChange={(e) => setJoinForm({ ...joinForm, habits: e.target.value })}
-                  style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
-                />
-              </div>
-
-              {/* Lời giới thiệu */}
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>
-                  Đôi dòng tự giới thiệu & Lời nhắn *
+              {/* Lời nhắn / Giới thiệu */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
+                  Lời nhắn / Giới thiệu bản thân ngắn gọn
                 </label>
                 <textarea
-                  rows="3"
-                  required
-                  placeholder="Chào bạn, mình muốn tìm phòng ở ghép yên tĩnh, vui vẻ hòa đồng. Rất mong được kết nối..."
+                  rows={2}
+                  placeholder="Ví dụ: Mình là sinh viên năm 3, giờ giấc tự do, hòa đồng, muốn tìm phòng ổn định..."
                   value={joinForm.introduction}
                   onChange={(e) => setJoinForm({ ...joinForm, introduction: e.target.value })}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--border)" }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-card)", color: "var(--text-primary)", boxSizing: "border-box" }}
                 />
+              </div>
+
+              {/* Checkbox cam kết tuân thủ tiêu chí */}
+              <div style={{
+                background: "rgba(37, 99, 235, 0.06)",
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: "1px solid rgba(37, 99, 235, 0.2)",
+                marginBottom: 16
+              }}>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", fontSize: "13px", lineHeight: 1.4, color: "var(--text-primary)" }}>
+                  <input
+                    type="checkbox"
+                    required
+                    checked={joinForm.agreedToTerms}
+                    onChange={(e) => setJoinForm({ ...joinForm, agreedToTerms: e.target.checked })}
+                    style={{ marginTop: 2, width: 16, height: 16 }}
+                  />
+                  <span>
+                    <strong>Tôi đã đọc kỹ và cam kết tuân thủ</strong> các yêu cầu, tiêu chí ở ghép do chủ trọ đã quy định ở trên.
+                  </span>
+                </label>
               </div>
 
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -2589,16 +2789,17 @@ const Rooms = () => {
                   type="button"
                   onClick={() => setJoinModalPost(null)}
                   className="btn btn-outline"
+                  disabled={submittingJoin}
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  disabled={submittingJoin}
-                  className="btn btn-accent"
-                  style={{ fontWeight: 700 }}
+                  disabled={submittingJoin || !joinForm.agreedToTerms}
+                  className="btn btn-primary"
+                  style={{ fontWeight: 800, padding: "9px 20px", background: "#10b981", borderColor: "#10b981", color: "#fff" }}
                 >
-                  {submittingJoin ? "Đang gửi đơn..." : "Gửi đơn xin ở ghép 🚀"}
+                  {submittingJoin ? "Đang gửi đơn..." : "Chấp nhận & Gửi yêu cầu ở ghép 🚀"}
                 </button>
               </div>
             </form>

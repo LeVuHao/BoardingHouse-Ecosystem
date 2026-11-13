@@ -258,36 +258,23 @@ const Navbar = () => {
                           <Building2 size={14} />
                           <span>Khu trọ & Phòng</span>
                         </Link>
+                        <Link to="/landlord/management?tab=posts" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
+                          <MessageSquare size={14} />
+                          <span>Tin đăng cho thuê</span>
+                        </Link>
                         <Link to="/landlord/management?tab=occupied" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
                           <CheckCircle2 size={14} />
-                          <span>Trọ đã cho thuê</span>
+                          <span>Phòng đã có người ở</span>
                         </Link>
                         <Link to="/landlord/management?tab=requests" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
                           <Users size={14} />
                           <span>Khách thuê & Yêu cầu</span>
-                        </Link>
-                        <Link to="/landlord/management?tab=contracts" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
-                          <FileText size={14} />
-                          <span>Hợp đồng điện tử</span>
                         </Link>
                         <Link to="/landlord/management?tab=tickets" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
                           <Wrench size={14} />
                           <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
                           {ticketUrgentCount > 0 && (
                             <span className="nav-menu-pill" style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
-                              {ticketUrgentCount} mới
-                            </span>
-                          )}
-                        </Link>
-                        <Link to="/landlord/management?tab=bills" className="nav-menu-item" style={{ paddingLeft: '28px', fontSize: '13px' }}>
-                          <FileText size={14} />
-                          <span>Tạo hóa đơn</span>
-                        </Link>
-                        <Link to="/landlord/tickets" className="nav-menu-item">
-                          <Wrench size={16} />
-                          <span style={{ flex: 1 }}>Sự cố báo hỏng</span>
-                          {ticketUrgentCount > 0 && (
-                            <span className="nav-menu-pill" style={{ background: "#fef2f2", color: "#ef4444" }}>
                               {ticketUrgentCount} mới
                             </span>
                           )}
@@ -299,7 +286,7 @@ const Navbar = () => {
                       <>
                         <Link to="/contracts" className="nav-menu-item">
                           <Home size={16} />
-                          <span>Trọ của tôi & Hóa đơn</span>
+                          <span>Trọ của tôi</span>
                         </Link>
                         <Link to="/register-landlord" className="nav-menu-item" style={{ color: "#4f46e5", fontWeight: 700 }}>
                           <Sparkles size={16} color="#4f46e5" />

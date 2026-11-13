@@ -1,16 +1,21 @@
 package com.roomily.property.service;
 
+import com.roomily.common.dto.ApiResponse;
 import com.roomily.common.exception.BadRequestException;
 import com.roomily.common.exception.ResourceNotFoundException;
+import com.roomily.property.client.AuthClient;
 import com.roomily.property.dto.response.ContractResponse;
+import com.roomily.property.dto.response.LandlordInfo;
 import com.roomily.property.entity.Contract;
 import com.roomily.property.entity.ForumPostImage;
 import com.roomily.property.entity.RoomImage;
 import com.roomily.property.repository.ContractRepository;
 import com.roomily.property.repository.ForumPostRepository;
+import com.roomily.property.repository.RentalRequestRepository;
 import com.roomily.property.repository.RoomRepository;
 import com.roomily.property.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +24,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContractService {
 
     private final ContractRepository contractRepository;
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
     private final ForumPostRepository forumPostRepository;
+    private final RentalRequestRepository rentalRequestRepository;
+    private final AuthClient authClient;
 
     /**
      * [HUY] User xem hợp đồng / trọ của mình
@@ -81,8 +89,14 @@ public class ContractService {
 
             // Danh sách bạn cùng phòng
             List<String> roommates = tenantRepository.findByRoomIdAndIsStayingTrue(c.getRoomId()).stream()
-                    .filter(t -> !t.getUserId().equals(c.getUserId()))
-                    .map(t -> t.getFullName() != null ? t.getFullName() : ("Bạn cùng phòng #" + t.getUserId()))
+                    .filter(t -> !t.getUserId().equals(c.getTenantId()))
+                    .map(t -> {
+                        return rentalRequestRepository.findByRoomIdAndStatus(c.getRoomId(), "APPROVED").stream()
+                                .filter(r -> r.getUserId().equals(t.getUserId()) && r.getSenderName() != null && !r.getSenderName().isBlank())
+                                .findFirst()
+                                .map(RentalRequest::getSenderName)
+                                .orElseGet(() -> t.getFullName() != null ? t.getFullName() : ("Bạn cùng phòng #" + t.getUserId()));
+                    })
                     .collect(Collectors.toList());
             res.setRoommates(roommates);
         }
@@ -121,6 +135,36 @@ public class ContractService {
                         if (res.getUtilities() == null) res.setUtilities(p.getUtilities());
                         res.setImages(p.getImages().stream().map(ForumPostImage::getImageUrl).collect(Collectors.toList()));
                     });
+        }
+
+        // 4. Lấy thông tin người thuê (Tenant Name, Phone, Email)
+        if (c.getTenantId() != null) {
+            // Thử lấy trước từ RentalRequest được duyệt gần nhất
+            if (c.getRoomId() != null) {
+                rentalRequestRepository.findByRoomIdAndStatus(c.getRoomId(), "APPROVED").stream()
+                        .filter(r -> c.getTenantId().equals(r.getUserId()))
+                        .findFirst()
+                        .ifPresent(req -> {
+                            if (req.getSenderName() != null) res.setTenantName(req.getSenderName());
+                            if (req.getSenderPhone() != null) res.setTenantPhone(req.getSenderPhone());
+                            if (res.getPostId() == null && req.getPostId() != null) res.setPostId(req.getPostId());
+                        });
+            }
+
+            // Nếu chưa có đủ SĐT hoặc Tên, gọi AUTH-SERVICE lấy hồ sơ người dùng
+            if (res.getTenantName() == null || res.getTenantPhone() == null) {
+                try {
+                    ApiResponse<List<LandlordInfo>> userRes = authClient.getUsersByIds(List.of(c.getTenantId()));
+                    if (userRes != null && userRes.getData() != null && !userRes.getData().isEmpty()) {
+                        LandlordInfo info = userRes.getData().get(0);
+                        if (res.getTenantName() == null) res.setTenantName(info.getFullName());
+                        if (res.getTenantPhone() == null) res.setTenantPhone(info.getPhoneNumber());
+                        if (res.getTenantEmail() == null) res.setTenantEmail(info.getEmail());
+                    }
+                } catch (Exception ex) {
+                    log.warn("Không thể lấy thông tin tenantId {} từ AuthClient: {}", c.getTenantId(), ex.getMessage());
+                }
+            }
         }
 
         return res;

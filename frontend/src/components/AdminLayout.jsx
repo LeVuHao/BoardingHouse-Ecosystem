@@ -21,12 +21,13 @@ import {
   Tag
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { adminApi } from "../api/apiClient";
 
 
 const AdminLayout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDark: isDarkMode, toggleTheme } = useTheme();
 
   const [pendingPostsCount, setPendingPostsCount] = useState(0);
   const location = useLocation();
@@ -349,16 +350,25 @@ title="Đăng xuất"
 
             {/* Actions */}
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              type="button"
+              onClick={toggleTheme}
               style={{
-                background: "none",
-                border: "none",
+                background: isDarkMode ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+                border: `1px solid ${isDarkMode ? "#334155" : "#E2E8F0"}`,
+                borderRadius: "50%",
+                width: "38px",
+                height: "38px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 color: isDarkMode ? "#FBBF24" : "#64748B",
                 cursor: "pointer",
-                position: "relative",
+                transition: "all 0.2s ease",
               }}
+              title={isDarkMode ? "Chuyển sang chế độ sáng (Light Mode)" : "Chuyển sang chế độ tối (Dark Mode)"}
+              aria-label="Chuyển chế độ sáng/tối"
             >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {isDarkMode ? <Sun size={19} /> : <Moon size={19} />}
             </button>
             <button
               style={{

@@ -64,7 +64,7 @@ const LandlordRequests = ({ embedded = false }) => {
     try {
       setProcessingId(requestId);
       await rentalApi.approveRentalRequest(requestId);
-      toast.success('🎉 Đã duyệt yêu cầu thuê phòng thành công! Hợp đồng và cư dân đã được kích hoạt.');
+      toast.success('🎉 Đã duyệt thành công! Người được duyệt đã trở thành cư dân chính thức của phòng.');
       // Refresh list
       fetchRequests(activeTab, false);
     } catch (err) {
@@ -263,6 +263,22 @@ const LandlordRequests = ({ embedded = false }) => {
                     <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>
                       {requester?.fullName || req.senderName || `Khách thuê #${req.userId}`}
                     </h3>
+                    {req.note && req.note.includes("XIN Ở GHÉP") && (
+                      <span style={{
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: '#059669',
+                        border: '1.5px solid rgba(16, 185, 129, 0.35)',
+                        padding: '3px 10px',
+                        borderRadius: '9999px',
+                        fontSize: '0.8rem',
+                        fontWeight: '800',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}>
+                        🤝 XIN Ở GHÉP
+                      </span>
+                    )}
                     {renderStatusBadge(req.status)}
                   </div>
 
@@ -273,9 +289,39 @@ const LandlordRequests = ({ embedded = false }) => {
                     </div>
 
                     {req.senderPhone && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
                         <Phone size={16} style={{ color: 'var(--primary)' }} />
                         <span>SĐT: <strong style={{ color: 'var(--primary)' }}>{req.senderPhone}</strong></span>
+                        <a
+                          href={`tel:${req.senderPhone}`}
+                          style={{
+                            background: 'rgba(37, 99, 235, 0.12)',
+                            color: 'var(--primary)',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          Gọi
+                        </a>
+                        <a
+                          href={`https://zalo.me/${req.senderPhone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            color: '#059669',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          Zalo
+                        </a>
                       </div>
                     )}
 

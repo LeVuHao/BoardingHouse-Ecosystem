@@ -43,6 +43,9 @@ public class ContractResponse {
     private String utilities;
     private Long postId;
     private List<String> roommates;
+    private String tenantName;
+    private String tenantPhone;
+    private String tenantEmail;
 
     public static ContractResponse fromEntity(Contract c) {
         if (c == null) return null;

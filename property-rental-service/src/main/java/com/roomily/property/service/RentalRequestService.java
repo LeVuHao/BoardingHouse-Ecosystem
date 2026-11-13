@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +70,24 @@ public class RentalRequestService {
             throw new ResourceNotFoundException("Không tìm thấy thông tin phòng hoặc bài đăng để gửi yêu cầu thuê");
         }
 
-        if (!"AVAILABLE".equalsIgnoreCase(room.getStatus()) || room.getCurrentOccupants() >= room.getCapacity()) {
-            throw new BadRequestException("Phòng đã đầy hoặc không còn khả dụng để thuê");
+        boolean isRoommateRequest = (post != null && Boolean.TRUE.equals(post.getRoommateNeeded()))
+                || (req.getNote() != null && req.getNote().contains("XIN Ở GHÉP"));
+
+        if (!isRoommateRequest) {
+            if (!"AVAILABLE".equalsIgnoreCase(room.getStatus()) || room.getCurrentOccupants() >= room.getCapacity()) {
+                throw new BadRequestException("Phòng đã đầy hoặc không còn khả dụng để thuê");
+            }
+        } else {
+            // Đối với yêu cầu xin ở ghép: đảm bảo sức chứa phòng có thể chứa thêm người ở ghép
+            int requestedCount = 1;
+            if (req.getNote() != null && req.getNote().contains("2 người")) {
+                requestedCount = 2;
+            }
+            if (room.getCurrentOccupants() + requestedCount > room.getCapacity()) {
+                room.setCapacity(room.getCurrentOccupants() + requestedCount + 1);
+                room.setStatus("AVAILABLE");
+                roomRepository.save(room);
+            }
         }
 
         if (tenantRepository.existsByUserIdAndRoomIdAndIsStayingTrue(userId, room.getId())) {
@@ -77,7 +95,7 @@ public class RentalRequestService {
         }
 
         if (rentalRequestRepository.existsByUserIdAndRoomIdAndStatus(userId, room.getId(), "PENDING")) {
-            throw new BadRequestException("Bạn đã có yêu cầu thuê phòng này đang chờ duyệt");
+            throw new BadRequestException("Bạn đã có yêu cầu thuê hoặc xin ở ghép phòng này đang chờ duyệt");
         }
 
         Long landlordId = room.getProperty() != null ? room.getProperty().getLandlordId() : (post != null ? post.getLandlordId() : null);
@@ -196,16 +214,30 @@ public class RentalRequestService {
             throw new BadRequestException("Bạn không có quyền duyệt yêu cầu của phòng này");
         }
 
-        if (room.getCurrentOccupants() >= room.getCapacity()) {
-            req.setStatus("REJECTED");
-            rentalRequestRepository.save(req);
-            throw new BadRequestException("Phòng đã hết chỗ trống");
+        boolean isRoommateReq = (req.getNote() != null && req.getNote().contains("XIN Ở GHÉP"))
+                || (req.getPostId() != null && forumPostRepository.findById(req.getPostId())
+                        .map(p -> Boolean.TRUE.equals(p.getRoommateNeeded())).orElse(false));
+
+        int occupantsToAdd = 1;
+        if (req.getNote() != null && req.getNote().contains("2 người")) {
+            occupantsToAdd = 2;
+        }
+
+        if (room.getCurrentOccupants() + occupantsToAdd > room.getCapacity()) {
+            if (isRoommateReq) {
+                // Tự động nới rộng capacity để chấp nhận người ở ghép
+                room.setCapacity(room.getCurrentOccupants() + occupantsToAdd);
+            } else {
+                req.setStatus("REJECTED");
+                rentalRequestRepository.save(req);
+                throw new BadRequestException("Phòng đã hết chỗ trống");
+            }
         }
 
         req.setStatus("APPROVED");
         rentalRequestRepository.save(req);
 
-        room.setCurrentOccupants(room.getCurrentOccupants() + 1);
+        room.setCurrentOccupants(room.getCurrentOccupants() + occupantsToAdd);
         if (room.getCurrentOccupants() >= room.getCapacity()) {
             room.setStatus("FULL");
         }
@@ -213,6 +245,12 @@ public class RentalRequestService {
 
         LocalDate startDate = LocalDate.now();
         int durationMonths = req.getDurationMonths() == null ? 12 : req.getDurationMonths();
+
+        // Tính toán giá thuê cho người ở ghép nếu phòng có nhiều người cùng chia sẻ
+        BigDecimal rentPrice = room.getPrice();
+        if (isRoommateReq && room.getCurrentOccupants() > 1) {
+            rentPrice = room.getPrice().divide(BigDecimal.valueOf(room.getCurrentOccupants()), 0, RoundingMode.HALF_UP);
+        }
 
         Tenant tenant = tenantRepository.findByUserIdAndIsStayingTrue(req.getUserId())
                 .stream()
@@ -233,20 +271,31 @@ public class RentalRequestService {
                 .landlordId(landlordUserId)
                 .startDate(startDate)
                 .endDate(startDate.plusMonths(durationMonths))
-                .rentalPrice(room.getPrice())
-                .deposit(room.getPrice())
-                .depositAmount(room.getPrice())
+                .rentalPrice(rentPrice)
+                .deposit(rentPrice)
+                .depositAmount(rentPrice)
                 .status("ACTIVE")
                 .build();
         Contract savedContract = contractRepository.save(contract);
 
-        // Đánh dấu bài đăng diễn đàn tương ứng là đã có người thuê
+        // Đánh dấu bài đăng diễn đàn tương ứng: nếu là phòng đã thuê thì bật isRented, nếu ở ghép đã đủ người thì tắt roommateNeeded
         try {
             if (req.getPostId() != null) {
                 forumPostRepository.findById(req.getPostId()).ifPresent(p -> {
                     p.setIsRented(true);
+                    if (isRoommateReq && p.getRoommateCount() != null) {
+                        int remaining = p.getRoommateCount() - occupantsToAdd;
+                        if (remaining <= 0) {
+                            p.setRoommateNeeded(false);
+                            p.setRoommateCount(0);
+                            log.info("Forum post {} roommate slots filled! Set roommateNeeded=false", p.getId());
+                        } else {
+                            p.setRoommateCount(remaining);
+                            log.info("Forum post {} roommate slots remaining: {}", p.getId(), remaining);
+                        }
+                    }
                     forumPostRepository.save(p);
-                    log.info("Auto-marked forum post {} as rented by postId", p.getId());
+                    log.info("Auto-updated forum post {} status after rental/roommate approval", p.getId());
                 });
             }
             forumPostRepository.findByLandlordIdOrderByCreatedAtDesc(landlordUserId).stream()
@@ -255,7 +304,6 @@ public class RentalRequestService {
                     .forEach(p -> {
                         p.setIsRented(true);
                         forumPostRepository.save(p);
-                        log.info("Auto-marked forum post {} as rented for room {}", p.getId(), room.getId());
                     });
         } catch (Exception ex) {
             log.warn("Không thể cập nhật forum post status khi duyệt thuê: {}", ex.getMessage());
@@ -263,9 +311,9 @@ public class RentalRequestService {
 
         Map<String, Object> event = new HashMap<>();
         event.put("userId", req.getUserId());
-        event.put("title", "Yêu cầu thuê phòng đã được duyệt");
-        event.put("content", "Chúc mừng! Chủ trọ đã duyệt yêu cầu thuê phòng " + room.getRoomNumber() + " của bạn.");
-        event.put("type", "RENTAL_APPROVED");
+        event.put("title", isRoommateReq ? "Yêu cầu ở ghép đã được duyệt 🎉" : "Yêu cầu thuê phòng đã được duyệt 🎉");
+        event.put("content", "Chúc mừng! Chủ trọ đã duyệt yêu cầu " + (isRoommateReq ? "ở ghép" : "thuê") + " phòng " + room.getRoomNumber() + " của bạn. Bạn đã trở thành cư dân chính thức của phòng.");
+        event.put("type", isRoommateReq ? "ROOMMATE_APPROVED" : "RENTAL_APPROVED");
         event.put("referenceId", savedContract.getId());
         try {
             rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "rental.approved", event);
@@ -275,6 +323,12 @@ public class RentalRequestService {
         Map<String, Object> response = new HashMap<>();
         response.put("requestId", req.getId());
         response.put("status", "APPROVED");
+        response.put("contractId", savedContract.getId());
+        response.put("tenantId", tenant.getId());
+        response.put("isRoommate", isRoommateReq);
+        response.put("message", isRoommateReq
+                ? "Đã duyệt yêu cầu ở ghép thành công! Người ở ghép đã được kích hoạt làm cư dân chính thức của phòng."
+                : "Đã duyệt thành công yêu cầu thuê phòng và kích hoạt hợp đồng");
         response.put("contractId", savedContract.getId());
         response.put("tenantId", tenant.getId());
         response.put("message", "Đã duyệt thành công yêu cầu thuê phòng và kích hoạt hợp đồng");
