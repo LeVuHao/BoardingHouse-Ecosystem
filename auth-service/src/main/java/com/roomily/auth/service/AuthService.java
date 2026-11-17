@@ -400,6 +400,27 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void changePassword(Long userId, com.roomily.auth.dto.request.ChangePasswordRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+
+        if ("GOOGLE".equalsIgnoreCase(user.getProvider()) || user.getPassword() == null) {
+            throw new BadRequestException("Tài khoản này đăng nhập bằng Google, không thể đổi mật khẩu");
+        }
+
+        if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu hiện tại không chính xác");
+        }
+
+        if (req.getNewPassword() == null || req.getNewPassword().length() < 6) {
+            throw new BadRequestException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        userRepository.save(user);
+    }
+
     public UserResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));

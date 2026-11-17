@@ -6,12 +6,22 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
-// Màn hình của Võ Gia Huy
+// Context Quản lý Xác thực & Phiên Đăng nhập (Hùng phụ trách)
+import { AuthProvider } from './src/context/AuthContext';
+
+// Màn hình của Võ Gia Huy (Khám phá & Thuê phòng)
 import RoomListScreen from './src/screens/rooms/RoomListScreen';
 import RoomDetailScreen from './src/screens/rooms/RoomDetailScreen';
 import MyContractsScreen from './src/screens/rooms/MyContractsScreen';
 
-// Placeholder Screens cho các thành viên khác để app chạy trơn tru
+// Màn hình của Sang Xuân Hùng (Auth, Profile, Thông báo & Báo hỏng)
+import LoginScreen from './src/screens/auth/LoginScreen';
+import RegisterScreen from './src/screens/auth/RegisterScreen';
+import ProfileScreen from './src/screens/profile/ProfileScreen';
+import NotificationsScreen from './src/screens/profile/NotificationsScreen';
+import MaintenanceTicketsScreen from './src/screens/profile/MaintenanceTicketsScreen';
+
+// Placeholder Screens cho các thành viên khác
 function ForumPlaceholder() {
   return (
     <View style={styles.centerBox}>
@@ -28,16 +38,6 @@ function BillsPlaceholder() {
       <Ionicons name="receipt" size={48} color="#10B981" />
       <Text style={styles.placeholderTitle}>Hóa Đơn & Thanh Toán VietQR</Text>
       <Text style={styles.placeholderSub}>Phân hệ do Lê Vũ Hảo phụ trách</Text>
-    </View>
-  );
-}
-
-function ProfilePlaceholder() {
-  return (
-    <View style={styles.centerBox}>
-      <Ionicons name="person-circle" size={48} color="#F59E0B" />
-      <Text style={styles.placeholderTitle}>Hồ Sơ, Thông Báo & Báo Hỏng</Text>
-      <Text style={styles.placeholderSub}>Phân hệ do Hùng phụ trách</Text>
     </View>
   );
 }
@@ -99,7 +99,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="ProfileTab" 
-        component={ProfilePlaceholder} 
+        component={ProfileScreen} 
         options={{ tabBarLabel: 'Tài khoản' }} 
       />
     </Tab.Navigator>
@@ -108,27 +108,50 @@ function MainTabs() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Main Tab Screen */}
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        
-        {/* Chi tiết phòng (Huy phụ trách) */}
-        <Stack.Screen 
-          name="RoomDetail" 
-          component={RoomDetailScreen} 
-          options={{ headerShown: false }} 
-        />
+    <AuthProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {/* Main Tab Screen */}
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          
+          {/* Màn hình Xác thực (Auth) */}
+          <Stack.Screen 
+            name="Login" 
+            component={LoginScreen} 
+            options={{ presentation: 'modal' }} 
+          />
+          <Stack.Screen 
+            name="Register" 
+            component={RegisterScreen} 
+          />
 
-        {/* Trọ của tôi (Huy phụ trách) */}
-        <Stack.Screen 
-          name="MyContracts" 
-          component={MyContractsScreen} 
-          options={{ headerShown: false }} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+          {/* Màn hình Thông báo & Báo hỏng */}
+          <Stack.Screen 
+            name="Notifications" 
+            component={NotificationsScreen} 
+          />
+          <Stack.Screen 
+            name="MaintenanceTickets" 
+            component={MaintenanceTicketsScreen} 
+          />
+
+          {/* Màn hình Chi tiết phòng (Huy phụ trách) */}
+          <Stack.Screen 
+            name="RoomDetail" 
+            component={RoomDetailScreen} 
+            options={{ headerShown: false }} 
+          />
+
+          {/* Trọ của tôi (Huy phụ trách) */}
+          <Stack.Screen 
+            name="MyContracts" 
+            component={MyContractsScreen} 
+            options={{ headerShown: false }} 
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
 

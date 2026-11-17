@@ -112,6 +112,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin thành công", res));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody com.roomily.auth.dto.request.ChangePasswordRequest req) {
+        authService.changePassword(userId, req);
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
+    }
+
     @GetMapping("/users/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserInfo(
             @PathVariable Long id,
