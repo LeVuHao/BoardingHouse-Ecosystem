@@ -23,6 +23,7 @@ import Notifications from "./pages/Notifications";
 import LandlordProperties from "./pages/LandlordProperties";
 import LandlordRequests from "./pages/LandlordRequests";
 import LandlordCreateBill from "./pages/LandlordCreateBill";
+import LandlordBills from "./pages/LandlordBills";
 import LandlordHub from "./pages/LandlordHub";
 import MyContracts from "./pages/MyContracts";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -86,6 +87,7 @@ const AppContent = () => {
             <Route path="/landlord/properties" element={<LandlordProperties />} />
             <Route path="/landlord/requests" element={<LandlordRequests />} />
             <Route path="/landlord/create-bill" element={<LandlordCreateBill />} />
+            <Route path="/landlord/bills" element={<LandlordBills />} />
             <Route path="/landlord/tickets" element={<LandlordTickets />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
