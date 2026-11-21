@@ -1624,9 +1624,9 @@ const MyContracts = ({ embedded = false }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Số tài khoản:</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <strong style={{ fontSize: '14px', color: '#2563eb' }}>{qrModalData.accountNumber || '8867375252'}</strong>
+                        <strong style={{ fontSize: '14px', color: '#2563eb' }}>{qrModalData.bankAccount || qrModalData.accountNumber || '8890014407'}</strong>
                         <button
-                          onClick={() => copyToClipboard(qrModalData.accountNumber || '8867375252', 'Số tài khoản')}
+                          onClick={() => copyToClipboard(qrModalData.bankAccount || qrModalData.accountNumber || '8890014407', 'Số tài khoản')}
                           style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
                           title="Sao chép"
                         >
@@ -1637,7 +1637,7 @@ const MyContracts = ({ embedded = false }) => {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Chủ tài khoản:</span>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>{qrModalData.accountName || 'LE VU HAO'}</strong>
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>{qrModalData.accountHolder || qrModalData.accountName || 'LE VU HAO'}</strong>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: '10px', border: '1px solid var(--border)' }}>
@@ -1657,10 +1657,10 @@ const MyContracts = ({ embedded = false }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(37, 99, 235, 0.08)', borderRadius: '10px', border: '1px solid rgba(37, 99, 235, 0.25)' }}>
                       <div>
                         <span style={{ fontSize: '12px', color: '#2563eb', fontWeight: 700, display: 'block' }}>NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC):</span>
-                        <strong style={{ fontSize: '15px', color: '#1e40af', letterSpacing: '0.5px' }}>{qrModalData.transferContent || `SEPAYBILL${qrModalData.billId}`}</strong>
+                        <strong style={{ fontSize: '15px', color: '#1e40af', letterSpacing: '0.5px' }}>{qrModalData.paymentCode || qrModalData.transferContent || `BILL${qrModalData.billId}`}</strong>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(qrModalData.transferContent || `SEPAYBILL${qrModalData.billId}`, 'Nội dung chuyển khoản')}
+                        onClick={() => copyToClipboard(qrModalData.paymentCode || qrModalData.transferContent || `BILL${qrModalData.billId}`, 'Nội dung chuyển khoản')}
                         className="btn btn-outline"
                         style={{ padding: '6px 12px', fontSize: '12px', background: '#fff', borderColor: '#2563eb', color: '#2563eb', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
