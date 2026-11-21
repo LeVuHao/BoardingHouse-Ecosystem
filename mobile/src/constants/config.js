@@ -2,9 +2,11 @@
  * CẤU HÌNH KẾT NỐI MẠNG CHO ROOMILY MOBILE
  * Đổi DEV_LAN_IP thành IP máy tính chạy backend khi test bằng điện thoại thật qua Expo Go.
  */
-export const DEV_LAN_IP = '192.168.100.62'; // Lấy từ lệnh ipconfig
+export const DEV_LAN_IP = '192.168.1.2'; // Lấy từ lệnh ipconfig
 
 export const API_PORT = 8080; // API Gateway
+
+export const HOST = `http://${DEV_LAN_IP}:${API_PORT}`;
 
 export const BASE_URL = `http://${DEV_LAN_IP}:${API_PORT}/api/v1`;
 

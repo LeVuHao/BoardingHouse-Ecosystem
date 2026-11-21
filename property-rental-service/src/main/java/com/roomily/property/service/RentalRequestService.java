@@ -278,13 +278,14 @@ public class RentalRequestService {
                 .build();
         Contract savedContract = contractRepository.save(contract);
 
+        final int occupantsAdded = occupantsToAdd; // bản final để dùng trong lambda
         // Đánh dấu bài đăng diễn đàn tương ứng: nếu là phòng đã thuê thì bật isRented, nếu ở ghép đã đủ người thì tắt roommateNeeded
         try {
             if (req.getPostId() != null) {
                 forumPostRepository.findById(req.getPostId()).ifPresent(p -> {
                     p.setIsRented(true);
                     if (isRoommateReq && p.getRoommateCount() != null) {
-                        int remaining = p.getRoommateCount() - occupantsToAdd;
+                        int remaining = p.getRoommateCount() - occupantsAdded;
                         if (remaining <= 0) {
                             p.setRoommateNeeded(false);
                             p.setRoommateCount(0);

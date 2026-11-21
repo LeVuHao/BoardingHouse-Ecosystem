@@ -14,6 +14,11 @@ import RoomListScreen from './src/screens/rooms/RoomListScreen';
 import RoomDetailScreen from './src/screens/rooms/RoomDetailScreen';
 import MyContractsScreen from './src/screens/rooms/MyContractsScreen';
 
+// Màn hình của Hoàng (Diễn đàn ở ghép & Chat)
+import RoommateScreen from './src/screens/forum/RoommateScreen';
+import CreatePostScreen from './src/screens/forum/CreatePostScreen';
+import ChatScreen from './src/screens/forum/ChatScreen';
+
 // Màn hình của Sang Xuân Hùng (Auth, Profile, Thông báo & Báo hỏng)
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
@@ -22,16 +27,6 @@ import NotificationsScreen from './src/screens/profile/NotificationsScreen';
 import MaintenanceTicketsScreen from './src/screens/profile/MaintenanceTicketsScreen';
 
 // Placeholder Screens cho các thành viên khác
-function ForumPlaceholder() {
-  return (
-    <View style={styles.centerBox}>
-      <Ionicons name="chatbubbles" size={48} color="#6366F1" />
-      <Text style={styles.placeholderTitle}>Diễn Đàn Ở Ghép & Chat</Text>
-      <Text style={styles.placeholderSub}>Phân hệ do Hoàng phụ trách</Text>
-    </View>
-  );
-}
-
 function BillsPlaceholder() {
   return (
     <View style={styles.centerBox}>
@@ -89,7 +84,7 @@ function MainTabs() {
       />
       <Tab.Screen 
         name="ForumTab" 
-        component={ForumPlaceholder} 
+        component={RoommateScreen} 
         options={{ tabBarLabel: 'Ở ghép' }} 
       />
       <Tab.Screen 
@@ -148,6 +143,17 @@ export default function App() {
             name="MyContracts" 
             component={MyContractsScreen} 
             options={{ headerShown: false }} 
+          />
+
+          {/* Đăng tin tìm bạn ở ghép & Chat (Hoàng phụ trách) */}
+          <Stack.Screen
+            name="CreatePost"
+            component={CreatePostScreen}
+            options={{ presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="Chat"
+            component={ChatScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

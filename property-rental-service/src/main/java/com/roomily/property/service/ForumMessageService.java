@@ -7,6 +7,7 @@ import com.roomily.property.entity.ForumMessage;
 import com.roomily.property.entity.ForumPost;
 import com.roomily.property.repository.ForumMessageRepository;
 import com.roomily.property.repository.ForumPostRepository;
+import com.roomily.property.repository.RoommatePostRepository;
 import com.roomily.property.config.RabbitMQConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,26 @@ public class ForumMessageService {
 
     private final ForumMessageRepository forumMessageRepository;
     private final ForumPostRepository forumPostRepository;
+    private final RoommatePostRepository roommatePostRepository;
     private final RabbitTemplate rabbitTemplate;
+
+    /** Thông tin tối thiểu của bài đăng mà cuộc trò chuyện gắn vào. */
+    private record PostRef(Long id, String title) {}
+
+    /**
+     * postId > 0: bài đăng diễn đàn.
+     * postId < 0: TIN Ở GHÉP, với id thật = -postId (app mobile dùng id âm để phân biệt, tránh trùng id giữa 2 bảng).
+     */
+    private PostRef resolvePost(Long postId) {
+        if (postId != null && postId < 0) {
+            return roommatePostRepository.findById(-postId)
+                    .map(p -> new PostRef(postId, p.getTitle()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tin ở ghép"));
+        }
+        return forumPostRepository.findById(postId)
+                .map(p -> new PostRef(p.getId(), p.getTitle()))
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng"));
+    }
 
     /**
      * Người dùng gửi tin nhắn liên hệ chủ trọ về bài đăng
@@ -109,8 +129,7 @@ public class ForumMessageService {
      */
     @Transactional
     public ForumMessageResponse replyMessage(Long postId, Long senderId, Long receiverId, SendForumMessageRequest req) {
-        ForumPost post = forumPostRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng"));
+        PostRef post = resolvePost(postId);
 
         ForumMessage message = ForumMessage.builder()
                 .postId(postId)
@@ -132,16 +151,16 @@ public class ForumMessageService {
             String snippet = req.getContent() != null && req.getContent().length() > 60
                     ? req.getContent().substring(0, 57) + "..."
                     : req.getContent();
-            event.put("content", "Phản hồi: \"" + snippet + "\" về: " + post.getTitle());
+            event.put("content", "Phản hồi: \"" + snippet + "\" về: " + post.title());
             event.put("type", "NEW_MESSAGE");
-            event.put("referenceId", post.getId());
+            event.put("referenceId", post.id());
             rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, "forum.message", event);
             log.info("Sent reply notification to user: {}", receiverId);
         } catch (Exception ex) {
             log.warn("Không thể gửi thông báo reply qua RabbitMQ: {}", ex.getMessage());
         }
 
-        return ForumMessageResponse.fromEntityWithPostTitle(saved, post.getTitle());
+        return ForumMessageResponse.fromEntityWithPostTitle(saved, post.title());
     }
 
     /**
@@ -149,8 +168,7 @@ public class ForumMessageService {
      */
     @Transactional
     public List<ForumMessageResponse> getConversation(Long postId, Long user1, Long user2) {
-        ForumPost post = forumPostRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng"));
+        PostRef post = resolvePost(postId);
 
         List<ForumMessage> list = forumMessageRepository.findConversation(postId, user1, user2);
 
@@ -163,7 +181,7 @@ public class ForumMessageService {
         }
 
         return list.stream()
-                .map(msg -> ForumMessageResponse.fromEntityWithPostTitle(msg, post.getTitle()))
+                .map(msg -> ForumMessageResponse.fromEntityWithPostTitle(msg, post.title()))
                 .collect(Collectors.toList());
     }
 
@@ -175,9 +193,12 @@ public class ForumMessageService {
 
         return messages.stream()
                 .map(msg -> {
-                    String postTitle = forumPostRepository.findById(msg.getPostId())
-                            .map(ForumPost::getTitle)
-                            .orElse("Bài đăng #" + msg.getPostId());
+                    String postTitle;
+                    try {
+                        postTitle = resolvePost(msg.getPostId()).title();
+                    } catch (ResourceNotFoundException e) {
+                        postTitle = "Bài đăng #" + Math.abs(msg.getPostId());
+                    }
                     return ForumMessageResponse.fromEntityWithPostTitle(msg, postTitle);
                 })
                 .collect(Collectors.toList());

@@ -8,6 +8,7 @@ import com.roomily.property.dto.response.ContractResponse;
 import com.roomily.property.dto.response.LandlordInfo;
 import com.roomily.property.entity.Contract;
 import com.roomily.property.entity.ForumPostImage;
+import com.roomily.property.entity.RentalRequest;
 import com.roomily.property.entity.RoomImage;
 import com.roomily.property.repository.ContractRepository;
 import com.roomily.property.repository.ForumPostRepository;
