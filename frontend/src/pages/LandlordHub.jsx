@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import LandlordProperties from './LandlordProperties';
 import LandlordRequests from './LandlordRequests';
 import LandlordTickets from './LandlordTickets';
+import LandlordBills from './LandlordBills';
 
 const formatVnd = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -256,6 +257,12 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
       badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} mới` : null,
       badgeColor: '#ea580c',
       icon: Users,
+    },
+    {
+      id: 'bills',
+      label: 'Hóa đơn & Thu phí',
+      badge: null,
+      icon: FileText,
     },
     {
       id: 'tickets',
@@ -1092,6 +1099,10 @@ const LandlordHub = ({ defaultTab = 'properties' }) => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'bills' && (
+          <LandlordBills embedded={true} />
         )}
 
         {/* ─────────────────────────────────────────────────────────────

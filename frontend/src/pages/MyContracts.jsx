@@ -205,11 +205,23 @@ const MyContracts = ({ embedded = false }) => {
               <td>Theo chỉ số thực tế / định mức</td>
               <td class="text-right"><strong>${formatVnd(bill.waterAmount)}</strong></td>
             </tr>
-            ${Number(bill.otherAmount) > 0 ? `
             <tr>
               <td style="text-align: center;">4</td>
-              <td><strong>Phí dịch vụ khác</strong></td>
-              <td>Rác thải, vệ sinh, wifi</td>
+              <td><strong>Tiền rác & vệ sinh</strong></td>
+              <td>${Number(bill.garbageAmount) > 0 ? 'Phí thu gom' : 'Miễn phí'}</td>
+              <td class="text-right"><strong>${Number(bill.garbageAmount) > 0 ? formatVnd(bill.garbageAmount) : '0 đ (Miễn phí)'}</strong></td>
+            </tr>
+            <tr>
+              <td style="text-align: center;">5</td>
+              <td><strong>Mạng Wifi Internet</strong></td>
+              <td>${Number(bill.wifiAmount) > 0 ? 'Phí đường truyền' : 'Bao trọn gói'}</td>
+              <td class="text-right"><strong>${Number(bill.wifiAmount) > 0 ? formatVnd(bill.wifiAmount) : '0 đ (Miễn phí)'}</strong></td>
+            </tr>
+            ${Number(bill.otherAmount) > 0 ? `
+            <tr>
+              <td style="text-align: center;">6</td>
+              <td><strong>Phụ phí: ${bill.otherDescription || 'Dịch vụ phát sinh'}</strong></td>
+              <td>Phụ phí khác</td>
               <td class="text-right"><strong>${formatVnd(bill.otherAmount)}</strong></td>
             </tr>
             ` : ''}
@@ -1169,10 +1181,22 @@ const MyContracts = ({ embedded = false }) => {
                                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền nước</div>
                                     <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#06b6d4' }}>{formatVnd(bill.waterAmount)}</div>
                                   </div>
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền rác</div>
+                                    <div style={{ fontSize: '13.5px', fontWeight: '700', color: Number(bill.garbageAmount) > 0 ? 'var(--ink)' : '#10b981' }}>
+                                      {Number(bill.garbageAmount) > 0 ? formatVnd(bill.garbageAmount) : 'Miễn phí'}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tiền Wifi</div>
+                                    <div style={{ fontSize: '13.5px', fontWeight: '700', color: Number(bill.wifiAmount) > 0 ? 'var(--ink)' : '#6366f1' }}>
+                                      {Number(bill.wifiAmount) > 0 ? formatVnd(bill.wifiAmount) : 'Miễn phí'}
+                                    </div>
+                                  </div>
                                   {Number(bill.otherAmount) > 0 && (
                                     <div>
-                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Dịch vụ khác</div>
-                                      <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--ink)' }}>{formatVnd(bill.otherAmount)}</div>
+                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{bill.otherDescription || 'Phụ phí'}</div>
+                                      <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#7e22ce' }}>{formatVnd(bill.otherAmount)}</div>
                                     </div>
                                   )}
                                   <div>

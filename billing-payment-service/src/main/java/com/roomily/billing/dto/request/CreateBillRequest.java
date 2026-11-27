@@ -28,14 +28,23 @@ public class CreateBillRequest {
     @NotBlank(message = "Month Year is required (YYYY-MM)")
     private String monthYear;
 
-    @NotNull(message = "Room amount is required")
     @DecimalMin(value = "0.0", message = "Room amount must be >= 0")
     private BigDecimal roomAmount;
 
     private BigDecimal electricityAmount;
     private BigDecimal waterAmount;
+    private BigDecimal garbageAmount;
+    private BigDecimal wifiAmount;
     private BigDecimal otherAmount;
+    private String otherDescription;
+
+    private LocalDate issueDate;
 
     @NotNull(message = "Due date is required")
     private LocalDate dueDate;
+
+    private String bankName;
+    private String bankAccount;
+    private String bankOwner;
+    private String note;
 }

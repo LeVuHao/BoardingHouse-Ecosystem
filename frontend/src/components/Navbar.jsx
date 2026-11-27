@@ -133,6 +133,9 @@ const Navbar = () => {
                   }}>{ticketUrgentCount}</span>
                 )}
               </Link>
+              <Link to="/landlord/bills" className={`site-nav-link ${location.pathname === "/landlord/bills" ? "active" : ""}`}>
+                Thu phí & Hóa đơn
+              </Link>
             </>
           )}
 
@@ -146,6 +149,9 @@ const Navbar = () => {
             <>
               <Link to="/contracts" className={`site-nav-link ${location.pathname === "/contracts" || location.pathname === "/my-contracts" || location.pathname === "/my-room" ? "active" : ""}`}>
                 Trọ của tôi
+              </Link>
+              <Link to="/my-bills" className={`site-nav-link ${location.pathname === "/my-bills" ? "active" : ""}`}>
+                Hóa đơn
               </Link>
               <Link to="/maintenance" className={`site-nav-link ${location.pathname === "/maintenance" ? "active" : ""}`}>
                 Báo hỏng

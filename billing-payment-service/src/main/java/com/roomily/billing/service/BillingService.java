@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,10 +53,19 @@ public class BillingService {
 
     @Transactional
     public BillResponse createBill(Long landlordId, CreateBillRequest req) {
+        BigDecimal room = req.getRoomAmount() != null ? req.getRoomAmount() : BigDecimal.ZERO;
         BigDecimal elec = req.getElectricityAmount() != null ? req.getElectricityAmount() : BigDecimal.ZERO;
         BigDecimal water = req.getWaterAmount() != null ? req.getWaterAmount() : BigDecimal.ZERO;
+        BigDecimal garbage = req.getGarbageAmount() != null ? req.getGarbageAmount() : BigDecimal.ZERO;
+        BigDecimal wifi = req.getWifiAmount() != null ? req.getWifiAmount() : BigDecimal.ZERO;
         BigDecimal other = req.getOtherAmount() != null ? req.getOtherAmount() : BigDecimal.ZERO;
-        BigDecimal total = req.getRoomAmount().add(elec).add(water).add(other);
+        BigDecimal total = room.add(elec).add(water).add(garbage).add(wifi).add(other);
+
+        LocalDate issue = req.getIssueDate() != null ? req.getIssueDate() : LocalDate.now();
+
+        String bank = (req.getBankName() != null && !req.getBankName().isBlank()) ? req.getBankName().trim() : bankCode;
+        String account = (req.getBankAccount() != null && !req.getBankAccount().isBlank()) ? req.getBankAccount().trim() : bankAccount;
+        String owner = (req.getBankOwner() != null && !req.getBankOwner().isBlank()) ? req.getBankOwner().trim() : accountHolder;
 
         Bill bill = Bill.builder()
                 .contractId(req.getContractId())
@@ -63,16 +73,41 @@ public class BillingService {
                 .landlordId(landlordId)
                 .tenantId(req.getTenantId())
                 .monthYear(req.getMonthYear())
-                .roomAmount(req.getRoomAmount())
+                .roomAmount(room)
                 .electricityAmount(elec)
                 .waterAmount(water)
+                .garbageAmount(garbage)
+                .wifiAmount(wifi)
                 .otherAmount(other)
+                .otherDescription(req.getOtherDescription())
                 .totalAmount(total)
                 .status("UNPAID")
+                .issueDate(issue)
                 .dueDate(req.getDueDate())
+                .bankName(bank)
+                .bankAccount(account)
+                .bankOwner(owner)
+                .note(req.getNote())
                 .build();
 
         Bill saved = billRepository.save(bill);
+
+        // Generate VietQR Code URL with the saved bill ID & landlord bank details
+        String paymentCode = "BILL" + saved.getId();
+        String encodedHolder = URLEncoder.encode(owner, StandardCharsets.UTF_8);
+        String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
+        long amountLong = total.longValue();
+
+        String qrUrl = String.format(
+                "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                bank,
+                account,
+                amountLong,
+                encodedCode,
+                encodedHolder
+        );
+        saved.setQrImageUrl(qrUrl);
+        saved = billRepository.save(saved);
 
         publishEvent("invoice.created", saved.getTenantId(),
                 "Hóa đơn tháng " + saved.getMonthYear() + " đã được tạo",
@@ -104,6 +139,13 @@ public class BillingService {
         bill.setStatus(status.toUpperCase());
         Bill saved = billRepository.save(bill);
 
+        // Đồng bộ trạng thái giao dịch tương ứng nếu có
+        String paymentCode = "BILL" + bill.getId();
+        paymentTransactionRepository.findByVnpTxnRef(paymentCode).ifPresent(txn -> {
+            txn.setStatus("PAID".equalsIgnoreCase(status) ? "SUCCESS" : "PENDING");
+            paymentTransactionRepository.save(txn);
+        });
+
         if ("PAID".equalsIgnoreCase(status)) {
             publishEvent("bill.paid", bill.getTenantId(),
                     "Hóa đơn tháng " + bill.getMonthYear() + " đã được xác nhận thanh toán",
@@ -126,19 +168,28 @@ public class BillingService {
             throw new BadRequestException("Bạn không có quyền truy cập thanh toán hóa đơn này");
         }
 
-        String paymentCode = "BILL" + bill.getId();
-        String encodedHolder = URLEncoder.encode(accountHolder, StandardCharsets.UTF_8);
-        String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
-        long amountLong = bill.getTotalAmount().longValue();
+        String targetBank = (bill.getBankName() != null && !bill.getBankName().isBlank()) ? bill.getBankName() : bankCode;
+        String targetAccount = (bill.getBankAccount() != null && !bill.getBankAccount().isBlank()) ? bill.getBankAccount() : bankAccount;
+        String targetHolder = (bill.getBankOwner() != null && !bill.getBankOwner().isBlank()) ? bill.getBankOwner() : accountHolder;
 
-        String qrUrl = String.format(
-                "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
-                bankCode,
-                bankAccount,
-                amountLong,
-                encodedCode,
-                encodedHolder
-        );
+        String paymentCode = "BILL" + bill.getId();
+        String qrUrl = bill.getQrImageUrl();
+        if (qrUrl == null || qrUrl.isBlank()) {
+            String encodedHolder = URLEncoder.encode(targetHolder, StandardCharsets.UTF_8);
+            String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
+            long amountLong = bill.getTotalAmount().longValue();
+
+            qrUrl = String.format(
+                    "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                    targetBank,
+                    targetAccount,
+                    amountLong,
+                    encodedCode,
+                    encodedHolder
+            );
+            bill.setQrImageUrl(qrUrl);
+            billRepository.save(bill);
+        }
 
         // Lưu bản ghi giao dịch chờ thanh toán
         PaymentTransaction txn = paymentTransactionRepository.findByVnpTxnRef(paymentCode)
@@ -169,9 +220,9 @@ public class BillingService {
                 .amount(bill.getTotalAmount())
                 .paymentCode(paymentCode)
                 .qrImageUrl(qrUrl)
-                .bankName("BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)")
-                .bankAccount(bankAccount)
-                .accountHolder(accountHolder)
+                .bankName(targetBank)
+                .bankAccount(targetAccount)
+                .accountHolder(targetHolder)
                 .status(bill.getStatus())
                 .build();
     }

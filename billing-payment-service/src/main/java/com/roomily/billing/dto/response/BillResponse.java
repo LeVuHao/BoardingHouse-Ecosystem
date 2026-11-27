@@ -24,10 +24,19 @@ public class BillResponse {
     private BigDecimal roomAmount;
     private BigDecimal electricityAmount;
     private BigDecimal waterAmount;
+    private BigDecimal garbageAmount;
+    private BigDecimal wifiAmount;
     private BigDecimal otherAmount;
+    private String otherDescription;
     private BigDecimal totalAmount;
     private String status;
+    private LocalDate issueDate;
     private LocalDate dueDate;
+    private String bankName;
+    private String bankAccount;
+    private String bankOwner;
+    private String qrImageUrl;
+    private String note;
     private LocalDateTime createdAt;
 
     public static BillResponse fromEntity(Bill b) {
@@ -42,10 +51,19 @@ public class BillResponse {
                 .roomAmount(b.getRoomAmount())
                 .electricityAmount(b.getElectricityAmount())
                 .waterAmount(b.getWaterAmount())
+                .garbageAmount(b.getGarbageAmount())
+                .wifiAmount(b.getWifiAmount())
                 .otherAmount(b.getOtherAmount())
+                .otherDescription(b.getOtherDescription())
                 .totalAmount(b.getTotalAmount())
                 .status(b.getStatus())
+                .issueDate(b.getIssueDate() != null ? b.getIssueDate() : (b.getCreatedAt() != null ? b.getCreatedAt().toLocalDate() : null))
                 .dueDate(b.getDueDate())
+                .bankName(b.getBankName())
+                .bankAccount(b.getBankAccount())
+                .bankOwner(b.getBankOwner())
+                .qrImageUrl(b.getQrImageUrl())
+                .note(b.getNote())
                 .createdAt(b.getCreatedAt())
                 .build();
     }
