@@ -46,5 +46,6 @@ public class CreateBillRequest {
     private String bankName;
     private String bankAccount;
     private String bankOwner;
+    private String qrImageUrl;
     private String note;
 }

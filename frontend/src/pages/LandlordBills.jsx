@@ -283,9 +283,20 @@ const LandlordBills = ({ embedded = false }) => {
           <strong>Số tiền viết bằng chữ:</strong> <em>${numberToWordsVN(bill.totalAmount)}</em>
         </div>
 
-        ${bill.bankAccount ? `
-        <div style="background: #f1f5f9; padding: 12px 16px; border-radius: 8px; margin-bottom: 25px; font-size: 10.5pt;">
-          <strong>Thông tin chuyển khoản của chủ trọ:</strong> Ngân hàng <strong>${bill.bankName || 'MB'}</strong> · STK: <strong>${bill.bankAccount}</strong> · Chủ TK: <strong>${bill.bankOwner || landlordName}</strong> · Nội dung: <strong>BILL${bill.id}</strong>
+        ${bill.bankAccount || bill.qrImageUrl ? `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px 18px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="font-size: 10.5pt; line-height: 1.6;">
+            <div style="font-weight: bold; color: #1e3a8a; margin-bottom: 4px;">THÔNG TIN CHUYỂN KHOẢN CỦA CHỦ TRỌ:</div>
+            <div>Ngân hàng: <strong>${bill.bankName || 'Ngân hàng'}</strong> · Số TK: <strong>${bill.bankAccount || 'Theo mã QR'}</strong></div>
+            <div>Chủ tài khoản: <strong>${bill.bankOwner || landlordName}</strong></div>
+            <div>Nội dung chuyển khoản: <strong style="color: #2563eb;">BILL${bill.id}</strong></div>
+          </div>
+          ${bill.qrImageUrl ? `
+          <div style="text-align: center;">
+            <img src="${bill.qrImageUrl}" alt="QR" style="width: 105px; height: 105px; object-fit: contain; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; background: #fff;" />
+            <div style="font-size: 8pt; color: #64748b; margin-top: 3px;">Quét mã thanh toán</div>
+          </div>
+          ` : ''}
         </div>
         ` : ''}
 
@@ -718,7 +729,7 @@ const LandlordBills = ({ embedded = false }) => {
                   />
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 8 }}>
-                  Mã VietQR gắn sẵn số tiền {formatMoney(previewModalBill.totalAmount)} & nội dung BILL{previewModalBill.id}
+                  {previewModalBill.qrImageUrl?.startsWith('data:image') ? '📸 Mã QR cá nhân do chủ trọ tự tải lên' : `Mã VietQR gắn sẵn số tiền ${formatMoney(previewModalBill.totalAmount)} & nội dung BILL${previewModalBill.id}`}
                 </div>
               </div>
             )}

@@ -86,7 +86,7 @@ public class Bill {
     @Column(name = "bank_owner", length = 100)
     private String bankOwner;
 
-    @Column(name = "qr_image_url", length = 500)
+    @Column(name = "qr_image_url", columnDefinition = "LONGTEXT")
     private String qrImageUrl;
 
     @Column(columnDefinition = "TEXT")

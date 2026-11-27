@@ -92,21 +92,25 @@ public class BillingService {
 
         Bill saved = billRepository.save(bill);
 
-        // Generate VietQR Code URL with the saved bill ID & landlord bank details
-        String paymentCode = "BILL" + saved.getId();
-        String encodedHolder = URLEncoder.encode(owner, StandardCharsets.UTF_8);
-        String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
-        long amountLong = total.longValue();
+        // Nếu chủ trọ tải ảnh mã QR cá nhân lên -> Dùng luôn ảnh đó, ngược lại sinh mã VietQR Napas 247
+        if (req.getQrImageUrl() != null && !req.getQrImageUrl().isBlank()) {
+            saved.setQrImageUrl(req.getQrImageUrl().trim());
+        } else {
+            String paymentCode = "BILL" + saved.getId();
+            String encodedHolder = URLEncoder.encode(owner, StandardCharsets.UTF_8);
+            String encodedCode = URLEncoder.encode(paymentCode, StandardCharsets.UTF_8);
+            long amountLong = total.longValue();
 
-        String qrUrl = String.format(
-                "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
-                bank,
-                account,
-                amountLong,
-                encodedCode,
-                encodedHolder
-        );
-        saved.setQrImageUrl(qrUrl);
+            String qrUrl = String.format(
+                    "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                    bank,
+                    account,
+                    amountLong,
+                    encodedCode,
+                    encodedHolder
+            );
+            saved.setQrImageUrl(qrUrl);
+        }
         saved = billRepository.save(saved);
 
         publishEvent("invoice.created", saved.getTenantId(),

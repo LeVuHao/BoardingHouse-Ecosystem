@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { billingApi, contractApi } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 import { VIETNAM_BANKS, formatMoney, numberToWordsVN, generateVietQrUrl } from '../utils/billingUtils';
@@ -6,7 +6,8 @@ import toast from 'react-hot-toast';
 import {
   Receipt, Home, Zap, Droplet, Trash2, Wifi, PlusCircle,
   Calendar, CalendarClock, CreditCard, Building2, Check,
-  Sparkles, CheckCircle2, ArrowLeft, Loader2, Info, Eye
+  Sparkles, CheckCircle2, ArrowLeft, Loader2, Info, Eye,
+  Upload, Image as ImageIcon, X
 } from 'lucide-react';
 
 const LandlordCreateBill = ({
@@ -16,6 +17,7 @@ const LandlordCreateBill = ({
   onCancel = null
 }) => {
   const { user } = useAuth();
+  const fileInputRef = useRef(null);
   const [contracts, setContracts] = useState([]);
   const [loadingContracts, setLoadingContracts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +66,12 @@ const LandlordCreateBill = ({
   const [otherAmount, setOtherAmount] = useState('');
   const [otherDescription, setOtherDescription] = useState('');
 
-  // Bank & VietQR info
+  // QR Mode: 'AUTO' (VietQR tự động) hoặc 'UPLOAD' (Chủ trọ tự tải ảnh QR lên)
+  const [qrMode, setQrMode] = useState(savedBankInfo?.customQrImage ? 'UPLOAD' : 'AUTO');
+  const [customQrImage, setCustomQrImage] = useState(savedBankInfo?.customQrImage || null);
+  const [qrFileName, setQrFileName] = useState('');
+
+  // Bank info
   const [bankName, setBankName] = useState(savedBankInfo?.bankName || 'MB');
   const [bankAccount, setBankAccount] = useState(savedBankInfo?.bankAccount || '');
   const [bankOwner, setBankOwner] = useState(savedBankInfo?.bankOwner || (user?.fullName?.toUpperCase() || ''));
@@ -120,6 +127,40 @@ const LandlordCreateBill = ({
     }
   };
 
+  // Upload ảnh mã QR cá nhân từ máy
+  const handleQrFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WebP)');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Kích thước ảnh tối đa là 8MB');
+      return;
+    }
+
+    setQrFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCustomQrImage(reader.result);
+      setQrMode('UPLOAD');
+      toast.success('✓ Đã tải ảnh mã QR cá nhân thành công!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomQr = () => {
+    setCustomQrImage(null);
+    setQrFileName('');
+    setQrMode('AUTO');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Auto calculate Electricity from indices
   useEffect(() => {
     if (showElecCalc) {
@@ -156,8 +197,11 @@ const LandlordCreateBill = ({
     return sum;
   }, [applyRoom, roomAmount, applyElec, elecAmount, applyWater, waterAmount, applyGarbage, garbageAmount, applyWifi, wifiAmount, applyOther, otherAmount]);
 
-  // Live VietQR preview URL
+  // Live QR preview URL (Either custom uploaded QR or VietQR generated)
   const qrPreviewUrl = useMemo(() => {
+    if (qrMode === 'UPLOAD' && customQrImage) {
+      return customQrImage;
+    }
     return generateVietQrUrl({
       bankCode: bankName,
       bankAccount: bankAccount,
@@ -165,7 +209,7 @@ const LandlordCreateBill = ({
       addInfo: note || `BILL${selectedContract?.roomId || ''}`,
       accountName: bankOwner
     });
-  }, [bankName, bankAccount, totalAmount, note, bankOwner, selectedContract]);
+  }, [qrMode, customQrImage, bankName, bankAccount, totalAmount, note, bankOwner, selectedContract]);
 
   // Submit Handler
   const handleSubmit = async (e) => {
@@ -187,14 +231,20 @@ const LandlordCreateBill = ({
       return;
     }
 
+    if (qrMode === 'UPLOAD' && !customQrImage) {
+      toast.error('Bạn đã chọn chế độ tự tải ảnh QR, vui lòng chọn file ảnh QR từ thiết bị');
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Save default bank info if enabled
-      if (saveBankDefault && bankAccount) {
+      if (saveBankDefault) {
         localStorage.setItem('roomily_landlord_bank_info', JSON.stringify({
           bankName,
           bankAccount,
-          bankOwner
+          bankOwner,
+          customQrImage: qrMode === 'UPLOAD' ? customQrImage : null
         }));
       }
 
@@ -212,9 +262,10 @@ const LandlordCreateBill = ({
         wifiAmount: applyWifi ? (Number(wifiAmount) || 0) : 0,
         otherAmount: applyOther ? (Number(otherAmount) || 0) : 0,
         otherDescription: applyOther ? (otherDescription || 'Phụ phí khác') : null,
-        bankName,
-        bankAccount,
-        bankOwner: (bankOwner || '').toUpperCase(),
+        bankName: bankName || null,
+        bankAccount: bankAccount || null,
+        bankOwner: bankOwner ? bankOwner.toUpperCase() : null,
+        qrImageUrl: qrMode === 'UPLOAD' && customQrImage ? customQrImage : null,
         note: note || `BILL MP${selectedContract?.roomId || ''} T${monthYear}`
       };
 
@@ -259,10 +310,10 @@ const LandlordCreateBill = ({
           </div>
           <div>
             <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Lập Hóa Đơn Tiền Trọ & Sinh Mã VietQR
+              Lập Hóa Đơn Tiền Trọ & Gửi Mã QR Thanh Toán
             </h2>
             <p style={{ margin: '3px 0 0 0', color: 'var(--text-muted)', fontSize: '13px' }}>
-              Tick chọn các khoản phí linh hoạt (tiền nhà, điện, nước, rác, wifi, phụ phí). Không bắt buộc thu mọi mục.
+              Tick chọn các khoản phí linh hoạt (tiền nhà, điện, nước, rác, wifi, phụ phí). Có thể tự tải ảnh mã QR cá nhân lên!
             </p>
           </div>
         </div>
@@ -847,7 +898,7 @@ const LandlordCreateBill = ({
               </div>
             </div>
 
-            {/* CARD 3: LANDLORD BANKING INFO FOR VIETQR */}
+            {/* CARD 3: LANDLORD BANKING & QR CODE (AUTO VIETQR OR UPLOAD OWN QR) */}
             <div style={{
               background: 'var(--bg-card)',
               borderRadius: '16px',
@@ -855,12 +906,141 @@ const LandlordCreateBill = ({
               border: '1px solid var(--border)',
               boxShadow: 'var(--shadow-card)'
             }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 16px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CreditCard size={18} color="#2563eb" /> 3. Thông Tin Ngân Hàng Thụ Hưởng & Mã QR Của Chủ Trọ
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CreditCard size={18} color="#2563eb" /> 3. Mã QR & Thông Tin Chuyển Khoản Cho Khách Thuê
+                </h3>
+              </div>
+
               <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                Thông tin này sẽ đính kèm trực tiếp vào hóa đơn của người thuê để người thuê chuyển khoản hoặc quét mã QR ngân hàng.
+                Chọn cách cung cấp mã QR cho khách thuê: Hệ thống tự động sinh mã VietQR hoặc Bạn tự tải ảnh mã QR cá nhân của mình lên.
               </p>
+
+              {/* QR MODE SELECTOR TABS */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                <button
+                  type="button"
+                  onClick={() => setQrMode('AUTO')}
+                  style={{
+                    padding: '12px 14px', borderRadius: 12,
+                    border: '1.5px solid',
+                    borderColor: qrMode === 'AUTO' ? '#2563eb' : 'var(--border)',
+                    background: qrMode === 'AUTO' ? 'rgba(37, 99, 235, 0.08)' : 'var(--bg-primary)',
+                    color: qrMode === 'AUTO' ? '#2563eb' : 'var(--text-secondary)',
+                    fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Sparkles size={16} /> 1. Tạo VietQR Tự Động (Napas 247)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setQrMode('UPLOAD')}
+                  style={{
+                    padding: '12px 14px', borderRadius: 12,
+                    border: '1.5px solid',
+                    borderColor: qrMode === 'UPLOAD' ? '#16a34a' : 'var(--border)',
+                    background: qrMode === 'UPLOAD' ? 'rgba(22, 163, 74, 0.08)' : 'var(--bg-primary)',
+                    color: qrMode === 'UPLOAD' ? '#16a34a' : 'var(--text-secondary)',
+                    fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Upload size={16} /> 2. Tự Tải Ảnh QR Cá Nhân Lên
+                </button>
+              </div>
+
+              {/* MODE 2: UPLOAD CUSTOM QR IMAGE */}
+              {qrMode === 'UPLOAD' && (
+                <div style={{
+                  marginBottom: 18,
+                  padding: '16px',
+                  borderRadius: 12,
+                  background: 'rgba(22, 163, 74, 0.04)',
+                  border: '1.5px dashed #16a34a'
+                }}>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleQrFileUpload}
+                    style={{ display: 'none' }}
+                  />
+
+                  {customQrImage ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                      <div style={{
+                        background: '#ffffff', padding: 8, borderRadius: 10,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0'
+                      }}>
+                        <img
+                          src={customQrImage}
+                          alt="Custom QR Preview"
+                          style={{ width: 100, height: 100, objectFit: 'contain', display: 'block' }}
+                        />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 200 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#16a34a', fontWeight: 700, fontSize: 13.5, marginBottom: 4 }}>
+                          <CheckCircle2 size={16} /> Đã chọn ảnh mã QR cá nhân
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
+                          {qrFileName || 'Ảnh mã QR đã lưu trong cấu hình của bạn'}
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="btn btn-outline"
+                            style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <Upload size={13} /> Đổi ảnh khác
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveCustomQr}
+                            className="btn btn-outline"
+                            style={{ padding: '6px 12px', fontSize: 12, color: '#ef4444', borderColor: '#fca5a5', display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <X size={13} /> Xóa ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        textAlign: 'center', padding: '24px 16px', cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{
+                        width: 48, height: 48, borderRadius: '50%',
+                        background: 'rgba(22, 163, 74, 0.1)', color: '#16a34a',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        margin: '0 auto 10px'
+                      }}>
+                        <Upload size={22} />
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#16a34a', marginBottom: 4 }}>
+                        Nhấn vào đây để tải ảnh mã QR từ máy tính hoặc điện thoại
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        Hỗ trợ ảnh QR ngân hàng cá nhân, ảnh QR ZaloPay, MoMo, Vietcombank... (PNG, JPG, WebP tối đa 8MB)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* BANK TEXT INFO (APPLIES TO BOTH MODES) */}
+              <div style={{
+                fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10
+              }}>
+                Thông tin số tài khoản dự phòng (Khách thuê có thể bấm sao chép nếu không quét được QR):
+              </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: 14 }}>
                 {/* Bank Select */}
@@ -947,7 +1127,7 @@ const LandlordCreateBill = ({
                   onChange={(e) => setSaveBankDefault(e.target.checked)}
                   style={{ width: 16, height: 16, accentColor: '#2563eb' }}
                 />
-                Lưu thông tin ngân hàng này làm mặc định cho các lần tạo hóa đơn tiếp theo
+                Lưu thông tin ngân hàng & mã QR này làm mặc định cho các lần tạo hóa đơn tiếp theo
               </label>
             </div>
 
@@ -1028,8 +1208,21 @@ const LandlordCreateBill = ({
               boxShadow: 'var(--shadow-card)',
               textAlign: 'center'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>
-                <Eye size={15} color="#2563eb" /> Xem Trước Mã VietQR Của Hóa Đơn
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                <Eye size={15} color="#2563eb" /> Xem Trước Mã QR Đính Kèm Hóa Đơn
+              </div>
+
+              <div style={{
+                display: 'inline-block',
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 12,
+                background: qrMode === 'UPLOAD' ? 'rgba(22, 163, 74, 0.12)' : 'rgba(37, 99, 235, 0.12)',
+                color: qrMode === 'UPLOAD' ? '#16a34a' : '#2563eb',
+                marginBottom: 10
+              }}>
+                {qrMode === 'UPLOAD' ? '📸 Mã QR do chủ trọ tự tải lên' : '✨ Mã VietQR tự động sinh (Napas 247)'}
               </div>
 
               <div style={{
@@ -1042,7 +1235,7 @@ const LandlordCreateBill = ({
               }}>
                 <img
                   src={qrPreviewUrl}
-                  alt="VietQR Preview"
+                  alt="QR Code Preview"
                   style={{ width: 190, height: 190, objectFit: 'contain', display: 'block' }}
                 />
               </div>
